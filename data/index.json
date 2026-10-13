@@ -1,17 +1,19 @@
 {
  "en": {
   "v": 1,
-  "built": "2026-10-13T04:51:35Z",
+  "src": "tcgdex",
+  "built": "2026-10-13T09:13:11Z",
   "count": 21979,
   "file": "fp-en.json",
-  "bytes": 2283399
+  "bytes": 2283414
  },
  "ja": {
   "v": 1,
-  "built": "2026-10-13T04:51:42Z",
-  "count": 3878,
+  "src": "pcj",
+  "built": "2026-10-13T09:30:46Z",
+  "count": 23458,
   "file": "fp-ja.json",
-  "bytes": 403384
+  "bytes": 2470320
  },
  "zh-tw": {
   "v": 1,
@@ -26,5 +28,10 @@
   "count": 20345,
   "file": "fp-zh-cn.json",
   "bytes": 2133495
+ },
+ "jaCatalog": {
+  "built": "2026-10-13T09:13:02Z",
+  "count": 23458,
+  "file": "ja-official.json"
  }
 }
