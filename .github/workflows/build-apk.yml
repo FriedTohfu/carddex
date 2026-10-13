@@ -1,0 +1,65 @@
+name: Build Android app
+
+# Runs every time you upload changes, or when you press "Run workflow".
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install app tools
+        run: npm install --no-audit --no-fund
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Customise Android project
+        run: bash build/android-setup.sh
+
+      - name: Copy app into Android project
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/CardDex.apk"
+
+      - name: Save APK (Actions tab download)
+        uses: actions/upload-artifact@v4
+        with:
+          name: CardDex-apk
+          path: CardDex.apk
+
+      - name: Publish APK (Releases page download)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: CardDex build ${{ github.run_number }}
+          body: Download **CardDex.apk** below and open it on your Android phone to install or update.
+          files: CardDex.apk
+          make_latest: true

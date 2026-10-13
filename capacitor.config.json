@@ -1,0 +1,14 @@
+{
+  "appId": "com.carddex.app",
+  "appName": "CardDex",
+  "webDir": "www",
+  "android": {
+    "adjustMarginsForEdgeToEdge": "force",
+    "backgroundColor": "#f4f2ee"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
