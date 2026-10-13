@@ -139,6 +139,31 @@ export function openPokemon(id, tab = 'pokedex') {
           dimBtn, combineBtn),
         res);
       draw();
+      // HP + illustrator for each card (used to match languages when a card has no picture)
+      let fetching = false;
+      async function factsFor(cards) {
+        const { cardDetail } = await import('../sync.js');
+        const dbm = await import('../db.js');
+        const out = new Map(), missing = [];
+        for (const c of cards) {
+          const d = c.det || await dbm.get('details', c.key);
+          if (d) out.set(c.key, { hp: d.hp, illustrator: d.illustrator || d.illus });
+          else missing.push(c);
+        }
+        // Look up the rest in the background, then redraw once
+        if (missing.length && navigator.onLine && !fetching) {
+          fetching = true;
+          (async () => {
+            const queue = missing.slice(0, 150);
+            await Promise.all(Array.from({ length: 6 }, async () => {
+              while (queue.length) { const c = queue.shift(); try { await cardDetail(c.key); } catch { /* skip */ } }
+            }));
+            if (res.isConnected) draw();
+          })();
+        }
+        return out;
+      }
+
       async function draw() {
         const set = F.setKey && state.sets.get(F.setKey);
         setBtn.textContent = set ? `📦 ${set.name} ✕` : '📦 Any set';
@@ -150,7 +175,7 @@ export function openPokemon(id, tab = 'pokedex') {
         // One tile per card, with its English/Japanese/Chinese versions inside
         const combine = state.settings.dexCombine !== false && F.lang === 'all';
         let groups = cards.map((c) => ({ rep: c, keys: [c.key] }));
-        if (combine) groups = await groupVersions(cards);
+        if (combine) groups = await groupVersions(cards, await factsFor(cards));
         const anyOwned = (g) => g.keys.some((k) => qty(k));
         if (F.owned === 'owned') groups = groups.filter(anyOwned);
         if (F.owned === 'missing') groups = groups.filter((g) => !anyOwned(g));

@@ -22,11 +22,25 @@ export function langOrder() {
   return [pref, ...['en', 'ja', 'zh-cn', 'zh-tw'].filter((l) => l !== pref)];
 }
 
+// Without pictures we can still match on facts that don't change between
+// languages: HP and illustrator (and the releases being close together).
+const norm = (x) => String(x || '').toLowerCase().normalize('NFKC').replace(/[^a-z0-9\u3040-\u30ff\u4e00-\u9fff]/g, '');
+function sameFacts(a, b, da, db) {
+  if (!da || !db) return false;
+  const ia = norm(da.illustrator), ib = norm(db.illustrator);
+  if (!ia || ia !== ib) return false;
+  if (!da.hp || !db.hp || +da.hp !== +db.hp) return false;
+  const ra = state.sets.get(a.setKey)?.releaseDate, rb = state.sets.get(b.setKey)?.releaseDate;
+  if (ra && rb && Math.abs(new Date(ra) - new Date(rb)) > 550 * 864e5) return false; // ~18 months
+  return true;
+}
+
 /**
  * Groups cards that are the same card in different languages.
+ * details: optional Map(cardKey -> {hp, illustrator}) used when a card has no picture.
  * Returns [{ rep: card, keys: [cardKey…] }] keeping the input order of representatives.
  */
-export async function groupVersions(cards) {
+export async function groupVersions(cards, details = new Map()) {
   const fps = await loadFingerprints();
   const n = cards.length;
   const parent = cards.map((_, i) => i);
@@ -38,6 +52,11 @@ export async function groupVersions(cards) {
       if (!fp[j] || cards[i].lang === cards[j].lang) continue; // only link across languages
       if (artDistance(fp[i], fp[j]) <= SAME_ART) parent[find(j)] = find(i);
     }
+  }
+  // Cards missing a picture on either side: fall back to HP + illustrator
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    if (cards[i].lang === cards[j].lang || (fp[i] && fp[j])) continue;
+    if (sameFacts(cards[i], cards[j], details.get(cards[i].key), details.get(cards[j].key))) parent[find(j)] = find(i);
   }
   const groups = new Map();
   cards.forEach((c, i) => {

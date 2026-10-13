@@ -107,23 +107,47 @@ def main():
                 }
     print(f'{len(listed)} cards listed', flush=True)
 
-    todo = [cid for cid in listed if cid not in old or not old[cid].get('num')]
+    # Cards never read (or whose page failed last time). 'chk' = page read fine, it just has no number.
+    todo = [cid for cid in listed if cid not in old or not (old[cid].get('num') or old[cid].get('chk'))]
     print(f'{len(todo)} cards need details', flush=True)
     done = 0
     parsed_num = 0
-    def detail(cid):
-        page = get(DETAIL.format(id=cid), tries=2)
-        return cid, (parse_detail(page) if page else {})
-    with ThreadPoolExecutor(6) as ex:
-        for i in range(0, len(todo), 120):
-            if (time.time() - START) / 60 > MAX_MIN:
-                print('Time limit reached — the next run continues from here', flush=True)
+    failed = []
+    def detail(cid, tries=2):
+        page = get(DETAIL.format(id=cid), tries=tries)
+        if not page:
+            return cid, None
+        info = parse_detail(page)
+        if not info.get('num'):
+            info['chk'] = 1
+        return cid, info
+    def run(ids, workers, tries):
+        nonlocal done, parsed_num
+        with ThreadPoolExecutor(workers) as ex:
+            for i in range(0, len(ids), 120):
+                if (time.time() - START) / 60 > MAX_MIN:
+                    print('Time limit reached — the next run continues from here', flush=True)
+                    return False
+                for cid, info in ex.map(lambda c: detail(c, tries), ids[i:i + 120]):
+                    if info is None:
+                        failed.append(cid)
+                        continue
+                    old[cid] = {**old.get(cid, {}), **listed[cid], **info}
+                    done += 1
+                    parsed_num += 1 if info.get('num') else 0
+                print(f'  details {done}/{len(todo)} (numbers found: {parsed_num}, failed: {len(failed)})', flush=True)
+        return True
+    if run(todo, 6, 2):
+        # Pages that failed (usually the site slowing us down): try again, gently
+        for attempt in range(3):
+            if not failed:
                 break
-            for cid, info in ex.map(detail, todo[i:i + 120]):
-                old[cid] = {**old.get(cid, {}), **listed[cid], **info}
-                done += 1
-                parsed_num += 1 if info.get('num') else 0
-            print(f'  details {done}/{len(todo)} (numbers found: {parsed_num})', flush=True)
+            retry, failed[:] = list(failed), []
+            print(f'Retrying {len(retry)} pages that failed (pass {attempt + 1})', flush=True)
+            time.sleep(30)
+            if not run(retry, 2, 4):
+                break
+    print(f'{len(failed)} card pages still unread', flush=True)
 
     # Set names and release dates (from TCGdex, where set codes match)
     sets_info = {}
@@ -147,10 +171,52 @@ def main():
                            'serie': (full.get('serie') or {}).get('name', '')}
     print(f'{len(sets_info)} sets matched with release dates', flush=True)
 
+    # Older sets aren't on pokemon-card.com (its database starts around 2006), so add the
+    # Japanese sets TCGdex knows about that the official list doesn't have.
+    extra = []
+    try:
+        have_name_num = {}
+        for c in old.values():
+            if str(c.get('id', '')).startswith('td-'):
+                continue
+            n = str(c.get('num') or '').split('/')[0]
+            if n.isdigit():
+                have_name_num.setdefault((c.get('name'), int(n)), set()).add((c.get('set') or '').lower())
+        for t in (json.loads(tl) if tl else []):
+            code = str(t.get('id', ''))
+            if not code or code.lower() in codes:
+                continue
+            full = get(f"{tcg}/ja/sets/{urllib.parse.quote(code)}")
+            full = json.loads(full) if full else {}
+            tcards = [c for c in full.get('cards', []) if c.get('image') and c.get('name')]
+            if not tcards:
+                continue
+            # Same set under a different code? (most of its cards already exist in one official set)
+            hits = {}
+            for c in tcards:
+                lid = str(c.get('localId') or '')
+                for sc in have_name_num.get((c['name'], int(lid)), ()) if lid.isdigit() else ():
+                    hits[sc] = hits.get(sc, 0) + 1
+            if hits and max(hits.values()) >= 0.5 * len(tcards):
+                continue
+            official = (full.get('cardCount') or {}).get('official')
+            sets_info[code.lower()] = {'name': full.get('name') or t.get('name') or code, 'releaseDate': full.get('releaseDate', ''),
+                                       'serie': (full.get('serie') or {}).get('name', ''), 'src': 'tcgdex'}
+            for c in tcards:
+                lid = str(c.get('localId') or '')
+                extra.append({'id': f"td-{code}-{lid}", 'name': c['name'], 'set': code, 'img': c['image'] + '/high.webp',
+                              'num': f'{lid}/{official}' if lid and official and lid.isdigit() else lid, 'chk': 1,
+                              'setName': sets_info[code.lower()]['name']})
+    except Exception as e:
+        print(f'Older sets skipped: {e}', flush=True)
+        extra = []
+    print(f'{len(extra)} older cards added from TCGdex', flush=True)
+
     cards = []
     for cid, c in listed.items():
         cards.append({**old.get(cid, {}), **c})
     cards.sort(key=lambda c: int(c['id']) if str(c['id']).isdigit() else 0)
+    cards = extra + cards
     built = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump({'built': built, 'count': len(cards), 'source': BASE, 'sets': sets_info, 'cards': cards}, f, ensure_ascii=False, separators=(',', ':'))

@@ -436,3 +436,9 @@ textarea.input { resize: vertical; }
 .version-chips .chip { display: inline-flex; flex-direction: column; align-items: center; padding: 6px 12px; line-height: 1.2; }
 .version-chips .chip small { font-weight: 500; opacity: .8; font-size: 10.5px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
 .version-chips .chip .owned-dot { color: var(--good); }
+/* ---------- Binder drag and drop ---------- */
+.drag-ghost { position: fixed; z-index: 120; pointer-events: none; transform: translate(-50%, -55%) scale(1.08) rotate(-3deg); border-radius: 6px; box-shadow: 0 14px 30px rgba(0,0,0,.35); transition: transform .1s; }
+.drag-ghost .art { width: 100%; height: 100%; border-radius: 6px; }
+.pocket.drag-src { opacity: .3; }
+.pocket.drop-target, .icon-btn.drop-target { outline: 3px solid var(--accent); outline-offset: 2px; }
+.binder-page .pocket { -webkit-touch-callout: none; user-select: none; }

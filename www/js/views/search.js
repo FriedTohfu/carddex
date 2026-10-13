@@ -17,17 +17,28 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
   if (lang !== 'all') cards = cards.filter((c) => c.lang === lang);
   q = q.trim();
   if (q) {
-    const num = q.match(/^#?\s*([a-z]*\d+[a-z]*)\s*(?:\/\s*(\d+))?$/i);
-    if (num) {
-      const id = num[1].toLowerCase().replace(/^0+(?=\d)/, '');
-      const of = num[2] ? +num[2] : null;
-      cards = cards.filter((c) => String(c.localId).toLowerCase().replace(/^0+(?=\d)/, '') === id &&
-        (!of || state.sets.get(c.setKey)?.official === of));
-    } else {
-      const nq = normalizeName(q);
-      const words = nq.split(' ');
-      cards = cards.filter((c) => { const n = normalizeName(c.name); return words.every((w) => n.includes(w)); });
+    // Understands a card number anywhere in the search, with or without a name:
+    // "Mewtwo 164/162", "164/162 mewtwo", "mewtwo 164", "#25", "TG05/TG30", "001/SV-P"
+    const stripZ = (x) => String(x ?? '').trim().toLowerCase().replace(/^0+(?=[0-9])/, '');
+    let num = null, of = null, rest = q;
+    const withTotal = q.match(/(?:^|\s)#?\s*([a-z]{0,6}\d+[a-z]?)\s*\/\s*([a-z0-9-]+)(?=\s|$)/i);
+    if (withTotal) { num = withTotal[1]; of = withTotal[2]; rest = q.replace(withTotal[0], ' '); }
+    else {
+      const alone = q.match(/(?:^|\s)#?([a-z]{0,6}\d+[a-z]?)(?=\s|$)/i);
+      if (alone) { num = alone[1]; rest = q.replace(alone[0], ' '); }
     }
+    const words = normalizeName(rest).split(' ').filter(Boolean);
+    if (num) {
+      const id = stripZ(num);
+      cards = cards.filter((c) => {
+        if (stripZ(c.localId) !== id) return false;
+        if (!of) return true;
+        const set = state.sets.get(c.setKey);
+        const totals = [set?.official, set?.total, String(c.number || '').split('/')[1]];
+        return totals.some((t) => t != null && t !== '' && stripZ(t) === stripZ(of));
+      });
+    }
+    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name); return words.every((w) => n.includes(w)); });
   }
   if (owned === 'owned') cards = cards.filter((c) => qty(c.key));
   if (owned === 'missing') cards = cards.filter((c) => !qty(c.key));
@@ -56,7 +67,7 @@ export function searchRoot() {
         return;
       }
       const results = h('div');
-      const input = h('input', { class: 'input search', type: 'search', placeholder: 'Name or number, e.g. Pikachu or 25/102', value: S.q, enterkeyhint: 'search' });
+      const input = h('input', { class: 'input search', type: 'search', placeholder: 'Name and/or number, e.g. Mewtwo 164/162', value: S.q, enterkeyhint: 'search' });
       input.addEventListener('input', debounce(() => { S.q = input.value; draw(); }, 220));
       const setBtn = h('button', { class: 'chip' + (S.setKey ? ' on' : ''), onclick: pickSet });
       const langOpts = [{ value: 'all', label: 'All languages' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))];

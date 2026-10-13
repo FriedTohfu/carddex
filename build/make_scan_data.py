@@ -67,7 +67,8 @@ def ja_list():
     if not os.path.exists(JA_LIST):
         return None
     d = json.load(open(JA_LIST, encoding='utf-8'))
-    return [(f"pcj-{c['id']}", JA_IMG_BASE + c['img']) for c in d.get('cards', []) if c.get('img')]
+    return [(f"pcj-{c['id']}", c['img'] if c['img'].startswith('http') else JA_IMG_BASE + c['img'])
+            for c in d.get('cards', []) if c.get('img')]
 
 
 SOURCE = {'zh-cn': 'chs', 'ja': 'pcj'}

@@ -143,6 +143,16 @@ async function syncChs({ force = false } = {}) {
   await db.put('meta', state.syncInfo, 'syncInfo');
 }
 
+/** At start-up: quietly fetch the Japanese card list when GitHub has a newer one. Returns true if it updated. */
+export async function autoUpdateCardData() {
+  if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
+  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
+  const built = index?.jaCatalog?.built;
+  if (!built || state.syncInfo.ja?.built === built) return false;
+  const errors = await syncCatalog(['ja']);
+  return !errors?.length;
+}
+
 // ---------- Japanese (official card list, built by build/make_ja_catalog.py) ----------
 async function syncJa({ force = false } = {}) {
   const lang = 'ja';
@@ -185,7 +195,7 @@ async function syncJa({ force = false } = {}) {
       cards.push({
         key: `${lang}:pcj-${c.id}`, lang, id: `pcj-${c.id}`, src: 'pcj',
         localId: num.split('/')[0] || '', number: num, name: c.name || '',
-        image: c.img ? `https://www.pokemon-card.com${c.img}` : '', setKey, order: i,
+        image: !c.img ? '' : /^https?:/.test(c.img) ? c.img : `https://www.pokemon-card.com${c.img}`, setKey, order: i,
         det: { rarity: c.rarity, illustrator: c.illus, hp: c.hp, number: num, category: c.hp ? 'Pokemon' : undefined },
       });
     });

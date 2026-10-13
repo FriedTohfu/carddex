@@ -126,16 +126,18 @@ export function openBinder(id) {
         const isMoving = moving && moving.p === pageNo && moving.i === i;
         grid.append(h('button', {
           class: 'pocket' + (card ? '' : ' empty') + (card && !qty(key) ? ' unowned' : '') + (isMoving ? ' moving' : ''),
-          'aria-label': card ? card.name : 'Empty pocket',
-          onclick: () => tapSlot(i),
+          'aria-label': card ? card.name : 'Empty pocket', 'data-slot': String(i),
+          onclick: () => { if (justDragged) return; tapSlot(i); },
         }, card ? cardArt(card) : h('span', { class: 'plus' }, '+'),
           card && !qty(key) ? h('span', { class: 'need' }, 'Need') : null));
       });
+      // Press and hold a card, then drag it onto another pocket (or onto ‹ › to move it to another page)
+      enableDrag(grid, body);
       // Swipe between pages
       let sx = null;
       grid.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
       grid.addEventListener('touchend', (e) => {
-        if (sx == null) return;
+        if (sx == null || dragging) { sx = null; return; }
         const dx = e.changedTouches[0].clientX - sx; sx = null;
         if (Math.abs(dx) > 60) turn(dx < 0 ? 1 : -1);
       });
@@ -143,9 +145,9 @@ export function openBinder(id) {
       body.append(
         moving ? h('div', { class: 'banner' }, 'Tap a pocket to move the card there (any page). ', h('button', { class: 'link', onclick: () => { moving = null; redraw(); } }, 'Cancel')) : null,
         h('div', { class: 'binder-nav' },
-          h('button', { class: 'icon-btn', 'aria-label': 'Previous page', disabled: pageNo === 0, onclick: () => turn(-1) }, icon('back')),
+          h('button', { class: 'icon-btn', 'aria-label': 'Previous page', 'data-drop': 'prev', disabled: pageNo === 0, onclick: () => turn(-1) }, icon('back')),
           h('div', { class: 'center' }, h('b', {}, `Page ${pageNo + 1}`), h('small', { class: 'muted' }, ` of ${b.pages.length}`)),
-          h('button', { class: 'icon-btn flip', 'aria-label': 'Next page', disabled: pageNo >= b.pages.length - 1, onclick: () => turn(1) }, icon('back'))),
+          h('button', { class: 'icon-btn flip', 'aria-label': 'Next page', 'data-drop': 'next', onclick: () => turn(1) }, icon('back'))),
         grid,
         h('div', { class: 'binder-foot' },
           h('span', { class: 'muted small' }, `${filled.length}/${all.length} pockets filled · ${owned} owned · ${filled.length - owned} needed`),
@@ -158,6 +160,91 @@ export function openBinder(id) {
     },
   });
 
+  // ---------- drag and drop ----------
+  let dragging = false, justDragged = false;
+  function enableDrag(grid, body) {
+    let hold = null, start = null;
+    grid.addEventListener('pointerdown', (e) => {
+      const pocket = e.target.closest('.pocket');
+      if (!pocket || pocket.classList.contains('empty') || moving) return;
+      start = { x: e.clientX, y: e.clientY, pocket };
+      clearTimeout(hold);
+      hold = setTimeout(() => begin(start, e.clientX, e.clientY), 300);
+    });
+    grid.addEventListener('pointermove', (e) => {
+      if (!dragging && start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) { clearTimeout(hold); start = null; }
+    });
+    const cancelHold = () => { if (!dragging) { clearTimeout(hold); start = null; } };
+    grid.addEventListener('pointerup', cancelHold);
+    grid.addEventListener('pointercancel', cancelHold);
+    grid.addEventListener('contextmenu', (e) => e.preventDefault());
+    grid.addEventListener('dragstart', (e) => e.preventDefault()); // no built-in image dragging
+
+    function begin(st, x, y) {
+      if (!st) return;
+      dragging = true;
+      const from = +st.pocket.dataset.slot;
+      const r = st.pocket.getBoundingClientRect();
+      const ghost = h('div', { class: 'drag-ghost', style: { width: `${r.width}px`, height: `${r.height}px` } }, st.pocket.querySelector('.art')?.cloneNode(true));
+      document.body.append(ghost);
+      st.pocket.classList.add('drag-src');
+      navigator.vibrate?.(15);
+      let target = null;
+      const place = (px, py) => {
+        ghost.style.left = `${px}px`; ghost.style.top = `${py}px`;
+        const under = document.elementFromPoint(px, py);
+        const t = under?.closest('.pocket[data-slot], [data-drop]');
+        const ok = t && (t.dataset.drop ? true : grid.contains(t));
+        if (target && target !== t) target.classList.remove('drop-target');
+        target = ok ? t : null;
+        target?.classList.add('drop-target');
+      };
+      place(x, y);
+      let ended = false;
+      const move = (e) => { if (e.cancelable) e.preventDefault(); const p = e.touches ? e.touches[0] : e; if (p) place(p.clientX, p.clientY); };
+      const end = async () => {
+        if (ended) return;
+        ended = true;
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', end);
+        document.removeEventListener('touchmove', move);
+        document.removeEventListener('touchend', end);
+        document.removeEventListener('touchcancel', end);
+        ghost.remove();
+        st.pocket.classList.remove('drag-src');
+        target?.classList.remove('drop-target');
+        dragging = false; start = null;
+        justDragged = true; setTimeout(() => { justDragged = false; }, 350);
+        if (!target) return;
+        const b = state.binders.get(id);
+        if (target.dataset.drop) {
+          // Move to the previous/next page's first empty pocket
+          const to = pageNo + (target.dataset.drop === 'next' ? 1 : -1);
+          if (to < 0) return;
+          const key = b.pages[pageNo][from];
+          while (b.pages.length <= to) b.pages.push(Array(b.size).fill(null));
+          let j = b.pages[to].indexOf(null);
+          // No space there: swap with that page's first pocket
+          if (j < 0) { j = 0; b.pages[pageNo][from] = b.pages[to][0]; } else b.pages[pageNo][from] = null;
+          b.pages[to][j] = key;
+          await saveBinder(b);
+          toast(`Moved to page ${to + 1}`, 1400);
+          return;
+        }
+        const j = +target.dataset.slot;
+        if (j === from) return;
+        const p = b.pages[pageNo];
+        [p[from], p[j]] = [p[j], p[from]];
+        await saveBinder(b);
+      };
+      // Phones send touch events, mice send pointer events; listen to both
+      document.addEventListener('pointermove', move, { passive: false });
+      document.addEventListener('pointerup', end);
+      document.addEventListener('touchmove', move, { passive: false });
+      document.addEventListener('touchend', end);
+      document.addEventListener('touchcancel', end);
+    }
+  }
   function turn(d) {
     const b = state.binders.get(id);
     const n = pageNo + d;

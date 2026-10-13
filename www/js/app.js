@@ -2,7 +2,7 @@
 import { openDB } from './db.js';
 import { state, loadAll, onChange } from './store.js';
 import { h, icon, nav, handleBack, toast } from './ui.js';
-import { job, keepOffline } from './sync.js';
+import { job, keepOffline, autoUpdateCardData } from './sync.js';
 import { initCollection } from './views/collection.js';
 import { initSearch } from './views/search.js';
 import { initPokedex } from './views/pokedex.js';
@@ -89,6 +89,10 @@ async function main() {
   ota.markGood();
   // Check once when the app starts (and when you tap "Check now" in Settings)
   setTimeout(() => ota.checkForUpdate(), 4000);
+  // New card lists (e.g. the official Japanese list) arrive without having to tap "Update card data"
+  setTimeout(async () => {
+    try { if (await autoUpdateCardData()) toast('Japanese card list updated'); } catch { /* try again next start-up */ }
+  }, 2500);
 }
 
 // Keep the spinning Poké Ball up for at least a moment so start-up feels smooth

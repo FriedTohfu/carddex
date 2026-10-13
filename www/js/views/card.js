@@ -198,17 +198,19 @@ function zoom(card) {
 }
 
 // ---------- Prices ----------
-async function drawPrices(card, box, { checking = false } = {}) {
+async function drawPrices(card, box, { checking = false, fresh = null } = {}) {
   const { checkPrices, cachedPrices, getRates, convert, fmt, currency, ebayUrl, mercariUrl } = await import('../prices.js');
   const cur = currency();
-  const [cached, rates] = await Promise.all([cachedPrices(card.key), getRates()]);
+  const [saved, rates] = await Promise.all([cachedPrices(card.key), getRates()]);
+  const cached = fresh || saved;
   const market = box.dataset.market ? JSON.parse(box.dataset.market) : null;
   box.innerHTML = '';
   const head = h('div', { class: 'box-title prices-head' }, h('span', {}, `Prices (${cur})`),
     h('button', { class: 'btn mini', disabled: checking || !navigator.onLine, onclick: async () => {
       drawPrices(card, box, { checking: true });
-      try { await checkPrices(card, { force: true }); } catch { /* shown below */ }
-      drawPrices(card, box);
+      let fresh = null;
+      try { fresh = await checkPrices(card, { force: true }); } catch { /* shown below */ }
+      drawPrices(card, box, { fresh });
     } }, checking ? h('span', { class: 'mini-ball spin' }) : null, checking ? ' Checking…' : (cached ? ' Refresh' : ' Check sold prices')));
   box.append(head);
   const rows = [];
@@ -217,7 +219,7 @@ async function drawPrices(card, box, { checking = false } = {}) {
     const lo = r.count ? convert(r.low, r.currency, cur, rates) : null, hi = r.count ? convert(r.high, r.currency, cur, rates) : null;
     rows.push(h('div', { class: 'price-row' },
       h('div', {}, h('b', {}, r.source), h('small', { class: 'muted' },
-        r.unavailable ? 'Couldn’t read results right now' : r.count ? `${r.count} recent sales · ${fmt(lo, cur)}–${fmt(hi, cur)}` : 'No matching recent sales')),
+        r.unavailable ? `Couldn’t read results right now${r.reason ? ` — ${r.reason}` : ''}` : r.count ? `${r.count} recent sales · ${fmt(lo, cur)}–${fmt(hi, cur)}` : 'No matching recent sales')),
       h('div', { class: 'price-val' }, val != null ? fmt(val, cur) : '—',
         h('a', { class: 'link small', href: r.url }, 'Open ↗'))));
   }

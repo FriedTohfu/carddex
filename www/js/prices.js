@@ -142,10 +142,14 @@ function parsePrice(text) {
   return isFinite(v) ? v : null;
 }
 
-async function ebaySold(card) {
-  const [host, cur] = EBAY_SITES[currency()] || EBAY_SITES.USD;
-  const url = ebayUrl(card);
-  const html = await httpGet(url, { 'User-Agent': navigator.userAgent, 'Accept-Language': 'en' });
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-AU,en;q=0.9',
+};
+const BLOCKED = /pardon our interruption|captcha|px-captcha|access denied|unusual traffic|security measure/i;
+
+function parseEbayHtml(html, card) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const items = doc.querySelectorAll('li.s-item, li.s-card, ul.srp-results > li');
   const prices = [];
@@ -157,7 +161,60 @@ async function ebaySold(card) {
     if (p != null) prices.push(p);
     if (prices.length >= 30) break;
   }
-  return { source: 'eBay sold', site: host, currency: cur, url, ...(stats(prices) || { count: 0 }) };
+  return { prices, found: items.length };
+}
+
+// The reader service returns the page as plain text: item links followed by their prices
+const PRICE_RE = /(?:(?:AU|US|C|NZ)\s?\$|\$|£|EUR\s?|€)\s?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)|(\d{1,3}(?:[.,]\d{3})*,\d{2})\s?(?:EUR|€)/;
+function parseEbayText(md, card) {
+  const prices = [];
+  let title = null, found = 0;
+  for (const line of md.split('\n')) {
+    const link = line.match(/\[([^\]]{8,})\]\((https?:\/\/[^)]*ebay\.[^)]*\/itm\/[^)]*)\)/);
+    if (link) { title = link[1]; found++; }
+    const rest = link ? line.replace(link[0], '') : line;
+    const pm = rest.match(PRICE_RE);
+    if (title && pm && !/\bto\b/i.test(line)) {
+      if (!JUNK.test(title) && !/shop on ebay/i.test(title) && numberMatches(title, card)) {
+        const v = parsePrice(pm[0]);
+        if (v != null) prices.push(v);
+      }
+      title = null;
+    }
+    if (prices.length >= 30) break;
+  }
+  return { prices, found };
+}
+
+async function ebaySold(card) {
+  const [host, cur] = EBAY_SITES[currency()] || EBAY_SITES.USD;
+  const url = ebayUrl(card);
+  const out = (prices, how) => ({ source: 'eBay sold', site: host, currency: cur, url, via: how, ...(stats(prices) || { count: 0 }) });
+  let why = '';
+  // 1. Ask eBay directly, like a phone browser would
+  try {
+    const html = await httpGet(url, BROWSER_HEADERS);
+    if (BLOCKED.test(html.slice(0, 20000))) why = 'eBay blocked the request';
+    else {
+      const r = parseEbayHtml(html, card);
+      if (r.found) return out(r.prices, 'direct');
+      why = 'eBay page had no results we could read';
+    }
+  } catch (e) { why = `eBay didn’t respond (${e?.message || e})`; }
+  // 2. Fall back to a page-reading service that opens the page like a real browser
+  try {
+    const r = await fetch(`https://r.jina.ai/${url}`, { headers: { 'X-Return-Format': 'markdown' } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const md = await r.text();
+    if (BLOCKED.test(md.slice(0, 5000))) throw new Error('blocked');
+    const p = parseEbayText(md, card);
+    if (p.found) return out(p.prices, 'reader');
+    throw new Error('no results');
+  } catch (e) {
+    const err = new Error(`${why}; backup reader: ${e?.message || e}`);
+    err.reason = why || String(e?.message || e);
+    throw err;
+  }
 }
 
 // ---------- Mercari Japan sold listings (Japanese cards) ----------
@@ -226,10 +283,12 @@ export async function checkPrices(card, { force = false } = {}) {
   const settled = await Promise.allSettled(jobs);
   const results = settled.map((s, i) => s.status === 'fulfilled' ? s.value : {
     source: i === 0 ? 'eBay sold' : 'Mercari sold', unavailable: true,
+    reason: s.reason?.reason || String(s.reason?.message || s.reason || ''),
     url: i === 0 ? ebayUrl(card) : mercariUrl(card), count: 0,
   });
   const out = { at: Date.now(), results };
-  await db.put('details', out, `price:${card.key}`);
+  // Only remember results that worked, so a failed check is tried again next time
+  if (results.some((r) => !r.unavailable)) await db.put('details', { ...out, results: results.filter((r) => !r.unavailable).concat(results.filter((r) => r.unavailable).map((r) => ({ ...r, at: Date.now() }))) }, `price:${card.key}`);
   emit('prices');
   return out;
 }
