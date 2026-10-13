@@ -87,10 +87,8 @@ async function main() {
   hideBoot();
   // Automatic updates: note that this version started fine, then look for a newer one
   ota.markGood();
+  // Check once when the app starts (and when you tap "Check now" in Settings)
   setTimeout(() => ota.checkForUpdate(), 4000);
-  addEventListener('online', () => ota.checkForUpdate());
-  App?.addListener?.('resume', () => ota.checkForUpdate());
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) ota.checkForUpdate(); });
 }
 
 // Keep the spinning Poké Ball up for at least a moment so start-up feels smooth

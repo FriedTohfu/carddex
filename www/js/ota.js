@@ -14,7 +14,6 @@ export const REPO = 'FriedTohfu/carddex';
 const API = `https://api.github.com/repos/${REPO}`;
 const RAW = (sha, path) => `https://raw.githubusercontent.com/${REPO}/${sha}/${path}`;
 export const RELEASES = `https://github.com/${REPO}/releases/latest`;
-const CHECK_EVERY = 5 * 60 * 1000;
 
 const P = () => window.Capacitor?.Plugins || {};
 const ls = {
@@ -110,7 +109,6 @@ export async function checkForUpdate({ force = false, quiet = true } = {}) {
   if (!online()) return 'offline';
   if (checking) return 'none';
   if (!force && !autoUpdatesOn()) return 'none';
-  if (!force && Date.now() - (+ls.get('ota.lastCheck') || 0) < CHECK_EVERY) return 'none';
   checking = true;
   try {
     ls.set('ota.lastCheck', String(Date.now()));
