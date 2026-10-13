@@ -55,12 +55,14 @@ export function openCard(key, list = null) {
       h('div', { class: 'muted' }, `#${card.localId}${set?.official ? ' / ' + set.official : ''}`, set?.releaseDate ? ` · ${fmtDate(set.releaseDate)}` : ''),
     );
     const extra = h('div', { class: 'detail-extra' }, h('div', { class: 'muted small' }, 'Loading details…'));
+    const pricesBox = h('div', { class: 'box prices-box' });
+    drawPrices(card, pricesBox);
 
     const customBox = card.custom ? h('div', { class: 'box' },
       h('div', { class: 'offline-line', style: { marginTop: 0, paddingTop: 0, borderTop: 0 } },
         h('span', { class: 'custom-badge' }, 'Added by you'),
         h('button', { class: 'btn mini', onclick: () => import('./addcard.js').then((m) => m.openAddCard({ editKey: card.key, onDone: (c) => (c ? render(s.body) : s.close()) })) }, icon('edit', 16), ' Edit / delete'))) : null;
-    body.append(h('div', { class: 'detail' }, imgWrap, stepper, info, customBox, extra, ownedSection(card), listsSection(card), dexSection(card)));
+    body.append(h('div', { class: 'detail' }, imgWrap, stepper, info, customBox, extra, card.custom ? null : pricesBox, ownedSection(card), listsSection(card), dexSection(card)));
 
     cardDetail(key).then((d) => {
       extra.innerHTML = '';
@@ -68,9 +70,9 @@ export function openCard(key, list = null) {
       const rows = [
         ['Rarity', d.rarity], ['Type', d.category], ['HP', d.hp], ['Illustrator', d.illustrator], ['Regulation', d.regulationMark],
       ].filter((r) => r[1]);
-      const price = priceOf(d);
-      if (price) rows.push(['Market price', `${price.currency}${price.value.toFixed(2)} (${price.source})`]);
       extra.append(h('dl', { class: 'facts' }, rows.map(([k, v]) => [h('dt', {}, k), h('dd', {}, String(v))])));
+      pricesBox.dataset.market = JSON.stringify(priceOf(d) || null);
+      drawPrices(card, pricesBox);
     });
 
     unsub = onChange((w) => { if (w === 'owned' || w === 'wishlists' || w === 'binders' || w === 'images') refreshSections(); });
@@ -181,4 +183,44 @@ function zoom(card) {
   cardSrc(card, 'high').then((u) => { if (u) img.src = u; });
   img.addEventListener('error', () => cardSrc(card, 'low').then((u) => u && (img.src = u)), { once: true });
   sheet({ title: card.name, full: true, content: h('div', { class: 'zoom' }, img) });
+}
+
+// ---------- Prices ----------
+async function drawPrices(card, box, { checking = false } = {}) {
+  const { checkPrices, cachedPrices, getRates, convert, fmt, currency, ebayUrl, mercariUrl } = await import('../prices.js');
+  const cur = currency();
+  const [cached, rates] = await Promise.all([cachedPrices(card.key), getRates()]);
+  const market = box.dataset.market ? JSON.parse(box.dataset.market) : null;
+  box.innerHTML = '';
+  const head = h('div', { class: 'box-title prices-head' }, h('span', {}, `Prices (${cur})`),
+    h('button', { class: 'btn mini', disabled: checking || !navigator.onLine, onclick: async () => {
+      drawPrices(card, box, { checking: true });
+      try { await checkPrices(card, { force: true }); } catch { /* shown below */ }
+      drawPrices(card, box);
+    } }, checking ? h('span', { class: 'mini-ball spin' }) : null, checking ? ' Checking…' : (cached ? ' Refresh' : ' Check sold prices')));
+  box.append(head);
+  const rows = [];
+  for (const r of cached?.results || []) {
+    const val = r.count ? convert(r.median, r.currency, cur, rates) : null;
+    const lo = r.count ? convert(r.low, r.currency, cur, rates) : null, hi = r.count ? convert(r.high, r.currency, cur, rates) : null;
+    rows.push(h('div', { class: 'price-row' },
+      h('div', {}, h('b', {}, r.source), h('small', { class: 'muted' },
+        r.unavailable ? 'Couldn’t read results right now' : r.count ? `${r.count} recent sales · ${fmt(lo, cur)}–${fmt(hi, cur)}` : 'No matching recent sales')),
+      h('div', { class: 'price-val' }, val != null ? fmt(val, cur) : '—',
+        h('a', { class: 'link small', href: r.url }, 'Open ↗'))));
+  }
+  if (market) {
+    const mc = market.currency === '€' ? 'EUR' : 'USD';
+    rows.push(h('div', { class: 'price-row' },
+      h('div', {}, h('b', {}, market.source), h('small', { class: 'muted' }, 'Market price from the card database')),
+      h('div', { class: 'price-val' }, fmt(convert(market.value, mc, cur, rates), cur))));
+  }
+  if (!cached) {
+    rows.push(h('div', { class: 'muted small' }, 'Tap “Check sold prices” to look up recent sales',
+      card.lang === 'ja' ? ' on eBay and Mercari.' : ' on eBay.'));
+    rows.push(h('div', { class: 'price-links' },
+      h('a', { class: 'link small', href: ebayUrl(card) }, 'eBay sold ↗'),
+      card.lang === 'ja' ? h('a', { class: 'link small', href: mercariUrl(card) }, 'Mercari sold ↗') : null));
+  } else rows.push(h('div', { class: 'muted small' }, `Checked ${new Date(cached.at).toLocaleDateString()}. Sold prices vary with condition — use as a guide.`));
+  box.append(...rows);
 }

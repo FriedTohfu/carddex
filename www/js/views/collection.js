@@ -22,7 +22,7 @@ const serieOf = (setKey) => state.sets.get(setKey)?.serie || 'Other';
 export function collectionRoot() {
   return {
     title: 'My Collection', large: true,
-    watch: ['catalog', 'owned', 'settings'],
+    watch: ['catalog', 'owned', 'settings', 'prices'],
     actions: [{ icon: 'gear', label: 'Settings', onClick: () => import('./settings.js').then((m) => m.openSettings()) }],
     render(body) {
       if (!state.sets.size) {
@@ -160,17 +160,16 @@ export function collectionRoot() {
 }
 
 async function estimateValue() {
-  let eur = 0, usd = 0, n = 0;
+  const { getRates, valueOf, fmt } = await import('../prices.js');
+  const rates = await getRates();
+  let total = 0, n = 0;
   for (const [k] of state.owned) {
     const q = qty(k); if (!q) continue;
-    const d = await db.get('details', k);
-    const p = priceOf(d);
-    if (!p) continue;
-    n++;
-    if (p.currency === '€') eur += p.value * q; else usd += p.value * q;
+    const v = await valueOf(k, rates);
+    if (v == null) continue;
+    n++; total += v * q;
   }
-  if (!n) return null;
-  return [eur ? `€${Math.round(eur).toLocaleString()}` : '', usd ? `US$${Math.round(usd).toLocaleString()}` : ''].filter(Boolean).join(' + ');
+  return n ? fmt(total) : null;
 }
 
 export function initCollection() {

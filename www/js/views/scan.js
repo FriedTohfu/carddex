@@ -1,10 +1,10 @@
-// Scanner: live camera with a card-shaped frame, or pick a photo from the gallery.
-// The photo is matched against card images saved on the phone (works offline).
+// Scanner: takes a photo with the phone's camera app (or uploads one), centres
+// the card in a frame you can adjust, then finds the matching card.
 import { h, icon, pushBack, toast, cardArt, langBadge, chips, chooseDialog } from '../ui.js';
 import { state, changeOwned, qty, VARIANTS } from '../store.js';
 import { loadFingerprints, updateScanData, scanDataStale } from '../sync.js';
 import { confidence } from '../fp.js';
-import { matchPhoto } from '../detect.js';
+import { matchPhoto, findCardAnywhere } from '../detect.js';
 import * as db from '../db.js';
 import { LANGS, online, cardImg } from '../api.js';
 import { openCard } from './card.js';
@@ -15,57 +15,44 @@ let open = false;
 export async function openScanner() {
   if (open) return;
   open = true;
-  let stream = null, track = null, torch = false, sessionAdded = 0;
+  let sessionAdded = 0;
   let scope = state.settings.scanLangs?.length ? state.settings.scanLangs.filter((l) => state.settings.langs.includes(l)) : [];
   if (!scope.length) scope = 'all';
 
-  const video = h('video', { class: 'scan-video', playsinline: true, muted: true, autoplay: true });
-  video.setAttribute('playsinline', ''); video.muted = true;
   const still = h('canvas', { class: 'scan-still', hidden: true });
-  const frame = h('div', { class: 'scan-frame' }, h('i', { class: 'c tl' }), h('i', { class: 'c tr' }), h('i', { class: 'c bl' }), h('i', { class: 'c br' }));
-  const hint = h('div', { class: 'scan-hint' }, 'Fit the card in the frame · tap to focus');
   const status = h('div', { class: 'scan-status' });
   const tally = h('span', { class: 'scan-tally', hidden: true });
   const results = h('div', { class: 'scan-results', hidden: true });
-  const torchBtn = h('button', { class: 'scan-icon', 'aria-label': 'Torch', hidden: true, onclick: toggleTorch }, icon('flash'));
-  const fileInput = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: onFile });
-  // The phone's own camera app (best focus on every phone)
-  const nativeInput = h('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true, onchange: onNativeFile });
+  // The phone's own camera app (sharp focus on every phone) and the gallery
+  const cameraInput = h('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true, onchange: (e) => onFile(e.target) });
+  const uploadInput = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: (e) => onFile(e.target) });
+  const takePhoto = () => cameraInput.click();
+  const upload = () => uploadInput.click();
 
   const langOpts = [{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: LANGS[l].short }))];
   const scopeChips = chips(langOpts, scope === 'all' ? 'all' : scope[0], (v) => { scope = v === 'all' ? 'all' : [v]; updateStatus(); });
 
-  const ring = h('div', { class: 'focus-ring' });
-  const zoomInput = h('input', { type: 'range', class: 'zoom-range', 'aria-label': 'Zoom', oninput: (e) => setZoom(e.target.value) });
-  const zoomLabel = h('span', {}, '1.0×');
-  const zoomWrap = h('div', { class: 'scan-zoom', hidden: true }, h('span', {}, '🔍'), zoomInput, zoomLabel);
-  const shutter = h('button', { class: 'shutter', 'aria-label': 'Take photo', onclick: () => capture() });
-  const root = h('div', { class: 'scanner', onpointerup: (e) => tapFocus(e) },
-    video, still, ring,
-    h('div', { class: 'scan-shade' }),
-    frame, hint,
+  const landing = h('div', { class: 'scan-landing' },
+    h('div', { class: 'ball spin-slow' }),
+    h('p', {}, 'Take a photo of your card, or upload one. You can recentre it before it’s matched.'),
+    h('button', { class: 'btn primary wide big', onclick: takePhoto }, icon('camera', 20), ' Take photo'),
+    h('button', { class: 'btn wide big', onclick: upload }, icon('image', 20), ' Upload photo'),
+    h('button', { class: 'btn ghost wide', onclick: () => manual() }, icon('search', 18), ' Search by name instead'));
+
+  const root = h('div', { class: 'scanner' },
+    still,
     h('div', { class: 'scan-top' },
-      h('button', { class: 'scan-icon', 'aria-label': 'Close scanner', onclick: close }, icon('close')),
+      h('button', { class: 'scan-icon', 'aria-label': 'Close scanner', onclick: () => close() }, icon('close')),
       h('div', { class: 'scan-title' }, 'Scan a card', tally),
-      torchBtn),
+      h('span', { style: { width: '46px' } })),
     h('div', { class: 'scan-scope' }, scopeChips, status),
-    zoomWrap,
-    h('div', { class: 'scan-bottom' },
-      h('div', { class: 'scan-side' },
-        h('button', { class: 'scan-icon labeled', onclick: () => nativeInput.click() }, icon('camera'), h('small', {}, 'Camera app')),
-        h('button', { class: 'scan-icon labeled', onclick: () => fileInput.click() }, icon('image'), h('small', {}, 'Gallery'))),
-      shutter,
-      h('button', { class: 'scan-icon labeled', onclick: manual }, icon('search'), h('small', {}, 'Search'))),
-    results, fileInput, nativeInput);
+    landing, results, cameraInput, uploadInput);
   document.body.append(root);
   const removeBack = pushBack(() => close(true));
   requestAnimationFrame(() => root.classList.add('open'));
+  // Go straight to the camera
+  takePhoto();
   updateStatus();
-  if (state.settings.scanNativeCamera) {
-    // Go straight to the phone's camera app (set in Settings → Scanning)
-    hint.textContent = 'Using your phone’s camera app — tap “Camera app” to scan another';
-    nativeInput.click();
-  } else startCamera();
 
   let preparing = false;
   async function updateStatus() {
@@ -94,189 +81,47 @@ export async function openScanner() {
     return scope === 'all' || scope.includes(lang);
   }
 
-  let caps = {};
-  async function openStream(deviceId) {
-    const video0 = { width: { ideal: 1920 }, height: { ideal: 1080 } };
-    return navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: deviceId ? { ...video0, deviceId: { exact: deviceId } } : { ...video0, facingMode: { ideal: 'environment' } },
-    });
-  }
-
-  // Phones with several back cameras: use the main one ("camera 0"), which can
-  // focus close up — wide-angle/telephoto lenses often can't.
-  async function mainBackCamera() {
-    try {
-      const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
-      const backs = devs.filter((d) => /back|rear|environment|后|背面/i.test(d.label));
-      if (!backs.length) return null;
-      const num = (d) => { const m = /(\d+)/.exec(d.label); return m ? +m[1] : 99; };
-      return backs.sort((a, b) => num(a) - num(b))[0].deviceId;
-    } catch { return null; }
-  }
-
-  async function startCamera() {
-    if (!navigator.mediaDevices?.getUserMedia) { noCamera('This phone’s camera can’t be opened here. Use “Photo” instead.'); return; }
-    try {
-      stream = await openStream();
-      const best = await mainBackCamera();
-      const current = stream.getVideoTracks()[0]?.getSettings?.().deviceId;
-      if (best && current && best !== current) {
-        try { const s2 = await openStream(best); stream.getTracks().forEach((t) => t.stop()); stream = s2; } catch { /* keep the first one */ }
-      }
-      if (!open) { stream.getTracks().forEach((t) => t.stop()); return; }
-      video.srcObject = stream;
-      await video.play().catch(() => {});
-      track = stream.getVideoTracks()[0];
-      caps = track.getCapabilities?.() || {};
-      if (caps.torch) torchBtn.hidden = false;
-      await keepFocusing();
-      setupZoom();
-    } catch (e) {
-      noCamera(e?.name === 'NotAllowedError' ? 'Camera permission was denied. Allow it in your phone’s settings, or use “Photo”.' : 'Couldn’t start the camera. Use “Photo” instead.');
-    }
-  }
-
-  async function keepFocusing() {
-    if (caps.focusMode?.includes?.('continuous')) {
-      try { await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch { /* not supported */ }
-    }
-  }
-
-  // Zoom slider: zooming in a little lets you hold the phone further away,
-  // where the camera can focus properly.
-  function setupZoom() {
-    if (!caps.zoom || !(caps.zoom.max > caps.zoom.min)) return;
-    const min = caps.zoom.min, max = Math.min(caps.zoom.max, 5), step = caps.zoom.step || 0.1;
-    const start = Math.min(max, Math.max(min, 1.5));
-    zoomInput.min = min; zoomInput.max = max; zoomInput.step = step; zoomInput.value = start;
-    zoomWrap.hidden = false;
-    setZoom(start);
-  }
-  async function setZoom(z) {
-    zoomLabel.textContent = `${(+z).toFixed(1)}×`;
-    try { await track.applyConstraints({ advanced: [{ zoom: +z }] }); } catch { /* not supported */ }
-    keepFocusing();
-  }
-
-  // Tap the picture to focus on that spot
-  async function tapFocus(e) {
-    if (!track || !results.hidden || e.target.closest('button, input, .scan-scope, .scan-bottom, .scan-top, .scan-zoom')) return;
-    const r = video.getBoundingClientRect();
-    ring.style.left = `${e.clientX - r.left}px`; ring.style.top = `${e.clientY - r.top}px`;
-    ring.classList.remove('show'); void ring.offsetWidth; ring.classList.add('show');
-    const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
-    const mode = caps.focusMode?.includes?.('single-shot') ? 'single-shot' : (caps.focusMode?.includes?.('auto') ? 'auto' : 'continuous');
-    try { await track.applyConstraints({ advanced: [{ pointsOfInterest: [{ x, y }], focusMode: mode }] }); } catch {
-      try { await track.applyConstraints({ advanced: [{ focusMode: mode }] }); } catch { /* not supported */ }
-    }
-    clearTimeout(tapFocus.t);
-    tapFocus.t = setTimeout(keepFocusing, 3000);
-  }
-
-  function noCamera(msg) { hint.textContent = msg; hint.classList.add('warn'); }
-
-  async function toggleTorch() {
-    torch = !torch;
-    try { await track.applyConstraints({ advanced: [{ torch }] }); torchBtn.classList.toggle('on', torch); } catch { /* unsupported */ }
-  }
-
-  // Where the frame sits, in the video's own pixels (video uses object-fit: cover)
-  function frameRectInVideo() {
-    const vw = video.videoWidth, vh = video.videoHeight;
-    const vr = video.getBoundingClientRect(), fr = frame.getBoundingClientRect();
-    const scale = Math.max(vr.width / vw, vr.height / vh);
-    const offX = (vr.width - vw * scale) / 2, offY = (vr.height - vh * scale) / 2;
-    return { x: (fr.left - vr.left - offX) / scale, y: (fr.top - vr.top - offY) / scale, w: fr.width / scale, h: fr.height / scale };
-  }
-
-  // How sharp a picture is (higher = sharper), measured on the middle of the frame
-  function sharpness(src, rect) {
-    const W = 160, H = Math.round(W * rect.h / rect.w);
-    const c = h('canvas'); c.width = W; c.height = H;
-    const g = c.getContext('2d', { willReadFrequently: true });
-    g.drawImage(src, rect.x, rect.y, rect.w, rect.h, 0, 0, W, H);
-    const d = g.getImageData(0, 0, W, H).data;
-    const gray = new Float32Array(W * H);
-    for (let i = 0; i < W * H; i++) gray[i] = d[i * 4] * 0.3 + d[i * 4 + 1] * 0.59 + d[i * 4 + 2] * 0.11;
-    let sum = 0, sum2 = 0, n = 0;
-    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
-      const i = y * W + x;
-      const l = 4 * gray[i] - gray[i - 1] - gray[i + 1] - gray[i - W] - gray[i + W];
-      sum += l; sum2 += l * l; n++;
-    }
-    return sum2 / n - (sum / n) ** 2;
-  }
-
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-
-  /** Best possible still: a real photo (with autofocus) if the phone allows, else the sharpest of a few video frames. */
-  async function grabStill() {
-    const fr = frameRectInVideo();
-    if ('ImageCapture' in window && track) {
-      try {
-        const ic = new ImageCapture(track);
-        const blob = await Promise.race([ic.takePhoto(), wait(5000).then(() => null)]);
-        if (blob) {
-          const bmp = await createImageBitmap(blob, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(blob));
-          const vPortrait = video.videoHeight > video.videoWidth, pPortrait = bmp.height > bmp.width;
-          if (vPortrait === pPortrait && bmp.width >= video.videoWidth * 0.9) {
-            const k = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
-            const c = h('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-            c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-            bmp.close?.();
-            // The preview is (usually) the centre of the full photo
-            const va = video.videoWidth / video.videoHeight, pa = c.width / c.height;
-            let vx = 0, vy = 0, vw = c.width, vh = c.height;
-            if (va > pa) { vh = c.width / va; vy = (c.height - vh) / 2; } else { vw = c.height * va; vx = (c.width - vw) / 2; }
-            const sc = vw / video.videoWidth;
-            return { canvas: c, rect: { x: vx + fr.x * sc, y: vy + fr.y * sc, w: fr.w * sc, h: fr.h * sc } };
-          }
-          bmp.close?.();
-        }
-      } catch { /* fall back to video frames */ }
-    }
-    let best = null, bestSharp = -1;
-    for (let i = 0; i < 4; i++) {
-      const c = h('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
-      c.getContext('2d').drawImage(video, 0, 0);
-      const sh = sharpness(c, fr);
-      if (sh > bestSharp) { bestSharp = sh; best = c; }
-      if (i < 3) await wait(140);
-    }
-    return { canvas: best, rect: fr };
-  }
-
-  let capturing = false;
-  async function capture() {
-    if (capturing) return;
-    if (!video.videoWidth) { toast('Camera not ready — try “Photo” instead'); return; }
-    capturing = true;
-    shutter.classList.add('busy');
-    try {
-      const { canvas, rect } = await grabStill();
-      root.classList.add('flash');
-      setTimeout(() => root.classList.remove('flash'), 180);
-      still.width = canvas.width; still.height = canvas.height;
-      still.getContext('2d').drawImage(canvas, 0, 0);
-      showStill();
-      await runMatch(still, rect);
-    } finally {
-      capturing = false;
-      shutter.classList.remove('busy');
-    }
-  }
-
-  function showStill() {
-    // Show the frozen frame exactly where the video was
-    still.hidden = false;
-    video.pause();
-  }
-  function resume() {
+  function showStill() { still.hidden = false; landing.hidden = true; }
+  function backToStart() {
     still.hidden = true;
     results.hidden = true;
     root.classList.remove('has-results');
-    video.play().catch(() => {});
+    landing.hidden = false;
+  }
+
+  // A photo arrived (camera or upload): find the card, centre it in the frame, let you adjust
+  async function onFile(input) {
+    const f = input.files?.[0];
+    input.value = '';
+    if (!f) return;
+    landing.hidden = true;
+    try {
+      const bmp = await createImageBitmap(f, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(f));
+      const max = 2000, s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      const c = h('canvas'); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      bmp.close?.();
+      results.hidden = false; results.innerHTML = '';
+      results.append(h('div', { class: 'scan-wait' }, h('span', { class: 'mini-ball spin' }), 'Finding the card…'));
+      await new Promise((r) => setTimeout(r, 40));
+      adjust(c, autoCentre(c));
+    } catch { toast('Couldn’t open that photo'); backToStart(); }
+  }
+
+  /** Where the card probably is: its detected outline (slightly padded), or the middle of the photo. */
+  function autoCentre(c) {
+    const fw = Math.min(c.width * 0.8, c.height * 0.8 * (63 / 88)), fh = fw * (88 / 63);
+    const guess = { x: (c.width - fw) / 2, y: (c.height - fh) / 2, w: fw, h: fh };
+    try {
+      const q = findCardAnywhere(c);
+      if (!q) return guess;
+      const xs = [q.tl.x, q.tr.x, q.br.x, q.bl.x], ys = [q.tl.y, q.tr.y, q.br.y, q.bl.y];
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+      let w = (Math.max(...xs) - Math.min(...xs)) * 1.04, hh = (Math.max(...ys) - Math.min(...ys)) * 1.04;
+      // keep the card shape
+      if (w / hh > 63 / 88) hh = w * 88 / 63; else w = hh * 63 / 88;
+      return { x: cx - w / 2, y: cy - hh / 2, w, h: hh };
+    } catch { return guess; }
   }
 
   async function runMatch(src, rect) {
@@ -324,8 +169,9 @@ export async function openScanner() {
     results.innerHTML = '';
     const actions = h('div', {},
       h('div', { class: 'btn-row' },
-        h('button', { class: 'btn', onclick: resume }, 'Retake'),
-        h('button', { class: 'btn', onclick: () => adjust(src, rect) }, 'Adjust crop'),
+        h('button', { class: 'btn', onclick: () => { backToStart(); takePhoto(); } }, icon('camera', 16), ' Retake'),
+        h('button', { class: 'btn', onclick: () => adjust(src, rect) }, 'Recentre'),
+        h('button', { class: 'btn', onclick: () => { backToStart(); upload(); } }, 'Upload'),
         h('button', { class: 'btn', onclick: manual }, 'Search')),
       h('button', { class: 'btn ghost wide', onclick: () => addNew(src, rect) }, '＋ Not listed? Add it as a new card'));
     if (message || !chosen) {
@@ -369,13 +215,17 @@ export async function openScanner() {
   }
 
   async function add(card, variant) {
+    // Open the camera for the next card straight away (needs to happen during the tap)
+    if (state.settings.scanContinuous) { backToStart(); takePhoto(); }
     await changeOwned(card.key, variant, 1);
     sessionAdded++;
     tally.hidden = false;
     tally.textContent = ` · ${sessionAdded} added`;
     toast(`Added ${card.name} ✓`);
-    if (state.settings.scanContinuous) resume();
-    else { results.innerHTML = ''; results.append(h('p', { class: 'pad' }, `${card.name} added. `), h('button', { class: 'btn primary wide', onclick: resume }, 'Scan next card')); }
+    if (!state.settings.scanContinuous) {
+      results.innerHTML = '';
+      results.append(h('p', { class: 'pad' }, `${card.name} added.`), h('button', { class: 'btn primary wide', onclick: () => { backToStart(); takePhoto(); } }, icon('camera', 18), ' Scan next card'));
+    }
   }
 
   async function addNew(src, rect) {
@@ -384,7 +234,7 @@ export async function openScanner() {
     let photo = null;
     try { photo = cropCard(src, rect); } catch { /* no photo */ }
     const lang = scope !== 'all' ? scope[0] : undefined;
-    openAddCard({ photo, lang, onDone: (card) => { if (card) { sessionAdded++; tally.hidden = false; tally.textContent = ` · ${sessionAdded} added`; resume(); } } });
+    openAddCard({ photo, lang, onDone: (card) => { if (card) { sessionAdded++; tally.hidden = false; tally.textContent = ` · ${sessionAdded} added`; backToStart(); } } });
   }
 
   function manual() {
@@ -394,35 +244,11 @@ export async function openScanner() {
     });
   }
 
-  function onNativeFile() {
-    fileInput.files = nativeInput.files;
-    onFile();
-    nativeInput.value = '';
-  }
-
-  async function onFile() {
-    const f = fileInput.files?.[0];
-    fileInput.value = '';
-    if (!f) return;
-    try {
-      const bmp = await createImageBitmap(f, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(f));
-      const max = 2000, s = Math.min(1, max / Math.max(bmp.width, bmp.height));
-      const c = h('canvas'); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
-      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-      bmp.close?.();
-      // Assume the card is roughly in the middle; edges are found automatically
-      const fw = Math.min(c.width * 0.9, c.height * 0.9 * (63 / 88)), fh = fw * (88 / 63);
-      const rect = { x: (c.width - fw) / 2, y: (c.height - fh) / 2, w: fw, h: fh };
-      still.width = c.width; still.height = c.height;
-      still.getContext('2d').drawImage(c, 0, 0);
-      showStill();
-      await runMatch(c, rect);
-    } catch { toast('Couldn’t open that photo'); }
-  }
-
   /** Lets you drag/zoom a photo so the card sits inside the frame. */
   function adjust(src, rect) {
-    video.pause();
+    landing.hidden = true;
+    results.hidden = true;
+    root.classList.remove('has-results');
     const stage = h('div', { class: 'adjust' });
     const img = h('canvas', { class: 'adjust-img' });
     img.width = src.width; img.height = src.height;
@@ -431,13 +257,13 @@ export async function openScanner() {
     const zoom = h('input', { type: 'range', min: 0.2, max: 6, step: 0.01, class: 'zoom-range', 'aria-label': 'Zoom' });
     stage.append(img, h('div', { class: 'scan-shade' }), box,
       h('div', { class: 'adjust-bar' },
-        h('div', { class: 'muted small center' }, 'Drag and pinch so the card fills the frame'),
+        h('div', { class: 'muted small center' }, 'Drag and pinch to centre the card in the frame'),
         zoom,
         h('div', { class: 'btn-row' },
-          h('button', { class: 'btn', onclick: () => { stage.remove(); removeAdjBack(); resume(); } }, 'Cancel'),
+          h('button', { class: 'btn', onclick: () => { stage.remove(); removeAdjBack(); backToStart(); takePhoto(); } }, icon('camera', 16), ' Retake'),
           h('button', { class: 'btn primary', onclick: find }, 'Find card'))));
     root.append(stage);
-    const removeAdjBack = pushBack(() => { stage.remove(); resume(); });
+    const removeAdjBack = pushBack(() => { stage.remove(); backToStart(); });
 
     let t = { x: 0, y: 0, s: 1 };
     requestAnimationFrame(() => {
@@ -524,7 +350,6 @@ export async function openScanner() {
     if (!open) return;
     open = false;
     if (!fromBack) removeBack();
-    stream?.getTracks().forEach((t) => t.stop());
     root.classList.remove('open');
     setTimeout(() => root.remove(), 250);
   }

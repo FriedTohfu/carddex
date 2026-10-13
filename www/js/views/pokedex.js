@@ -46,7 +46,18 @@ export function pokedexRoot() {
       const grid = h('div', { class: 'dex-grid' });
       const count = h('div', { class: 'muted small count' });
       input.addEventListener('input', debounce(() => { D.q = input.value.trim().toLowerCase(); draw(); }, 150));
-      body.append(input,
+      // Search bar that stays pinned while you scroll down (and scrolls away when you scroll up)
+      const searchWrap = h('div', { class: 'dex-search' }, input);
+      if (state.settings.dexStickySearch !== false) {
+        let lastY = body.scrollTop;
+        body.addEventListener('scroll', () => {
+          const y = body.scrollTop;
+          if (y > lastY + 2) searchWrap.classList.add('pinned');
+          else if (y < lastY - 2) searchWrap.classList.remove('pinned');
+          lastY = y;
+        }, { passive: true });
+      }
+      body.append(searchWrap,
         h('div', { class: 'toolbar' }, chips(gens, D.gen, (v) => { D.gen = v; draw(); })),
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: 'All' }, { value: 'caught', label: 'Have cards' }, { value: 'missing', label: 'No cards yet' }], D.caught, (v) => { D.caught = v; draw(); }),

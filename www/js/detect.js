@@ -161,8 +161,29 @@ export function detectCard(src, frame, max = 3) {
   const back = (p) => ({ x: rx + p.x / scale, y: ry + p.y / scale });
   return quads.slice(0, max).map((q) => {
     const [tl, tr, br, bl] = q.pts.map(back);
-    return { tl, tr, br, bl };
+    return { tl, tr, br, bl, score: q.score };
   });
+}
+
+/** Searches the whole photo (several sizes and positions) for the card's outline. */
+export function findCardAnywhere(src) {
+  const W = src.width || src.videoWidth, H = src.height || src.videoHeight;
+  const frames = [];
+  for (const k of [0.85, 0.62, 0.45]) {
+    const fw = Math.min(W * k, H * k * CARD_RATIO), fh = fw / CARD_RATIO;
+    const steps = k > 0.8 ? [0.5] : [0.2, 0.5, 0.8];
+    for (const ax of steps) for (const ay of steps) {
+      frames.push({ x: (W - fw) * ax, y: (H - fh) * ay, w: fw, h: fh });
+    }
+  }
+  let best = null;
+  for (const f of frames) {
+    try {
+      const q = detectCard(src, f, 1)[0];
+      if (q && (!best || q.score > best.score)) best = q;
+    } catch { /* try next */ }
+  }
+  return best;
 }
 
 // ---------- straightening (perspective warp) ----------

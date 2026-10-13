@@ -5,6 +5,7 @@ import { syncCatalog, syncSpecies, deleteImages, cardsMissingImages, keepOffline
 import { sizeText } from './offline.js';
 import { cacheCount, clearCache } from '../imgcache.js';
 import { exportCustom, importCustom } from '../custom.js';
+import { CURRENCIES } from '../prices.js';
 import { LANGS, online } from '../api.js';
 import * as db from '../db.js';
 
@@ -49,7 +50,12 @@ export function openSettings() {
 
         section('Collection', '',
           toggle('Count secret rares in set progress', state.settings.includeSecrets, (on) => saveSettings({ includeSecrets: on })),
+          toggle('Pokédex: keep the search bar showing while scrolling down', state.settings.dexStickySearch !== false, (on) => saveSettings({ dexStickySearch: on })),
           toggle('Pokédex shows my latest card of each Pokémon', state.settings.dexShowCards, (on) => saveSettings({ dexShowCards: on })),
+          h('label', { class: 'field' }, h('span', {}, 'Currency for prices'),
+            h('select', { class: 'input', onchange: (e) => saveSettings({ currency: e.target.value }) },
+              Object.entries(CURRENCIES).map(([code, c]) => h('option', { value: code, selected: (state.settings.currency || 'AUD') === code }, `${code} — ${c.label}`)))),
+          h('p', { class: 'muted small' }, 'Prices come from recent eBay sales (on the eBay site for your currency, e.g. eBay Australia for AUD), Mercari Japan sales for Japanese cards, and the card database’s market price where available. Converted with daily exchange rates.'),
           h('div', { class: 'field' }, h('span', {}, 'Theme'),
             chips([{ value: 'auto', label: 'Auto' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }], state.settings.theme, (v) => saveSettings({ theme: v })))),
 
@@ -138,8 +144,7 @@ function scanSection() {
       if (r.missing.length && !r.updated.length) throw new Error('Scan data isn’t available for your languages yet.');
       return [];
     }) }, icon('download', 18), ' Update scan data'),
-    toggle('Go straight back to the camera after adding a card', state.settings.scanContinuous, (on) => saveSettings({ scanContinuous: on })),
-    toggle('Always use my phone’s camera app (if the live camera won’t focus)', !!state.settings.scanNativeCamera, (on) => saveSettings({ scanNativeCamera: on })));
+    toggle('Open the camera again after adding a card', state.settings.scanContinuous, (on) => saveSettings({ scanContinuous: on })));
 }
 
 function storageSection() {

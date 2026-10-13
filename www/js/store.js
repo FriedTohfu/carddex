@@ -8,6 +8,8 @@ const DEFAULT_SETTINGS = {
   includeSecrets: true,     // count secret rares toward set progress
   keepOwnedOffline: true,   // save images of cards you own so they show offline
   dexShowCards: true,       // Pokédex shows your latest card of each Pokémon
+  dexStickySearch: true,    // Pokédex search bar stays visible while scrolling down
+  currency: 'AUD',          // currency for prices
   scanLangs: [],            // empty = all enabled languages
   scanContinuous: true,     // return to the camera after adding a card
 };
