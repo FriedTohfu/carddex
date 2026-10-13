@@ -56,6 +56,12 @@ Computers often hide folders whose names start with a dot, so the `.github` fold
 
 ### Updating later
 
+**Most updates install themselves.** When you open the app with internet, it checks your GitHub repository for changes and quietly downloads them (a few hundred KB). The new version is used the next time you open the app, or tap **Restart now** on the banner. If a downloaded version ever fails to start twice, the app skips it and uses the installed version. You can turn this off or check manually in **Settings → App updates**.
+
+**Occasionally a new APK is needed**, when the Android side of the app changes (for example new phone permissions). The app shows a **New app version** banner; tap **Download** and install it like before.
+
+#### Installing a new APK by hand
+
 Whenever you upload changed files, GitHub builds a new version automatically. Download the newest APK from the same link and install it over the old one. **Your collection stays**, because every version is signed with the same key, which lives in `build/debug.keystore`. Don't delete that file.
 
 > **iPhone?** iPhone apps can only be built on a Mac with a paid Apple developer account, so this guide is Android only.

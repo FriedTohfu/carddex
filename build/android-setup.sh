@@ -27,8 +27,12 @@ cp -r "$ROOT/build/res/." "$RES/"
 # 4. Splash screen
 find "$RES" -name 'splash.png' -exec cp "$ROOT/build/splash.png" {} \;
 
-# 5. Version number from the GitHub build number
+# 5. Version number: 1.<native level>.<GitHub build number>
+#    The native level (build/native-api.txt) only goes up when the Android
+#    shell changes; the app uses it to know if an update needs a new APK.
 BUILD="${GITHUB_RUN_NUMBER:-1}"
-sed -i -E "s/versionCode [0-9]+/versionCode ${BUILD}/; s/versionName \"[^\"]*\"/versionName \"1.0.${BUILD}\"/" "$GRADLE"
+API="$(tr -dc '0-9' < "$ROOT/build/native-api.txt")"
+API="${API:-1}"
+sed -i -E "s/versionCode [0-9]+/versionCode ${BUILD}/; s/versionName \"[^\"]*\"/versionName \"1.${API}.${BUILD}\"/" "$GRADLE"
 
 echo "Android project customised (build ${BUILD})"

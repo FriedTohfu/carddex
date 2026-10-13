@@ -64,6 +64,8 @@ export function openSettings() {
             h('button', { class: 'btn', onclick: doExport }, icon('share', 18), ' Back up'),
             h('button', { class: 'btn', onclick: doImport }, icon('download', 18), ' Restore'))),
 
+        updatesSection(),
+
         storageSection(),
 
         section('About', '',
@@ -145,6 +147,25 @@ function scanSection() {
       return [];
     }) }, icon('download', 18), ' Update scan data'),
     toggle('Open the camera again after adding a card', state.settings.scanContinuous, (on) => saveSettings({ scanContinuous: on })));
+}
+
+function updatesSection() {
+  const info = h('p', { class: 'muted small' }, 'Checking version…');
+  import('../ota.js').then(async (ota) => {
+    const n = await ota.nativeInfo();
+    info.textContent = ota.supported()
+      ? `App ${n.version} · running ${ota.currentVersion()}. Updates download automatically when you’re online and apply the next time you open the app.`
+      : 'Automatic updates work in the installed Android app.';
+  });
+  return section('App updates', '', info,
+    toggle('Download updates automatically', (() => { try { return localStorage.getItem('ota.disabled') !== '1'; } catch { return true; } })(), async (on) => { (await import('../ota.js')).setAutoUpdates(on); }),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn', onclick: async () => {
+        const ota = await import('../ota.js');
+        const r = await ota.checkForUpdate({ force: true, quiet: false });
+        toast({ none: 'You’re up to date ✓', downloaded: 'Update downloaded — tap Restart now', 'needs-apk': 'A new APK is needed — see the banner', unsupported: 'Only works in the installed app', offline: 'You’re offline', error: 'Couldn’t check right now' }[r] || r);
+      } }, 'Check now'),
+      h('button', { class: 'btn', onclick: async () => (await import('../ota.js')).useInstalledVersion() }, 'Use installed version')));
 }
 
 function storageSection() {

@@ -10,6 +10,7 @@ import { initWishlists } from './views/wishlists.js';
 import { initBinders } from './views/binders.js';
 import { openScanner } from './views/scan.js';
 import { openSetup } from './views/settings.js';
+import * as ota from './ota.js';
 
 const TABS = [
   ['collection', 'Collection', 'collection'],
@@ -26,6 +27,8 @@ function applyTheme() {
 }
 
 async function main() {
+  // A downloaded update is waiting? Switch to it (the page reloads straight away)
+  if (await ota.boot()) return;
   await openDB();
   await loadAll();
   applyTheme();
@@ -82,6 +85,11 @@ async function main() {
   }
   document.body.classList.add('ready');
   hideBoot();
+  // Automatic updates: note that this version started fine, then look for a newer one
+  ota.markGood();
+  setTimeout(() => ota.checkForUpdate(), 4000);
+  addEventListener('online', () => ota.checkForUpdate());
+  App?.addListener?.('resume', () => ota.checkForUpdate());
 }
 
 // Keep the spinning Poké Ball up for at least a moment so start-up feels smooth
