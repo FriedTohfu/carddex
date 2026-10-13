@@ -121,6 +121,30 @@ def by_era_number(code, rows):
     return {'en': row['en'], 'jp': row['jp'], 'date': row['date']}
 
 
+def promo_lists(cards):
+    """Cards numbered as promos (e.g. 123/SM-P) go into that era's promo list, whatever product they came in."""
+    size = Counter(c.get('set') for c in cards if c.get('set'))
+    by_norm = {}
+    for x, _ in size.most_common()[::-1]:  # the biggest list wins when two codes mean the same (XYP / XY-P)
+        by_norm[x.replace('-', '').lower()] = x
+    moved = Counter()
+    for c in cards:
+        same = by_norm.get(str(c.get('set') or '').replace('-', '').lower())
+        if c.get('set') and same and same != c['set']:  # e.g. XY-P is the same list as XYP
+            moved[f"{c['set']} -> {same}"] += 1
+            c['set'] = same
+        den = str(c.get('num') or '').split('/')[-1] if '/' in str(c.get('num') or '') else ''
+        if not re.fullmatch(r'[A-Za-z]{1,4}-?P', den) or den.upper() == 'P':
+            continue
+        target = by_norm.get(den.replace('-', '').lower()) or den
+        if c.get('set') != target:
+            moved[f"{c.get('set') or '(none)'} -> {target}"] += 1
+            c['product'] = c.get('set')
+            c['set'] = target
+    if moved:
+        print('Promo cards moved into their promo lists: ' + ', '.join(f'{k} ({n})' for k, n in moved.most_common()), flush=True)
+
+
 def name_sets(cards, sets_info, tcg_sets=None):
     """Gives each official set code an English name, Japanese name and release date."""
     sl = os.path.join(ROOT, 'data', 'ja-setlist.json')
@@ -307,6 +331,7 @@ def main():
                     tcg_sets[tid] = info
     except Exception as e:
         print(f'TCGdex set lists skipped: {e}', flush=True)
+    promo_lists(cards)
     name_sets(cards, sets_info, tcg_sets)
 
     # Older cards (1996 – 2006) the official site doesn't have, from build/make_ja_vintage.py
