@@ -47,6 +47,7 @@ const S = { q: '', lang: 'all', setKey: null, owned: 'all', sort: 'newest' };
 export function searchRoot() {
   return {
     title: 'Search', large: true,
+    actions: [{ icon: 'plus', label: 'Add a missing card yourself', onClick: () => import('./addcard.js').then((m) => m.openAddCard({ name: S.q.trim(), lang: S.lang !== 'all' ? S.lang : undefined, setKey: S.setKey })) }],
     watch: ['catalog', 'settings'],
     render(body) {
       if (!state.sets.size) {
@@ -89,7 +90,8 @@ export function searchRoot() {
         const keys = cards.map((c) => c.key);
         results.append(h('div', { class: 'muted small count' }, `${cards.length.toLocaleString()} cards`),
           cardGrid(cards, { showSet: !S.setKey, onClick: (c) => openCard(c.key, keys),
-            empty: empty('No cards found', 'Try another spelling, language or set.') }));
+            empty: empty('No cards found', 'Try another spelling, language or set. If the card isn’t in the database (some Chinese exclusives aren’t), you can add it yourself.',
+              h('button', { class: 'btn primary', onclick: () => import('./addcard.js').then((m) => m.openAddCard({ name: S.q.trim(), lang: S.lang !== 'all' ? S.lang : undefined, setKey: S.setKey })) }, '＋ Add it yourself')) }));
       }
 
       async function pickSet() {

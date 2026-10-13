@@ -1,6 +1,7 @@
 // Shared UI helpers: element builder, navigation, sheets, dialogs, images, card grids.
 import * as db from './db.js';
 import { state, qty, onChange } from './store.js';
+import { cachedOrFetch } from './imgcache.js';
 import { cardImageUrl, assetUrl, online, LANGS, SPRITE } from './api.js';
 
 // Let .append() skip null/false so optional pieces can be written inline
@@ -288,7 +289,8 @@ export async function cardSrc(card, quality = 'low') {
   if (!card) return null;
   if (quality === 'high' && online() && card.image) return cardImageUrl(card.image, 'high');
   if (state.imageKeys.has(card.key)) { const u = await localURL('images', card.key); if (u) return u; }
-  return online() && card.image ? cardImageUrl(card.image, 'low') : null;
+  if (!card.image) return null;
+  return cachedOrFetch(card.key, cardImageUrl(card.image, 'low'));
 }
 export async function spriteSrc(id) {
   return (await localURL('sprites', id)) || (online() ? SPRITE(id) : null);
@@ -314,7 +316,7 @@ const io = new IntersectionObserver((entries) => {
       if (src) { img.src = src; } else { img.style.display = 'none'; img.closest('.art')?.classList.add('noimg'); }
     });
   }
-}, { rootMargin: '400px 0px' });
+}, { rootMargin: '1200px 0px' });
 
 export function lazyImg(loader, alt = '', cls = '') {
   const img = h('img', { alt, class: cls, decoding: 'async', draggable: false });
@@ -331,8 +333,13 @@ export function lazyImg(loader, alt = '', cls = '') {
 }
 
 export function cardArt(card, quality = 'low') {
-  const img = lazyImg(() => cardSrc(card, quality), card?.name || '');
-  if (quality === 'high') img._fallback = () => cardSrc(card, 'low');
+  // Big view: show the small picture straight away, then swap in the sharp one when it arrives
+  const img = lazyImg(() => cardSrc(card, 'low'), card?.name || '');
+  if (quality === 'high' && card?.image && online()) {
+    const hi = new Image();
+    hi.onload = () => { img.src = hi.src; img.style.display = ''; img.closest('.art')?.classList.add('loaded'); img.closest('.art')?.classList.remove('noimg'); };
+    hi.src = cardImageUrl(card.image, 'high');
+  }
   return h('div', { class: 'art' },
     img,
     h('div', { class: 'art-fallback' }, h('span', {}, card?.name || '?'), h('small', {}, card ? `#${card.localId}` : '')));

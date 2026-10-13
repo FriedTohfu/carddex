@@ -159,10 +159,12 @@ export async function openScanner() {
     results.hidden = false;
     root.classList.add('has-results');
     results.innerHTML = '';
-    const actions = h('div', { class: 'btn-row' },
-      h('button', { class: 'btn', onclick: resume }, 'Retake'),
-      h('button', { class: 'btn', onclick: () => adjust(src, rect) }, 'Adjust crop'),
-      h('button', { class: 'btn', onclick: manual }, 'Search'));
+    const actions = h('div', {},
+      h('div', { class: 'btn-row' },
+        h('button', { class: 'btn', onclick: resume }, 'Retake'),
+        h('button', { class: 'btn', onclick: () => adjust(src, rect) }, 'Adjust crop'),
+        h('button', { class: 'btn', onclick: manual }, 'Search')),
+      h('button', { class: 'btn ghost wide', onclick: () => addNew(src, rect) }, '＋ Not listed? Add it as a new card'));
     if (message || !chosen) {
       results.append(h('p', { class: 'pad' }, message || 'No match found.'), actions);
       return;
@@ -202,6 +204,15 @@ export async function openScanner() {
     toast(`Added ${card.name} ✓`);
     if (state.settings.scanContinuous) resume();
     else { results.innerHTML = ''; results.append(h('p', { class: 'pad' }, `${card.name} added. `), h('button', { class: 'btn primary wide', onclick: resume }, 'Scan next card')); }
+  }
+
+  async function addNew(src, rect) {
+    const { openAddCard } = await import('./addcard.js');
+    const { cropCard } = await import('../custom.js');
+    let photo = null;
+    try { photo = cropCard(src, rect); } catch { /* no photo */ }
+    const lang = scope !== 'all' ? scope[0] : undefined;
+    openAddCard({ photo, lang, onDone: (card) => { if (card) { sessionAdded++; tally.hidden = false; tally.textContent = ` · ${sessionAdded} added`; resume(); } } });
   }
 
   function manual() {

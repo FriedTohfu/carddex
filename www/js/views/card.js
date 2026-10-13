@@ -56,7 +56,11 @@ export function openCard(key, list = null) {
     );
     const extra = h('div', { class: 'detail-extra' }, h('div', { class: 'muted small' }, 'Loading details…'));
 
-    body.append(h('div', { class: 'detail' }, imgWrap, stepper, info, extra, ownedSection(card), listsSection(card), dexSection(card)));
+    const customBox = card.custom ? h('div', { class: 'box' },
+      h('div', { class: 'offline-line', style: { marginTop: 0, paddingTop: 0, borderTop: 0 } },
+        h('span', { class: 'custom-badge' }, 'Added by you'),
+        h('button', { class: 'btn mini', onclick: () => import('./addcard.js').then((m) => m.openAddCard({ editKey: card.key, onDone: (c) => (c ? render(s.body) : s.close()) })) }, icon('edit', 16), ' Edit / delete'))) : null;
+    body.append(h('div', { class: 'detail' }, imgWrap, stepper, info, customBox, extra, ownedSection(card), listsSection(card), dexSection(card)));
 
     cardDetail(key).then((d) => {
       extra.innerHTML = '';

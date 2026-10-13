@@ -75,7 +75,9 @@ async function saveSet(lang, brief, full) {
   await db.putMany('cards', cards);
   state.sets.set(key, set);
   for (const c of cards) state.cards.set(c.key, c);
-  state.cardsBySet.set(key, cards);
+  // Keep any cards you added yourself to this set
+  const mine = (state.cardsBySet.get(key) || []).filter((c) => c.custom);
+  state.cardsBySet.set(key, [...cards, ...mine].sort((a, b) => a.order - b.order));
 }
 
 // ---------- Pokédex ----------
@@ -162,14 +164,16 @@ export function cardsMissingImages(keys) {
 async function fetchOne(key) {
   const card = state.cards.get(key);
   if (!card?.image) return null;
-  const blob = await fetchBlob(cardImageUrl(card.image, 'low'));
+  // Reuse the picture if you've already viewed it
+  const cached = await db.get('imgcache', key);
+  const blob = cached?.b || await fetchBlob(cardImageUrl(card.image, 'low'));
   if (!blob || blob.size <= 500) return null;
   let fp = null;
   try { fp = await fingerprintBlob(blob); } catch { /* image couldn't be read */ }
   return { blob, fp };
 }
 
-function remember(key, fp) {
+export function remember(key, fp) {
   state.imageKeys.add(key);
   if (fp) { localFps?.set(key, fp); merged = null; }
 }
@@ -332,7 +336,7 @@ export async function cardDetail(key) {
   if (cached && (Date.now() - cached._at < WEEK || !online())) return cached;
   if (!online()) return cached || null;
   const card = state.cards.get(key);
-  if (!card) return cached || null;
+  if (!card || card.custom) return cached || null;
   try {
     const d = await tcg.card(card.lang, card.id);
     if (!d) return cached || null;

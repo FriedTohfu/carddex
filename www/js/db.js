@@ -1,6 +1,6 @@
 // Tiny IndexedDB wrapper. All app data lives on the phone.
 const DB_NAME = 'carddex';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 export const STORES = {
   meta: 'meta',        // key -> any (settings, sync info)
   sets: 'sets',        // key "lang:setId"
@@ -14,6 +14,7 @@ export const STORES = {
   species: 'species',  // key dex number
   sprites: 'sprites',  // key dex number -> Blob
   logos: 'logos',      // key url -> Blob (set logos / symbols)
+  imgcache: 'imgcache', // key "lang:cardId" -> {b: Blob, t: time} pictures you've viewed
 };
 
 let dbPromise = null;

@@ -3,6 +3,8 @@ import { h, nav, sheet, toast, confirmDialog, chooseDialog, icon, chips, fmtDate
 import { state, saveSettings, exportBackup, importBackup, setCatalog, rebuildDex, emit } from '../store.js';
 import { syncCatalog, syncSpecies, deleteImages, cardsMissingImages, keepOffline, updateScanData, scanDataInfo, job } from '../sync.js';
 import { sizeText } from './offline.js';
+import { cacheCount, clearCache } from '../imgcache.js';
+import { exportCustom, importCustom } from '../custom.js';
 import { LANGS, online } from '../api.js';
 import * as db from '../db.js';
 
@@ -106,7 +108,18 @@ function imagesSection() {
       if (!(await confirmDialog(`Remove ${keys.length} saved cards? They’ll still show when you’re online.`, { ok: 'Remove', danger: true }))) return;
       await deleteImages(keys);
       toast(`Removed ${keys.length} cards`);
-    } }, 'Remove saved cards…'));
+    } }, 'Remove saved cards…'),
+    viewedCacheLine());
+}
+
+function viewedCacheLine() {
+  const line = h('div', { class: 'offline-line' }, h('span', { class: 'muted small' }, 'Recently viewed pictures: checking…'));
+  cacheCount().then((n) => {
+    line.innerHTML = '';
+    line.append(h('span', { class: 'muted small' }, `Recently viewed pictures kept for speed: ${n.toLocaleString()} (about ${sizeText(n)})`),
+      n ? h('button', { class: 'link small', onclick: async () => { await clearCache(); toast('Cleared'); line.replaceWith(viewedCacheLine()); } }, 'Clear') : null);
+  });
+  return line;
 }
 
 function scanSection() {
@@ -200,7 +213,7 @@ export async function shareText(title, text) {
 }
 
 async function doExport() {
-  const data = JSON.stringify(await exportBackup());
+  const data = JSON.stringify({ ...(await exportBackup()), custom: await exportCustom() });
   const name = `carddex-backup-${new Date().toISOString().slice(0, 10)}.json`;
   const { Filesystem, Share } = plugins();
   try {
@@ -230,6 +243,7 @@ function doImport() {
       ]);
       if (!mode) return;
       await importBackup(data, mode);
+      await importCustom(data.custom);
       toast(`Restored ${data.owned?.length || 0} cards, ${data.wishlists?.length || 0} wishlists, ${data.binders?.length || 0} binders`);
     } catch (e) { toast(e.message || 'Could not read that file', 4000); }
   });

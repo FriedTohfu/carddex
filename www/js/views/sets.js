@@ -76,6 +76,7 @@ export function openSet(setKey, tab = nav.current) {
       { value: 'img', label: 'Save this set for offline', icon: '📥', sub: offlineSub(allKeys()) },
       { value: 'unimg', label: 'Remove this set from offline', icon: '🗑️' },
       { value: 'all', label: 'Mark every card as owned', icon: '✅' },
+      { value: 'addcard', label: 'Add a missing card to this set', icon: '＋', sub: 'For cards the database doesn’t have' },
     ]);
     const cards = setCardsForProgress(setKey);
     if (pick === 'wish') {
@@ -101,6 +102,8 @@ export function openSet(setKey, tab = nav.current) {
       saveOffline(allKeys(), set.name);
     } else if (pick === 'unimg') {
       removeOffline(allKeys(), set.name);
+    } else if (pick === 'addcard') {
+      import('./addcard.js').then((m) => m.openAddCard({ lang: set.lang, setKey }));
     } else if (pick === 'all') {
       const { confirmDialog } = await import('../ui.js');
       if (!(await confirmDialog(`Mark all ${cards.length} cards in ${set.name} as owned?`, { ok: 'Mark owned' }))) return;

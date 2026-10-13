@@ -3,7 +3,7 @@ import * as db from './db.js';
 import { buildDexIndex } from './dex.js';
 
 const DEFAULT_SETTINGS = {
-  langs: ['en', 'ja', 'zh-tw', 'zh-cn'],
+  langs: ['en', 'ja', 'zh-cn'],
   theme: 'auto',            // auto | light | dark
   includeSecrets: true,     // count secret rares toward set progress
   keepOwnedOffline: true,   // save images of cards you own so they show offline
@@ -39,6 +39,13 @@ export async function loadAll() {
     db.getAllKeys('images'), db.getAllEntries('details'),
   ]);
   state.settings = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+  // One-time change: Traditional Chinese is off unless you turn it back on
+  if (!state.settings.zhTwOff) {
+    state.settings.langs = state.settings.langs.filter((l) => l !== 'zh-tw');
+    if (!state.settings.langs.length) state.settings.langs = ['en'];
+    state.settings.zhTwOff = true;
+    await db.put('meta', state.settings, 'settings');
+  }
   state.syncInfo = syncInfo || {};
   setCatalog(sets, cards);
   for (const o of owned) state.owned.set(o.key, o);
