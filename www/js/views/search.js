@@ -38,7 +38,7 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
         return totals.some((t) => t != null && t !== '' && stripZ(t) === stripZ(of));
       });
     }
-    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name); return words.every((w) => n.includes(w)); });
+    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '')); return words.every((w) => n.includes(w)); });
   }
   if (owned === 'owned') cards = cards.filter((c) => qty(c.key));
   if (owned === 'missing') cards = cards.filter((c) => !qty(c.key));
@@ -92,9 +92,18 @@ export function searchRoot() {
         if (!S.q.trim() && !S.setKey && S.owned === 'all') {
           // Browse sets when nothing is typed
           const sets = allSetsSorted().filter((s) => S.lang === 'all' || s.lang === S.lang);
-          results.append(h('h3', { class: 'section-title' }, `Browse ${sets.length} sets`),
-            h('div', { class: 'set-list' }, sets.slice(0, 300).map((s) => setRow(s, () => openSet(s.key, 'search')))),
-            sets.length > 300 ? h('p', { class: 'muted center small' }, 'Pick a language or search to see more sets.') : null);
+          const list = h('div', { class: 'set-list' });
+          const more = h('button', { class: 'btn ghost wide' });
+          let shown = 0;
+          const showMore = () => {
+            list.append(...sets.slice(shown, shown + 200).map((s) => setRow(s, () => openSet(s.key, 'search'))));
+            shown = Math.min(sets.length, shown + 200);
+            more.textContent = `Show more sets (${(sets.length - shown).toLocaleString()} older)`;
+            more.hidden = shown >= sets.length;
+          };
+          more.onclick = showMore;
+          results.append(h('h3', { class: 'section-title' }, `Browse ${sets.length.toLocaleString()} sets`), list, more);
+          showMore();
           return;
         }
         const cards = searchCards(S);

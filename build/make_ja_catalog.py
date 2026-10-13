@@ -9,7 +9,8 @@ no pictures are copied. Later runs only look up cards that are new.
 Output: data/ja-official.json
   {built, count, cards: [{id, name, set, setName, num, rarity, illus, hp, img}]}
 """
-import html as htmllib, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
+import html as htmllib, json, os, re, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
@@ -68,13 +69,128 @@ def parse_detail(page):
     m = re.search(r'HP\s*(?:<[^>]+>\s*)*(\d{2,3})', page)
     if m:
         out['hp'] = int(m.group(1))
-    # Product the card comes in (used as the set name when nothing better is known)
-    for li in re.findall(r'<li[^>]*>(.*?)</li>', page, flags=re.S):
-        t = text_of(li)
-        if 3 <= len(t) <= 60 and PRODUCT.search(t):
-            out['setName'] = t
-            break
+    # Products the card comes in (e.g. 拡張パック「メガブレイブ」), listed under the card
+    products = []
+    for href, name in re.findall(r'class="List_item"><a href="([^"]*)"[^>]*>(.*?)</a>', page, flags=re.S):
+        t = text_of(name)
+        if t and not href.startswith('http') and '購入' not in t:
+            products.append(t)
+    if products:
+        out['setName'] = products[0]
+    m = re.search(r'<h4>No\.(\d{1,4})', page)
+    if m:
+        out['dex'] = int(m.group(1))
+    out['v'] = 2
     return out
+
+
+def jnorm(x):
+    x = unicodedata.normalize('NFKC', x or '').lower()
+    return re.sub(r'[\s「」『』・•:：!！?？\-–—~〜"\'.,]', '', x)
+
+
+GENERIC = {jnorm(x) for x in ['拡張パック', '基本拡張パック', '強化拡張パック', 'スターターデッキ', 'スタートデッキ', 'プロモカード', 'コレクションパック', 'ハイクラスパック']}
+
+
+def inner_name(product):
+    m = re.search(r'「(.+?)」', product or '')
+    return m.group(1) if m else (product or '')
+
+
+ERA_OF = {'DP': 'DP Era', 'DPt': 'DPt Era', 'L': 'LEGEND Era', 'BW': 'BW Era', 'XY': 'XY Era'}
+
+
+def by_era_number(code, rows):
+    """Official codes like DPt3-B or L1-Bhg: era, set number in that era, booster, and which half."""
+    m = re.match(r'^(DPt|DP|L|BW|XY)(\d+)(?:-B(\w*))?$', code)
+    if not m:
+        return None
+    era, no, half = ERA_OF[m.group(1)], m.group(2), (m.group(3) or '').lower()
+    if era == 'XY Era' and int(no) >= 8:  # XY8 – XY11 are listed as XY BREAK sets 1 – 4
+        era, no = 'XY BREAK Era', str(int(no) - 7)
+    row = next((r for r in rows if r.get('part') == 'Main Sets' and r.get('era') == era and r.get('no') == no), None)
+    if not row:
+        return None
+    ens = [x.strip() for x in row['en'].split('•')]
+    jps = [x.strip() for x in re.split(r'[•・]', row['jp'])] if '•' in row['jp'] else [row['jp']]
+    if half and len(ens) > 1:
+        for i, en in enumerate(ens):
+            words = re.findall(r"[A-Za-z][\w'-]*", en.split(':')[-1])
+            if any(half == w.lower() or half == ''.join(ch for ch in w if ch.isupper()).lower() for w in words):
+                return {'en': en, 'jp': jps[i] if len(jps) == len(ens) else row['jp'], 'date': row['date']}
+    return {'en': row['en'], 'jp': row['jp'], 'date': row['date']}
+
+
+def name_sets(cards, sets_info, tcg_sets=None):
+    """Gives each official set code an English name, Japanese name and release date."""
+    sl = os.path.join(ROOT, 'data', 'ja-setlist.json')
+    rows = json.load(open(sl, encoding='utf-8')).get('sets', []) if os.path.exists(sl) else []
+    by_jp, by_code = {}, {}
+    for r in rows:
+        jps = [x.strip() for x in re.split(r'[•・]', r['jp']) if x.strip()] if '•' in r['jp'] else [r['jp']]
+        ens = [x.strip() for x in r['en'].split('•')]
+        for i, j in enumerate(jps):
+            if jnorm(j):
+                by_jp[jnorm(j)] = {'en': ens[i] if len(ens) == len(jps) else r['en'], 'jp': j, 'date': r['date']}
+        m = re.match(r'([A-Za-z]+(?:-[A-Za-z]+)?)\s+Promotional', r['en'])
+        if m:
+            by_code[m.group(1).replace('-', '').lower()] = {'en': r['en'], 'jp': '', 'date': r['date']}
+        if not jnorm(r['jp']):  # names written in English letters, e.g. "Pokémon GO"
+            by_jp.setdefault(jnorm(r['en']), {'en': r['en'], 'jp': r['en'], 'date': r['date']})
+    products = {}
+    for c in cards:
+        if c.get('setName') and c.get('set'):
+            products.setdefault(c['set'], Counter())[c['setName']] += 1
+    codes = {c.get('set') for c in cards if c.get('set')}
+    # Which TCGdex set has the same cards (same Japanese name and number)?
+    overlap_name = {}
+    if tcg_sets:
+        index = {}
+        for tid, t in tcg_sets.items():
+            for key in t['cards']:
+                index.setdefault(key, set()).add(tid)
+        per_code = {}
+        for c in cards:
+            n = str(c.get('num') or '').split('/')[0]
+            if c.get('set') and n.isdigit():
+                per_code.setdefault(c['set'], []).append((jnorm(c.get('name')), int(n)))
+        for code, keys in per_code.items():
+            votes = Counter(t for k in keys for t in index.get(k, ()))
+            if votes:
+                tid, nv = votes.most_common(1)[0]
+                if nv >= max(3, 0.5 * len(keys)):
+                    overlap_name[code] = tcg_sets[tid]['name']
+    named = 0
+    for code in codes:
+        cur = sets_info.get(code.lower(), {})
+        prod = products.get(code, Counter()).most_common(1)
+        prod = prod[0][0] if prod else ''
+        cands = [inner_name(prod), cur.get('name', ''), overlap_name.get(code, ''), prod]
+        hit = by_code.get(code.replace('-', '').lower()) if re.search(r'-?P$', code) else None
+        hit = hit or by_era_number(code, rows)
+        for cand in ([] if hit else cands):
+            n = jnorm(cand)
+            if n and n in by_jp:
+                hit = by_jp[n]; break
+        if not hit:
+            # A known set name inside a longer product name (not for generic names like 拡張パック)
+            for cand in cands[:3]:
+                n = jnorm(cand)
+                best = max((k for k in by_jp if len(k) >= 4 and k not in GENERIC and k in n), key=len, default=None) if n else None
+                if best:
+                    hit = by_jp[best]; break
+        info = dict(cur)
+        if hit:
+            info['name'] = hit['en']
+            info['nameJa'] = hit['jp'] or inner_name(prod)
+            info['releaseDate'] = hit['date'] or cur.get('releaseDate', '')
+            named += 1
+        else:
+            info['name'] = cur.get('name') or overlap_name.get(code) or inner_name(prod) or code
+            if prod:
+                info['nameJa'] = inner_name(prod)
+        sets_info[code.lower()] = info
+    print(f'{named} of {len(codes)} official sets matched to Bulbapedia names and dates', flush=True)
 
 
 def main():
@@ -108,7 +224,9 @@ def main():
     print(f'{len(listed)} cards listed', flush=True)
 
     # Cards never read (or whose page failed last time). 'chk' = page read fine, it just has no number.
-    todo = [cid for cid in listed if cid not in old or not (old[cid].get('num') or old[cid].get('chk'))]
+    todo = [cid for cid in listed if cid not in old or old[cid].get('v', 1) < 2 or not (old[cid].get('num') or old[cid].get('chk'))]
+    # Newest cards first, so if time runs out the most-wanted ones are done
+    todo.sort(key=lambda c: -int(c) if str(c).isdigit() else 0)
     print(f'{len(todo)} cards need details', flush=True)
     done = 0
     parsed_num = 0
@@ -171,52 +289,39 @@ def main():
                            'serie': (full.get('serie') or {}).get('name', '')}
     print(f'{len(sets_info)} sets matched with release dates', flush=True)
 
-    # Older sets aren't on pokemon-card.com (its database starts around 2006), so add the
-    # Japanese sets TCGdex knows about that the official list doesn't have.
-    extra = []
-    try:
-        have_name_num = {}
-        for c in old.values():
-            if str(c.get('id', '')).startswith('td-'):
-                continue
-            n = str(c.get('num') or '').split('/')[0]
-            if n.isdigit():
-                have_name_num.setdefault((c.get('name'), int(n)), set()).add((c.get('set') or '').lower())
-        for t in (json.loads(tl) if tl else []):
-            code = str(t.get('id', ''))
-            if not code or code.lower() in codes:
-                continue
-            full = get(f"{tcg}/ja/sets/{urllib.parse.quote(code)}")
-            full = json.loads(full) if full else {}
-            tcards = [c for c in full.get('cards', []) if c.get('image') and c.get('name')]
-            if not tcards:
-                continue
-            # Same set under a different code? (most of its cards already exist in one official set)
-            hits = {}
-            for c in tcards:
-                lid = str(c.get('localId') or '')
-                for sc in have_name_num.get((c['name'], int(lid)), ()) if lid.isdigit() else ():
-                    hits[sc] = hits.get(sc, 0) + 1
-            if hits and max(hits.values()) >= 0.5 * len(tcards):
-                continue
-            official = (full.get('cardCount') or {}).get('official')
-            sets_info[code.lower()] = {'name': full.get('name') or t.get('name') or code, 'releaseDate': full.get('releaseDate', ''),
-                                       'serie': (full.get('serie') or {}).get('name', ''), 'src': 'tcgdex'}
-            for c in tcards:
-                lid = str(c.get('localId') or '')
-                extra.append({'id': f"td-{code}-{lid}", 'name': c['name'], 'set': code, 'img': c['image'] + '/high.webp',
-                              'num': f'{lid}/{official}' if lid and official and lid.isdigit() else lid, 'chk': 1,
-                              'setName': sets_info[code.lower()]['name']})
-    except Exception as e:
-        print(f'Older sets skipped: {e}', flush=True)
-        extra = []
-    print(f'{len(extra)} older cards added from TCGdex', flush=True)
-
+    # Proper set names and release dates from Bulbapedia's list of Japanese sets
     cards = []
     for cid, c in listed.items():
         cards.append({**old.get(cid, {}), **c})
     cards.sort(key=lambda c: int(c['id']) if str(c['id']).isdigit() else 0)
-    cards = extra + cards
+    tcg_sets = {}
+    def tcg_set(t):
+        full = get(f"{tcg}/ja/sets/{urllib.parse.quote(str(t['id']))}")
+        full = json.loads(full) if full else {}
+        keys = {(jnorm(c.get('name')), int(c['localId'])) for c in full.get('cards', []) if str(c.get('localId', '')).isdigit()}
+        return str(t['id']), {'name': full.get('name') or t.get('name', ''), 'cards': keys}
+    try:
+        with ThreadPoolExecutor(6) as ex:
+            for tid, info in ex.map(tcg_set, json.loads(tl) if tl else []):
+                if info['cards']:
+                    tcg_sets[tid] = info
+    except Exception as e:
+        print(f'TCGdex set lists skipped: {e}', flush=True)
+    name_sets(cards, sets_info, tcg_sets)
+
+    # Older cards (1996 – 2006) the official site doesn't have, from build/make_ja_vintage.py
+    vp = os.path.join(ROOT, 'data', 'ja-vintage.json')
+    if os.path.exists(vp):
+        try:
+            v = json.load(open(vp, encoding='utf-8'))
+            for st in v.get('sets', []):
+                sets_info[st['code'].lower()] = {'name': st['name'], 'releaseDate': st.get('releaseDate', ''),
+                                                 'serie': st.get('serie', ''), 'src': 'bulbapedia'}
+            old_cards = [c for c in v.get('cards', []) if c.get('set')]
+            cards = [{k: val for k, val in c.items() if val not in (None, '')} for c in old_cards] + cards
+            print(f"{len(old_cards)} older cards added ({sum(1 for c in old_cards if c.get('img'))} with pictures)", flush=True)
+        except Exception as e:
+            print(f'Older cards skipped: {e}', flush=True)
     built = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump({'built': built, 'count': len(cards), 'source': BASE, 'sets': sets_info, 'cards': cards}, f, ensure_ascii=False, separators=(',', ':'))

@@ -35,4 +35,22 @@ API="$(tr -dc '0-9' < "$ROOT/build/native-api.txt")"
 API="${API:-1}"
 sed -i -E "s/versionCode [0-9]+/versionCode ${BUILD}/; s/versionName \"[^\"]*\"/versionName \"1.${API}.${BUILD}\"/" "$GRADLE"
 
+# 6. Hidden page reader (lets the app read eBay results like a real browser)
+JAVA_DIR="$ROOT/android/app/src/main/java/com/carddex/app"
+cp "$ROOT/build/native/PageReaderPlugin.java" "$JAVA_DIR/"
+cat > "$JAVA_DIR/MainActivity.java" <<'JAVA'
+package com.carddex.app;
+
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(PageReaderPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+}
+JAVA
+
 echo "Android project customised (build ${BUILD})"

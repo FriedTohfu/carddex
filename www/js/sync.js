@@ -185,6 +185,7 @@ async function syncJa({ force = false } = {}) {
     sets.push({
       key: setKey, lang, id: `pcj-${code}`, code, src: 'pcj',
       name: meta.name || t?.name || old?.name || list.find((c) => c.setName)?.setName || code,
+      nameJa: meta.nameJa || '',
       serie: meta.serie || old?.serie || '', releaseDate: meta.releaseDate || old?.releaseDate || '',
       rank: Math.max(...list.map((c) => +c.id || 0)),
       total: list.length, official: denominator(list.map((c) => c.num)),
@@ -194,7 +195,7 @@ async function syncJa({ force = false } = {}) {
       const num = String(c.num || '');
       cards.push({
         key: `${lang}:pcj-${c.id}`, lang, id: `pcj-${c.id}`, src: 'pcj',
-        localId: num.split('/')[0] || '', number: num, name: c.name || '',
+        localId: num.split('/')[0] || '', number: num, name: c.name || '', nameEn: c.en || undefined,
         image: !c.img ? '' : /^https?:/.test(c.img) ? c.img : `https://www.pokemon-card.com${c.img}`, setKey, order: i,
         det: { rarity: c.rarity, illustrator: c.illus, hp: c.hp, number: num, category: c.hp ? 'Pokemon' : undefined },
       });
@@ -218,13 +219,14 @@ async function syncJa({ force = false } = {}) {
     if (k) remap.set(c.key, k);
   }
   await remapKeys(remap);
-  // Replace the old Japanese data (keeping anything still in your collection, lists or binders)
+  // Full reset: replace all older Japanese data (keeping anything still in your collection, lists or binders)
   const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
-  const oldCards = [...state.cards.values()].filter((c) => c.lang === lang && c.src !== 'pcj' && !c.custom && !keep.has(c.key));
+  const newKeys = new Set(cards.map((c) => c.key)), newSets = new Set(sets.map((st) => st.key));
+  const oldCards = [...state.cards.values()].filter((c) => c.lang === lang && !c.custom && !newKeys.has(c.key) && !keep.has(c.key));
   await db.delMany('cards', oldCards.map((c) => c.key));
   for (const c of oldCards) state.cards.delete(c.key);
   const usedSets = new Set([...state.cards.values()].filter((c) => c.lang === lang).map((c) => c.setKey));
-  const oldSets = [...state.sets.values()].filter((st) => st.lang === lang && st.src !== 'pcj' && !st.custom && !usedSets.has(st.key));
+  const oldSets = [...state.sets.values()].filter((st) => st.lang === lang && !st.custom && !newSets.has(st.key) && !usedSets.has(st.key));
   await db.delMany('sets', oldSets.map((st) => st.key));
   for (const st of oldSets) { state.sets.delete(st.key); state.cardsBySet.delete(st.key); }
   await db.putMany('sets', sets);

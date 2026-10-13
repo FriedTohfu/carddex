@@ -67,8 +67,14 @@ def ja_list():
     if not os.path.exists(JA_LIST):
         return None
     d = json.load(open(JA_LIST, encoding='utf-8'))
-    return [(f"pcj-{c['id']}", c['img'] if c['img'].startswith('http') else JA_IMG_BASE + c['img'])
-            for c in d.get('cards', []) if c.get('img')]
+    def url(img):
+        if not img.startswith('http'):
+            return JA_IMG_BASE + img
+        if 'archives.bulbagarden.net' in img:
+            # Bulbagarden blocks GitHub's servers; the Internet Archive keeps copies of most pictures
+            return 'https://web.archive.org/web/2026im_/' + img
+        return img
+    return [(f"pcj-{c['id']}", url(c['img'])) for c in d.get('cards', []) if c.get('img')]
 
 
 SOURCE = {'zh-cn': 'chs', 'ja': 'pcj'}

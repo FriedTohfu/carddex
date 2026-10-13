@@ -191,6 +191,20 @@ async function ebaySold(card) {
   const url = ebayUrl(card);
   const out = (prices, how) => ({ source: 'eBay sold', site: host, currency: cur, url, via: how, ...(stats(prices) || { count: 0 }) });
   let why = '';
+  // 0. Best: open the page in a hidden browser view inside the app (needs app build 1.2.x or newer)
+  const reader = window.Capacitor?.isPluginAvailable?.('PageReader') && window.Capacitor.Plugins.PageReader;
+  if (reader) {
+    try {
+      const r0 = await reader.read({ url, ready: '.srp-results .s-item__price, .srp-results .s-card__price, .srp-save-null-search, .s-message', timeout: 25000 });
+      const html = r0?.html || '';
+      if (BLOCKED.test(html.slice(0, 20000)) && !r0.ready) why = 'eBay asked for a robot check';
+      else {
+        const r = parseEbayHtml(html, card);
+        if (r.found || r0.ready) return out(r.prices || [], 'browser');
+        why = 'eBay page had no results we could read';
+      }
+    } catch (e) { why = `eBay page didn’t load (${e?.message || e})`; }
+  }
   // 1. Ask eBay directly, like a phone browser would
   try {
     const html = await httpGet(url, BROWSER_HEADERS);

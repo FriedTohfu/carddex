@@ -1,6 +1,7 @@
 name: Build scan data
 
-# 1. Builds the full Japanese card list from the official Japanese site.
+# 1. Builds the full Japanese card list: older cards (1996 – 2006) from Bulbapedia's
+#    set lists (via the Internet Archive), everything since from the official site.
 # 2. Makes the small "fingerprint" files the app's scanner uses, so your phone
 #    never has to download every card image.
 # Runs every week to pick up new cards (only new ones are processed), and can
@@ -14,6 +15,7 @@ on:
     paths:
       - 'build/make_scan_data.py'
       - 'build/make_ja_catalog.py'
+      - 'build/make_ja_vintage.py'
       - 'www/js/fp.js'
 
 permissions:
@@ -41,15 +43,21 @@ jobs:
           pip install playwright
           python -m playwright install --with-deps chromium
 
+      - name: Older Japanese cards (Bulbapedia)
+        continue-on-error: true
+        env:
+          VINTAGE_MAX_MINUTES: '70'
+        run: python build/make_ja_vintage.py
+
       - name: Build Japanese card list
         continue-on-error: true
         env:
-          JA_MAX_MINUTES: '120'
+          JA_MAX_MINUTES: '110'
         run: python build/make_ja_catalog.py
 
       - name: Build fingerprints
         env:
-          MAX_MINUTES: '200'
+          MAX_MINUTES: '120'
         run: python build/make_scan_data.py
 
       - name: Save to repository

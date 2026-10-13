@@ -2,7 +2,7 @@
 import * as db from './db.js';
 import { state, qty, onChange } from './store.js';
 import { cachedOrFetch } from './imgcache.js';
-import { cardImg, assetUrl, online, LANGS, SPRITE } from './api.js';
+import { cardImg, archivedImg, assetUrl, online, LANGS, SPRITE } from './api.js';
 
 // Let .append() skip null/false so optional pieces can be written inline
 for (const proto of [Element.prototype, DocumentFragment.prototype]) {
@@ -290,6 +290,8 @@ export async function cardSrc(card, quality = 'low') {
   if (quality === 'high' && online() && card.image) return cardImg(card, 'high');
   if (state.imageKeys.has(card.key)) { const u = await localURL('images', card.key); if (u) return u; }
   if (!card.image) return null;
+  // Bulbagarden pictures load directly (that site doesn't allow the app to save them)
+  if (/bulbagarden/.test(card.image)) return online() ? cardImg(card, 'low') : null;
   return cachedOrFetch(card.key, cardImg(card, 'low'));
 }
 export async function spriteSrc(id) {
@@ -336,6 +338,7 @@ export function cardArt(card, quality = 'low') {
   // Big view: show the small picture straight away, then swap in the sharp one when it arrives
   const img = lazyImg(() => cardSrc(card, 'low'), card?.name || '');
   if (card?.src === 'chs') img._fallback = async () => card.image; // if the resizing service is down
+  if (card?.src === 'pcj' && /bulbagarden/.test(card.image || '')) img._fallback = async () => archivedImg(card.image);
   if (quality === 'high' && card?.image && online()) {
     const hi = new Image();
     hi.onload = () => { img.src = hi.src; img.style.display = ''; img.closest('.art')?.classList.add('loaded'); img.closest('.art')?.classList.remove('noimg'); };
