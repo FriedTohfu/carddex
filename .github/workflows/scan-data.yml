@@ -53,6 +53,7 @@ jobs:
         run: python build/make_scan_data.py
 
       - name: Save to repository
+        if: always()   # keep whatever was finished, even if a step failed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

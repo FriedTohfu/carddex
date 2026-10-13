@@ -80,6 +80,7 @@ def card_list(lang):
         lst = ja_list()
         if lst is not None:
             return lst
+        SOURCE['ja'] = 'tcgdex'  # official list not built yet: use TCGdex for now
     sets = get(f'{TCG}/{lang}/sets')
     if not sets:
         return []
@@ -139,44 +140,94 @@ def main():
     ip = os.path.join(OUT, 'index.json')
     index = json.load(open(ip)) if os.path.exists(ip) else {}
     with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
-        page.set_content('<!doctype html><html><body></body></html>')
-        page.add_script_tag(content=PAGE_SCRIPT)
-        for lang in LANGS:
-            print(f'== {lang}: reading card list', flush=True)
-            cards = card_list(lang)
-            if not cards:
-                print(f'   {lang}: not available, skipped', flush=True)
-                continue
-            fps = load_existing(lang)
-            todo = [(cid, img) for cid, img in cards if cid not in fps]
-            print(f'   {len(cards)} cards with images, {len(todo)} new', flush=True)
-            if not todo and lang in index:
-                continue  # nothing new: leave the file untouched
-            done = 0
-            with ThreadPoolExecutor(16) as ex:
-                for i in range(0, len(todo), 96):
-                    if (time.time() - START) / 60 > MAX_MIN:
-                        print('   time limit reached, saving progress (next run continues)', flush=True)
-                        break
-                    batch = todo[i:i + 96]
-                    imgs = list(ex.map(lambda t: get(t[1], binary=True, tries=2), batch))
-                    b64 = [base64.b64encode(b).decode('ascii') if b and len(b) > 500 else None for b in imgs]
-                    res = page.evaluate(JS, b64)
-                    for (cid, _), r in zip(batch, res):
-                        if r:
-                            fps[cid] = base64.b64decode(r)
-                    done += len(batch)
-                    if done % 960 == 0 or done >= len(todo):
-                        print(f'   {lang}: {done}/{len(todo)}', flush=True)
-                    if done % 4800 == 0:
-                        save(lang, fps, index)
+        tab = Tab(p)
+        try:
+            for lang in LANGS:
+                run_lang(lang, tab, index)
+        finally:
+            tab.close()
+            with open(ip, 'w') as f:
+                json.dump(index, f, indent=1)
+
+
+class Tab:
+    """A Chromium page that runs the app's fingerprint code. Restarted regularly
+    (and after any crash) so memory never builds up."""
+    RESTART_EVERY = 3000
+
+    def __init__(self, p):
+        self.p = p
+        self.browser = None
+        self.used = 0
+        self.open()
+
+    def open(self):
+        self.close()
+        self.browser = self.p.chromium.launch(args=['--js-flags=--max-old-space-size=2048'])
+        self.page = self.browser.new_page()
+        self.page.set_content('<!doctype html><html><body></body></html>')
+        self.page.add_script_tag(content=PAGE_SCRIPT)
+        self.used = 0
+
+    def close(self):
+        try:
+            if self.browser:
+                self.browser.close()
+        except Exception:
+            pass
+        self.browser = None
+
+    def fingerprints(self, b64s):
+        if self.used >= self.RESTART_EVERY:
+            self.open()
+        self.used += len(b64s)
+        try:
+            return self.page.evaluate(JS, b64s)
+        except Exception as e:
+            print(f'   browser problem ({str(e)[:80]}), restarting it', flush=True)
+            self.open()
+            if len(b64s) == 1:
+                return [None]  # skip a picture that keeps causing trouble
+            half = len(b64s) // 2
+            return self.fingerprints(b64s[:half]) + self.fingerprints(b64s[half:])
+
+
+def run_lang(lang, tab, index):
+    print(f'== {lang}: reading card list', flush=True)
+    cards = card_list(lang)
+    if not cards:
+        print(f'   {lang}: not available, skipped', flush=True)
+        return
+    fps = load_existing(lang)
+    todo = [(cid, img) for cid, img in cards if cid not in fps]
+    print(f'   {len(cards)} cards with images, {len(todo)} new', flush=True)
+    if not todo and lang in index:
+        return  # nothing new: leave the file untouched
+    done = 0
+    try:
+        with ThreadPoolExecutor(16) as ex:
+            for i in range(0, len(todo), 48):
+                if (time.time() - START) / 60 > MAX_MIN:
+                    print('   time limit reached, saving progress (next run continues)', flush=True)
+                    break
+                batch = todo[i:i + 48]
+                imgs = list(ex.map(lambda t: get(t[1], binary=True, tries=2), batch))
+                # very large pictures are skipped (they aren't card scans)
+                b64 = [base64.b64encode(b).decode('ascii') if b and 500 < len(b) < 6_000_000 else None for b in imgs]
+                res = tab.fingerprints(b64)
+                for (cid, _), r in zip(batch, res):
+                    if r:
+                        fps[cid] = base64.b64decode(r)
+                done += len(batch)
+                if done % 960 < 48 or done >= len(todo):
+                    print(f'   {lang}: {done}/{len(todo)}', flush=True)
+                if done % 2400 < 48:
+                    save(lang, fps, index)
+    finally:
+        # Always keep what we managed, even if something went wrong
+        if fps:
             save(lang, fps, index)
             print(f'   {lang}: {len(fps)} fingerprints saved', flush=True)
-        browser.close()
-    with open(ip, 'w') as f:
-        json.dump(index, f, indent=1)
 
 
 if __name__ == '__main__':
