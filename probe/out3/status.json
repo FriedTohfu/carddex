@@ -1,0 +1,98 @@
+{
+ "detail_47734.html": [
+  200,
+  10695,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n"
+ ],
+ "detail_41682.html": [
+  200,
+  10611,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n"
+ ],
+ "detail_23055.html": [
+  200,
+  10549,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n"
+ ],
+ "detail_27761.html": [
+  200,
+  10702,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n"
+ ],
+ "detail_36718.html": [
+  200,
+  10794,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n"
+ ],
+ "detail_31553.html": [
+  200,
+  10704,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n"
+ ],
+ "detail_43322.html": [
+  200,
+  10590,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n"
+ ],
+ "search_index.html": [
+  200,
+  62492,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\n<html lang=\"ja\">\n\n<head>\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push({\n  "
+ ],
+ "resultAPI.json": [
+  200,
+  9784,
+  "application/json; charset=UTF-8",
+  "{\n    \"result\": 1,\n    \"errMsg\": \"\",\n    \"thisPage\": 1,\n    \"maxPage\": 602,\n    \"hitCnt\": 23458,\n    \"cardStart\": 1,\n    \"cardEnd\": 39,\n    \"searchCon"
+ ],
+ "products.html": [
+  200,
+  37743,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n\r\n<head>\r\n    <!-- Google Tag Manager -->\n<script>(function (w, d, s, l, i) {\n        w[l] = w[l] || []; w[l].push("
+ ],
+ "arch_img_direct": [
+  403,
+  2000,
+  "",
+  "<!DOCTYPE html><html lang=\"en-US\"><head><title>Just a moment...</title><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-e"
+ ],
+ "wb_card.html": [
+  200,
+  112605,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\n<html class=\"client-nojs\" lang=\"en\" dir=\"ltr\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Bulbasaur (Base Set 44) - Bulbapedia, the communit"
+ ],
+ "wb_vending.html": [
+  200,
+  458742,
+  "text/html; charset=UTF-8",
+  "<!DOCTYPE html>\n<html class=\"client-nojs\" lang=\"en\" dir=\"ltr\">\n<head>\n<meta charset=\"UTF-8\">\n<title>Vending Machine cards (TCG) - Bulbapedia, the comm"
+ ],
+ "wb_cdx.txt": [
+  0,
+  28,
+  "",
+  "The read operation timed out"
+ ],
+ "pokellector": [
+  200,
+  95848,
+  "text/html; charset=UTF-8",
+  "<!doctype html>\r\n<html>\r\n<head>\r\n<meta charset=\"utf-8\">\r\n<title>Pokemon Card Series & Sets @ Pokellector</title>\r\n<!-- Network N JS -->\r\n<link rel=\"pr"
+ ],
+ "tcgcollector": [
+  200,
+  1906521,
+  "text/html; charset=UTF-8",
+  "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n<!DOCTYPE html>\n\n<html lang=\"en\">\n\n  <head>\n\n    <title>Pokémon TCG sets (Japanese TCG) – TCG Collector</title>\n\n    <meta char"
+ ]
+}
