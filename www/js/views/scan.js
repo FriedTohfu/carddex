@@ -112,9 +112,14 @@ export async function openScanner() {
   function autoCentre(c) {
     const fw = Math.min(c.width * 0.8, c.height * 0.8 * (63 / 88)), fh = fw * (88 / 63);
     const guess = { x: (c.width - fw) / 2, y: (c.height - fh) / 2, w: fw, h: fh };
+    // A photo that is just the card (a scan or screenshot): use the whole picture
+    if (Math.abs(Math.log((c.width / c.height) / (63 / 88))) < 0.025) return { x: 0, y: 0, w: c.width, h: c.height };
     try {
       const q = findCardAnywhere(c);
       if (!q) return guess;
+      // Ignore outlines that are clearly just a box inside the card (e.g. the artwork)
+      const area = Math.abs((q.tr.x - q.tl.x) * (q.bl.y - q.tl.y));
+      if (area < c.width * c.height * 0.06) return guess;
       const xs = [q.tl.x, q.tr.x, q.br.x, q.bl.x], ys = [q.tl.y, q.tr.y, q.br.y, q.bl.y];
       const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
       let w = (Math.max(...xs) - Math.min(...xs)) * 1.04, hh = (Math.max(...ys) - Math.min(...ys)) * 1.04;
