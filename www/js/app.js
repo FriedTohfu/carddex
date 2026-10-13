@@ -91,7 +91,7 @@ async function main() {
   setTimeout(() => ota.checkForUpdate(), 4000);
   // New card lists (e.g. the official Japanese list) arrive without having to tap "Update card data"
   setTimeout(async () => {
-    try { if (await autoUpdateCardData()) toast('Japanese card list updated'); } catch { /* try again next start-up */ }
+    try { if (await autoUpdateCardData()) toast('Japanese cards updated from TCGdex'); } catch { /* try again next start-up */ }
   }, 2500);
 }
 

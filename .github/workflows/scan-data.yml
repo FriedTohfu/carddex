@@ -1,8 +1,6 @@
 name: Build scan data
 
-# 1. Builds the full Japanese card list: older cards (1996 – 2006) from Bulbapedia's
-#    set lists (via the Internet Archive), everything since from the official site.
-# 2. Makes the small "fingerprint" files the app's scanner uses, so your phone
+# Makes the small "fingerprint" files the app's scanner uses, so your phone
 #    never has to download every card image.
 # Runs every week to pick up new cards (only new ones are processed), and can
 # be started by hand from the Actions tab.
@@ -14,8 +12,6 @@ on:
     branches: [main, master]
     paths:
       - 'build/make_scan_data.py'
-      - 'build/make_ja_catalog.py'
-      - 'build/make_ja_vintage.py'
       - 'build/save-data.sh'
       - 'www/js/fp.js'
 
@@ -46,32 +42,12 @@ jobs:
           pip install playwright
           python -m playwright install --with-deps chromium
 
-      - name: Older Japanese cards (Bulbapedia)
-        continue-on-error: true
-        env:
-          VINTAGE_MAX_MINUTES: '70'
-        run: |
-          mkdir -p data; : > data/build-log.txt
-          python build/make_ja_vintage.py 2>&1 | tee -a data/build-log.txt
-
-      - name: Save older cards
-        if: always()
-        run: bash build/save-data.sh "Update older Japanese cards"
-
-      - name: Build Japanese card list
-        continue-on-error: true
-        env:
-          JA_MAX_MINUTES: '110'
-        run: python build/make_ja_catalog.py 2>&1 | tee -a data/build-log.txt
-
-      - name: Save Japanese card list
-        if: always()
-        run: bash build/save-data.sh "Update Japanese card list"
-
       - name: Build fingerprints
         env:
           MAX_MINUTES: '120'
-        run: python build/make_scan_data.py 2>&1 | tee -a data/build-log.txt
+        run: |
+          mkdir -p data; : > data/build-log.txt
+          python build/make_scan_data.py 2>&1 | tee -a data/build-log.txt
 
       - name: Save to repository
         if: always()   # keep whatever was finished, even if a step failed

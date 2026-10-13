@@ -22,10 +22,6 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
         try { await syncChs({ force }); } catch (e) { errors.push(`zh-cn: ${e.message}`); }
         continue;
       }
-      if (lang === 'ja') {
-        // Official Japanese card list (built on GitHub); falls back to TCGdex until it exists
-        try { if (await syncJa({ force })) continue; } catch (e) { errors.push(`ja: ${e.message}`); }
-      }
       report(`Checking ${lang.toUpperCase()} sets…`, 0, 0);
       let list;
       try { list = await tcg.sets(lang); } catch (e) { errors.push(`${lang}: ${e.message}`); continue; }
@@ -50,6 +46,7 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
         } catch (e) { errors.push(`${lang}/${brief.id}: ${e.message}`); }
         report(`Downloading ${lang.toUpperCase()} card lists`, ++n, todo.length);
       }, () => job.stop);
+      if (lang === 'ja' && !job.stop) await dropOfficialJa();
       const cards = [...state.cards.values()].filter((c) => c.lang === lang).length;
       state.syncInfo[lang] = { at: Date.now(), sets: list.length, cards };
       await db.put('meta', state.syncInfo, 'syncInfo');
@@ -143,14 +140,42 @@ async function syncChs({ force = false } = {}) {
   await db.put('meta', state.syncInfo, 'syncInfo');
 }
 
-/** At start-up: quietly fetch the Japanese card list when GitHub has a newer one. Returns true if it updated. */
+/** At start-up: phones that still have the old official-site Japanese list switch back to TCGdex. */
 export async function autoUpdateCardData() {
   if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
-  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
-  const built = index?.jaCatalog?.built;
-  if (!built || state.syncInfo.ja?.built === built) return false;
+  if (![...state.sets.values()].some((st) => st.src === 'pcj')) return false;
   const errors = await syncCatalog(['ja']);
   return !errors?.length;
+}
+
+/** Removes the official-site Japanese list, moving your cards to the matching TCGdex cards (same set code and number). */
+async function dropOfficialJa() {
+  const lang = 'ja';
+  const pcjSets = [...state.sets.values()].filter((st) => st.lang === lang && st.src === 'pcj');
+  if (!pcjSets.length) return;
+  const tByCodeNum = new Map();
+  for (const c of state.cards.values()) {
+    if (c.lang !== lang || c.src === 'pcj' || c.custom) continue;
+    const id = state.sets.get(c.setKey)?.id?.toLowerCase();
+    if (id) tByCodeNum.set(`${id}|${parseInt(c.localId, 10)}`, c.key);
+  }
+  const remap = new Map();
+  for (const c of state.cards.values()) {
+    if (c.lang !== lang || c.src !== 'pcj') continue;
+    const code = (state.sets.get(c.setKey)?.code || '').toLowerCase();
+    const k = tByCodeNum.get(`${code}|${parseInt(c.localId, 10)}`);
+    if (k) remap.set(c.key, k);
+  }
+  await remapKeys(remap);
+  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
+  const old = [...state.cards.values()].filter((c) => c.lang === lang && c.src === 'pcj' && !keep.has(c.key));
+  await db.delMany('cards', old.map((c) => c.key));
+  for (const c of old) state.cards.delete(c.key);
+  const used = new Set([...state.cards.values()].filter((c) => c.src === 'pcj').map((c) => c.setKey));
+  const gone = pcjSets.filter((st) => !used.has(st.key));
+  await db.delMany('sets', gone.map((st) => st.key));
+  for (const st of gone) { state.sets.delete(st.key); state.cardsBySet.delete(st.key); }
+  for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
 }
 
 // ---------- Japanese (official card list, built by build/make_ja_catalog.py) ----------

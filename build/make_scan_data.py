@@ -77,7 +77,7 @@ def ja_list():
     return [(f"pcj-{c['id']}", url(c['img'])) for c in d.get('cards', []) if c.get('img')]
 
 
-SOURCE = {'zh-cn': 'chs', 'ja': 'pcj'}
+SOURCE = {'zh-cn': 'chs'}  # Japanese and English come from TCGdex
 
 
 def card_list(lang):
