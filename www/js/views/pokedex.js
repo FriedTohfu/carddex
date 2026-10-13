@@ -104,6 +104,14 @@ export function openPokemon(id, tab = 'pokedex') {
         draw();
       } });
       const ownedN = all.filter((c) => qty(c.key)).length;
+      // Toggle: grey out cards you don't own (remembered)
+      const dimBtn = h('button', { class: 'chip' + (state.settings.dexDimMissing !== false ? ' on' : ''), onclick: async () => {
+        const on = state.settings.dexDimMissing === false;
+        dimBtn.classList.toggle('on', on);
+        const { saveSettings } = await import('../store.js');
+        state.settings.dexDimMissing = on;
+        saveSettings({ dexDimMissing: on });
+      } }, '◐ Grey out missing');
       const latestKey = ownedFor(id).latest;
       body.append(
         h('div', { class: 'mon-hero' },
@@ -119,7 +127,8 @@ export function openPokemon(id, tab = 'pokedex') {
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))], F.lang, (v) => { F.lang = v; F.setKey = null; draw(); })),
         h('div', { class: 'toolbar' }, setBtn,
-          chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], F.owned, (v) => { F.owned = v; draw(); })),
+          chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], F.owned, (v) => { F.owned = v; draw(); }),
+          dimBtn),
         res);
       draw();
       function draw() {
@@ -135,7 +144,7 @@ export function openPokemon(id, tab = 'pokedex') {
         const keys = cards.map((c) => c.key);
         res.innerHTML = '';
         res.append(h('div', { class: 'muted small count' }, `${cards.length} cards`),
-          cardGrid(cards, { showSet: true, onClick: (c) => openCard(c.key, keys),
+          cardGrid(cards, { dimMissing: state.settings.dexDimMissing !== false, showSet: true, onClick: (c) => openCard(c.key, keys),
             empty: empty('No cards', state.sets.size ? 'No cards match these filters.' : 'Download card data in Settings first.') }));
       }
     },
