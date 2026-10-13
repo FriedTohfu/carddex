@@ -2,7 +2,7 @@ name: Probe
 on:
   push:
     branches: [probe]
-    paths: [probe/probe3.py, .github/workflows/probe.yml]
+    paths: [probe/probe4.py, .github/workflows/probe.yml]
 permissions:
   contents: write
 jobs:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: echo skip
-      - run: cd probe && python3 probe3.py
+      - run: cd probe && python3 probe4.py
       - run: |
           git config user.name bot; git config user.email bot@users.noreply.github.com
-          git add probe/out3 && git commit -m "probe output 3" && git push
+          git add probe/out4 && git commit -m "probe output 4" && git push
