@@ -401,3 +401,11 @@ textarea.input { resize: vertical; }
 .sprite.dex-card img { object-fit: cover; image-rendering: auto; }
 .dex-cell .sprite.dex-card { opacity: 1; filter: none; }
 .sprite.big.dex-card { width: 80px; height: 112px; }
+.focus-ring { position: absolute; width: 70px; height: 70px; margin: -35px 0 0 -35px; border: 2px solid #ffd23f; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 1; }
+.focus-ring.show { animation: focus-ring 1s ease-out; }
+@keyframes focus-ring { 0% { transform: scale(1.5); opacity: 1; } 40% { transform: scale(1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+.scan-zoom { position: absolute; left: 24px; right: 24px; bottom: calc(132px + var(--safe-b)); display: flex; align-items: center; gap: 10px; color: #fff; font-size: 13px; font-weight: 600; text-shadow: 0 1px 2px #000; }
+.scan-zoom .zoom-range { flex: 1; margin: 0; }
+.scanner.has-results .scan-zoom { display: none; }
+.shutter.busy { animation: pulse-shutter .8s ease-in-out infinite; }
+@keyframes pulse-shutter { 50% { transform: scale(.88); box-shadow: 0 0 0 9px rgba(255,255,255,.25); } }

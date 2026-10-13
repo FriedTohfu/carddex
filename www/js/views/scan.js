@@ -23,7 +23,7 @@ export async function openScanner() {
   video.setAttribute('playsinline', ''); video.muted = true;
   const still = h('canvas', { class: 'scan-still', hidden: true });
   const frame = h('div', { class: 'scan-frame' }, h('i', { class: 'c tl' }), h('i', { class: 'c tr' }), h('i', { class: 'c bl' }), h('i', { class: 'c br' }));
-  const hint = h('div', { class: 'scan-hint' }, 'Fit the card roughly inside the frame');
+  const hint = h('div', { class: 'scan-hint' }, 'Fit the card in the frame · tap to focus');
   const status = h('div', { class: 'scan-status' });
   const tally = h('span', { class: 'scan-tally', hidden: true });
   const results = h('div', { class: 'scan-results', hidden: true });
@@ -33,8 +33,13 @@ export async function openScanner() {
   const langOpts = [{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: LANGS[l].short }))];
   const scopeChips = chips(langOpts, scope === 'all' ? 'all' : scope[0], (v) => { scope = v === 'all' ? 'all' : [v]; updateStatus(); });
 
-  const root = h('div', { class: 'scanner' },
-    video, still,
+  const ring = h('div', { class: 'focus-ring' });
+  const zoomInput = h('input', { type: 'range', class: 'zoom-range', 'aria-label': 'Zoom', oninput: (e) => setZoom(e.target.value) });
+  const zoomLabel = h('span', {}, '1.0×');
+  const zoomWrap = h('div', { class: 'scan-zoom', hidden: true }, h('span', {}, '🔍'), zoomInput, zoomLabel);
+  const shutter = h('button', { class: 'shutter', 'aria-label': 'Take photo', onclick: () => capture() });
+  const root = h('div', { class: 'scanner', onpointerup: (e) => tapFocus(e) },
+    video, still, ring,
     h('div', { class: 'scan-shade' }),
     frame, hint,
     h('div', { class: 'scan-top' },
@@ -42,9 +47,10 @@ export async function openScanner() {
       h('div', { class: 'scan-title' }, 'Scan a card', tally),
       torchBtn),
     h('div', { class: 'scan-scope' }, scopeChips, status),
+    zoomWrap,
     h('div', { class: 'scan-bottom' },
       h('button', { class: 'scan-icon labeled', onclick: () => fileInput.click() }, icon('image'), h('small', {}, 'Photo')),
-      h('button', { class: 'shutter', 'aria-label': 'Take photo', onclick: capture }),
+      shutter,
       h('button', { class: 'scan-icon labeled', onclick: manual }, icon('search'), h('small', {}, 'Search'))),
     results, fileInput);
   document.body.append(root);
@@ -80,23 +86,84 @@ export async function openScanner() {
     return scope === 'all' || scope.includes(lang);
   }
 
+  let caps = {};
+  async function openStream(deviceId) {
+    const video0 = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+    return navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: deviceId ? { ...video0, deviceId: { exact: deviceId } } : { ...video0, facingMode: { ideal: 'environment' } },
+    });
+  }
+
+  // Phones with several back cameras: use the main one ("camera 0"), which can
+  // focus close up — wide-angle/telephoto lenses often can't.
+  async function mainBackCamera() {
+    try {
+      const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+      const backs = devs.filter((d) => /back|rear|environment|后|背面/i.test(d.label));
+      if (!backs.length) return null;
+      const num = (d) => { const m = /(\d+)/.exec(d.label); return m ? +m[1] : 99; };
+      return backs.sort((a, b) => num(a) - num(b))[0].deviceId;
+    } catch { return null; }
+  }
+
   async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) { noCamera('This phone’s camera can’t be opened here. Use “Photo” instead.'); return; }
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      });
+      stream = await openStream();
+      const best = await mainBackCamera();
+      const current = stream.getVideoTracks()[0]?.getSettings?.().deviceId;
+      if (best && current && best !== current) {
+        try { const s2 = await openStream(best); stream.getTracks().forEach((t) => t.stop()); stream = s2; } catch { /* keep the first one */ }
+      }
       if (!open) { stream.getTracks().forEach((t) => t.stop()); return; }
       video.srcObject = stream;
       await video.play().catch(() => {});
       track = stream.getVideoTracks()[0];
-      const caps = track.getCapabilities?.() || {};
+      caps = track.getCapabilities?.() || {};
       if (caps.torch) torchBtn.hidden = false;
-      if (caps.focusMode?.includes?.('continuous')) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+      await keepFocusing();
+      setupZoom();
     } catch (e) {
       noCamera(e?.name === 'NotAllowedError' ? 'Camera permission was denied. Allow it in your phone’s settings, or use “Photo”.' : 'Couldn’t start the camera. Use “Photo” instead.');
     }
+  }
+
+  async function keepFocusing() {
+    if (caps.focusMode?.includes?.('continuous')) {
+      try { await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch { /* not supported */ }
+    }
+  }
+
+  // Zoom slider: zooming in a little lets you hold the phone further away,
+  // where the camera can focus properly.
+  function setupZoom() {
+    if (!caps.zoom || !(caps.zoom.max > caps.zoom.min)) return;
+    const min = caps.zoom.min, max = Math.min(caps.zoom.max, 5), step = caps.zoom.step || 0.1;
+    const start = Math.min(max, Math.max(min, 1.5));
+    zoomInput.min = min; zoomInput.max = max; zoomInput.step = step; zoomInput.value = start;
+    zoomWrap.hidden = false;
+    setZoom(start);
+  }
+  async function setZoom(z) {
+    zoomLabel.textContent = `${(+z).toFixed(1)}×`;
+    try { await track.applyConstraints({ advanced: [{ zoom: +z }] }); } catch { /* not supported */ }
+    keepFocusing();
+  }
+
+  // Tap the picture to focus on that spot
+  async function tapFocus(e) {
+    if (!track || !results.hidden || e.target.closest('button, input, .scan-scope, .scan-bottom, .scan-top, .scan-zoom')) return;
+    const r = video.getBoundingClientRect();
+    ring.style.left = `${e.clientX - r.left}px`; ring.style.top = `${e.clientY - r.top}px`;
+    ring.classList.remove('show'); void ring.offsetWidth; ring.classList.add('show');
+    const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    const mode = caps.focusMode?.includes?.('single-shot') ? 'single-shot' : (caps.focusMode?.includes?.('auto') ? 'auto' : 'continuous');
+    try { await track.applyConstraints({ advanced: [{ pointsOfInterest: [{ x, y }], focusMode: mode }] }); } catch {
+      try { await track.applyConstraints({ advanced: [{ focusMode: mode }] }); } catch { /* not supported */ }
+    }
+    clearTimeout(tapFocus.t);
+    tapFocus.t = setTimeout(keepFocusing, 3000);
   }
 
   function noCamera(msg) { hint.textContent = msg; hint.classList.add('warn'); }
@@ -115,15 +182,81 @@ export async function openScanner() {
     return { x: (fr.left - vr.left - offX) / scale, y: (fr.top - vr.top - offY) / scale, w: fr.width / scale, h: fr.height / scale };
   }
 
+  // How sharp a picture is (higher = sharper), measured on the middle of the frame
+  function sharpness(src, rect) {
+    const W = 160, H = Math.round(W * rect.h / rect.w);
+    const c = h('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(src, rect.x, rect.y, rect.w, rect.h, 0, 0, W, H);
+    const d = g.getImageData(0, 0, W, H).data;
+    const gray = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i++) gray[i] = d[i * 4] * 0.3 + d[i * 4 + 1] * 0.59 + d[i * 4 + 2] * 0.11;
+    let sum = 0, sum2 = 0, n = 0;
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+      const i = y * W + x;
+      const l = 4 * gray[i] - gray[i - 1] - gray[i + 1] - gray[i - W] - gray[i + W];
+      sum += l; sum2 += l * l; n++;
+    }
+    return sum2 / n - (sum / n) ** 2;
+  }
+
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /** Best possible still: a real photo (with autofocus) if the phone allows, else the sharpest of a few video frames. */
+  async function grabStill() {
+    const fr = frameRectInVideo();
+    if ('ImageCapture' in window && track) {
+      try {
+        const ic = new ImageCapture(track);
+        const blob = await Promise.race([ic.takePhoto(), wait(5000).then(() => null)]);
+        if (blob) {
+          const bmp = await createImageBitmap(blob, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(blob));
+          const vPortrait = video.videoHeight > video.videoWidth, pPortrait = bmp.height > bmp.width;
+          if (vPortrait === pPortrait && bmp.width >= video.videoWidth * 0.9) {
+            const k = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+            const c = h('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+            c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+            bmp.close?.();
+            // The preview is (usually) the centre of the full photo
+            const va = video.videoWidth / video.videoHeight, pa = c.width / c.height;
+            let vx = 0, vy = 0, vw = c.width, vh = c.height;
+            if (va > pa) { vh = c.width / va; vy = (c.height - vh) / 2; } else { vw = c.height * va; vx = (c.width - vw) / 2; }
+            const sc = vw / video.videoWidth;
+            return { canvas: c, rect: { x: vx + fr.x * sc, y: vy + fr.y * sc, w: fr.w * sc, h: fr.h * sc } };
+          }
+          bmp.close?.();
+        }
+      } catch { /* fall back to video frames */ }
+    }
+    let best = null, bestSharp = -1;
+    for (let i = 0; i < 4; i++) {
+      const c = h('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext('2d').drawImage(video, 0, 0);
+      const sh = sharpness(c, fr);
+      if (sh > bestSharp) { bestSharp = sh; best = c; }
+      if (i < 3) await wait(140);
+    }
+    return { canvas: best, rect: fr };
+  }
+
+  let capturing = false;
   async function capture() {
+    if (capturing) return;
     if (!video.videoWidth) { toast('Camera not ready — try “Photo” instead'); return; }
-    still.width = video.videoWidth; still.height = video.videoHeight;
-    still.getContext('2d').drawImage(video, 0, 0);
-    root.classList.add('flash');
-    setTimeout(() => root.classList.remove('flash'), 180);
-    const r = frameRectInVideo();
-    showStill();
-    await runMatch(still, r);
+    capturing = true;
+    shutter.classList.add('busy');
+    try {
+      const { canvas, rect } = await grabStill();
+      root.classList.add('flash');
+      setTimeout(() => root.classList.remove('flash'), 180);
+      still.width = canvas.width; still.height = canvas.height;
+      still.getContext('2d').drawImage(canvas, 0, 0);
+      showStill();
+      await runMatch(still, rect);
+    } finally {
+      capturing = false;
+      shutter.classList.remove('busy');
+    }
   }
 
   function showStill() {
