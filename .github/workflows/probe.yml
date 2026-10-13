@@ -2,7 +2,7 @@ name: Probe
 on:
   push:
     branches: [probe]
-    paths: [probe/probe2.py, .github/workflows/probe.yml]
+    paths: [probe/probe3.py, .github/workflows/probe.yml]
 permissions:
   contents: write
 jobs:
@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pip install playwright && python -m playwright install --with-deps chromium
-      - run: cd probe && xvfb-run -a python3 probe2.py
+      - run: echo skip
+      - run: cd probe && python3 probe3.py
       - run: |
           git config user.name bot; git config user.email bot@users.noreply.github.com
-          git add probe/out2 && git commit -m "probe output 2" && git push
+          git add probe/out3 && git commit -m "probe output 3" && git push
