@@ -14,7 +14,7 @@ export const REPO = 'FriedTohfu/carddex';
 const API = `https://api.github.com/repos/${REPO}`;
 const RAW = (sha, path) => `https://raw.githubusercontent.com/${REPO}/${sha}/${path}`;
 export const RELEASES = `https://github.com/${REPO}/releases/latest`;
-const CHECK_EVERY = 30 * 60 * 1000;
+const CHECK_EVERY = 5 * 60 * 1000;
 
 const P = () => window.Capacitor?.Plugins || {};
 const ls = {
