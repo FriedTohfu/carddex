@@ -104,7 +104,7 @@ export function allSetsSorted() {
   return [...state.sets.values()].filter((s) => state.settings.langs.includes(s.lang)).sort(sortSets);
 }
 function sortSets(a, b) {
-  return (b.releaseDate || '').localeCompare(a.releaseDate || '') || a.name.localeCompare(b.name);
+  return (b.releaseDate || '').localeCompare(a.releaseDate || '') || (b.rank || 0) - (a.rank || 0) || a.name.localeCompare(b.name);
 }
 
 function isSecret(card, set) {

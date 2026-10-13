@@ -82,6 +82,11 @@ export function cardImg(card, quality = 'low') {
     if (quality === 'high' || quality === 'raw') return card.image;
     return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=245&output=webp&q=82`;
   }
+  if (card.src === 'pcj') {
+    // Official Japanese card pictures, resized by images.weserv.nl
+    const w = quality === 'high' ? 700 : 245;
+    return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=${w}&output=webp&q=82`;
+  }
   return cardImageUrl(card.image, quality === 'raw' ? 'low' : quality);
 }
 export function assetUrl(base) {

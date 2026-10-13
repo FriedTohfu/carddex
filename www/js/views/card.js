@@ -7,8 +7,10 @@ import { speciesName } from '../dex.js';
 import { saveOffline, removeOffline } from './offline.js';
 
 /** Opens a card. `list` (optional) lets you step to the previous/next card. */
-export function openCard(key, list = null) {
+/** opts.versionsOf(key) → keys of the same card in other languages (pick one to view/add). */
+export function openCard(key, list = null, opts = {}) {
   let idx = list ? list.indexOf(key) : -1;
+  const startKey = key;
   let unsub = null;
   const s = sheet({
     title: '', full: true,
@@ -43,6 +45,16 @@ export function openCard(key, list = null) {
       if (Math.abs(dx) > 60) go(dx < 0 ? 1 : -1);
     });
 
+    // Same card in other languages: switch between them here
+    const group = opts.versionsOf?.(list ? list[idx] : startKey) || [];
+    const versionChips = group.length > 1 ? h('div', { class: 'version-chips' }, group.map((k) => {
+      const c = state.cards.get(k); if (!c) return null;
+      const st = state.sets.get(c.setKey);
+      return h('button', { class: 'chip' + (k === key ? ' on' : ''), onclick: () => { key = k; render(s.body); } },
+        h('span', {}, `${LANGS[c.lang]?.flag || ''} ${LANGS[c.lang]?.short || c.lang}`, qty(k) ? h('span', { class: 'owned-dot' }, ' ✓') : null),
+        h('small', {}, `${st?.name || ''} #${c.localId}`));
+    })) : null;
+
     const stepper = list ? h('div', { class: 'stepper' },
       h('button', { class: 'icon-btn', disabled: idx <= 0, 'aria-label': 'Previous card', onclick: () => go(-1) }, icon('back')),
       h('span', {}, `${idx + 1} / ${list.length}`),
@@ -62,7 +74,7 @@ export function openCard(key, list = null) {
       h('div', { class: 'offline-line', style: { marginTop: 0, paddingTop: 0, borderTop: 0 } },
         h('span', { class: 'custom-badge' }, 'Added by you'),
         h('button', { class: 'btn mini', onclick: () => import('./addcard.js').then((m) => m.openAddCard({ editKey: card.key, onDone: (c) => (c ? render(s.body) : s.close()) })) }, icon('edit', 16), ' Edit / delete'))) : null;
-    body.append(h('div', { class: 'detail' }, imgWrap, stepper, info, customBox, extra, card.custom ? null : pricesBox, ownedSection(card), listsSection(card), dexSection(card)));
+    body.append(h('div', { class: 'detail' }, imgWrap, stepper, versionChips, info, customBox, extra, card.custom ? null : pricesBox, ownedSection(card), listsSection(card), dexSection(card)));
 
     cardDetail(key).then((d) => {
       extra.innerHTML = '';

@@ -50,7 +50,7 @@ export function openSettings() {
 
         section('Collection', '',
           toggle('Count secret rares in set progress', state.settings.includeSecrets, (on) => saveSettings({ includeSecrets: on })),
-          toggle('Pokédex: keep the search bar showing while scrolling down', state.settings.dexStickySearch !== false, (on) => saveSettings({ dexStickySearch: on })),
+          toggle('Pokédex: keep the search bar pinned at the top', state.settings.dexStickySearch !== false, (on) => saveSettings({ dexStickySearch: on })),
           toggle('Pokédex shows my latest card of each Pokémon', state.settings.dexShowCards, (on) => saveSettings({ dexShowCards: on })),
           h('label', { class: 'field' }, h('span', {}, 'Currency for prices'),
             h('select', { class: 'input', onchange: (e) => saveSettings({ currency: e.target.value }) },

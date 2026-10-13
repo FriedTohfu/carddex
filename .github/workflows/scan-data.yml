@@ -1,16 +1,19 @@
 name: Build scan data
 
-# Makes the small "fingerprint" files the app's scanner uses, so your phone
-# never has to download every card image. Runs once a month to pick up new
-# sets, and can be started by hand from the Actions tab.
+# 1. Builds the full Japanese card list from the official Japanese site.
+# 2. Makes the small "fingerprint" files the app's scanner uses, so your phone
+#    never has to download every card image.
+# Runs every week to pick up new cards (only new ones are processed), and can
+# be started by hand from the Actions tab.
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 3 1 * *'
+    - cron: '17 3 * * 1'
   push:
     branches: [main, master]
     paths:
       - 'build/make_scan_data.py'
+      - 'build/make_ja_catalog.py'
       - 'www/js/fp.js'
 
 permissions:
@@ -38,9 +41,15 @@ jobs:
           pip install playwright
           python -m playwright install --with-deps chromium
 
+      - name: Build Japanese card list
+        continue-on-error: true
+        env:
+          JA_MAX_MINUTES: '120'
+        run: python build/make_ja_catalog.py
+
       - name: Build fingerprints
         env:
-          MAX_MINUTES: '300'
+          MAX_MINUTES: '200'
         run: python build/make_scan_data.py
 
       - name: Save to repository
@@ -49,6 +58,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
           if git diff --cached --quiet; then echo "No changes"; exit 0; fi
-          git commit -m "Update scan data"
+          git commit -m "Update card data and scan data"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"

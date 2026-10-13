@@ -351,21 +351,24 @@ export function langBadge(lang) {
   return h('span', { class: `lang lang-${lang}` }, LANGS[lang]?.short || lang);
 }
 
-export function cardTile(card, { onClick, dimMissing = true, showLang = true, showSet = false } = {}) {
-  const q = qty(card.key);
-  const tile = h('button', { class: 'tile' + (dimMissing && !q ? ' missing' : ''), 'data-key': card.key, onclick: () => onClick?.(card) },
+export function cardTile(card, { onClick, dimMissing = true, showLang = true, showSet = false, versionsOf } = {}) {
+  // versionsOf(card) → keys of the same card in other languages (shown as one tile)
+  const keys = versionsOf?.(card) || [card.key];
+  const q = keys.reduce((n, k) => n + qty(k), 0);
+  const langs = [...new Set(keys.map((k) => state.cards.get(k)?.lang).filter(Boolean))];
+  const tile = h('button', { class: 'tile' + (dimMissing && !q ? ' missing' : ''), 'data-key': card.key, 'data-keys': keys.length > 1 ? keys.join('|') : null, onclick: () => onClick?.(card) },
     cardArt(card),
     h('span', { class: 'qty', hidden: !q }, q > 1 ? `×${q}` : '✓'),
     h('span', { class: 'tile-meta' },
       h('span', { class: 'num' }, showSet ? (state.sets.get(card.setKey)?.name || '') : `#${card.localId}`),
-      showLang ? langBadge(card.lang) : null));
+      showLang ? h('span', { class: 'langs' }, langs.map((l) => langBadge(l))) : null));
   tile._dim = dimMissing;
   return tile;
 }
 
 export function updateTiles(root = document) {
   for (const t of root.querySelectorAll('.tile[data-key]')) {
-    const q = qty(t.dataset.key);
+    const q = (t.dataset.keys ? t.dataset.keys.split('|') : [t.dataset.key]).reduce((n, k) => n + qty(k), 0);
     const badge = t.querySelector('.qty');
     if (badge) { badge.hidden = !q; badge.textContent = q > 1 ? `×${q}` : '✓'; }
     t.classList.toggle('missing', t._dim && !q);

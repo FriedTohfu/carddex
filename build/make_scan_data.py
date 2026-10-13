@@ -58,9 +58,28 @@ def chs_list():
             for cd in col.get('cards', []) if cd.get('image')]
 
 
+JA_LIST = os.path.join(ROOT, 'data', 'ja-official.json')
+JA_IMG_BASE = os.environ.get('JA_BASE', 'https://www.pokemon-card.com')
+
+
+def ja_list():
+    # Japanese: the official card list built by make_ja_catalog.py
+    if not os.path.exists(JA_LIST):
+        return None
+    d = json.load(open(JA_LIST, encoding='utf-8'))
+    return [(f"pcj-{c['id']}", JA_IMG_BASE + c['img']) for c in d.get('cards', []) if c.get('img')]
+
+
+SOURCE = {'zh-cn': 'chs', 'ja': 'pcj'}
+
+
 def card_list(lang):
     if lang == 'zh-cn':
         return chs_list()
+    if lang == 'ja':
+        lst = ja_list()
+        if lst is not None:
+            return lst
     sets = get(f'{TCG}/{lang}/sets')
     if not sets:
         return []
@@ -79,8 +98,10 @@ def load_existing(lang):
     if not os.path.exists(p):
         return {}
     d = json.load(open(p, encoding='utf-8'))
-    if d.get('v') != FP_VERSION:
-        return {}  # fingerprint maths changed: rebuild everything
+    keys0 = d.get('keys') or []
+    src = d.get('src') or ('chs' if keys0 and str(keys0[0]).startswith('chs-') else 'pcj' if keys0 and str(keys0[0]).startswith('pcj-') else 'tcgdex')
+    if d.get('v') != FP_VERSION or src != SOURCE.get(lang, 'tcgdex'):
+        return {}  # fingerprint maths or card source changed: rebuild everything
     raw = base64.b64decode(d['fp'])
     n = len(raw) // len(d['keys']) if d['keys'] else 70
     return {k: raw[i * n:(i + 1) * n] for i, k in enumerate(d['keys'])}
@@ -91,9 +112,9 @@ def save(lang, fps, index):
     blob = b''.join(fps[k] for k in keys)
     built = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     with open(os.path.join(OUT, f'fp-{lang}.json'), 'w', encoding='utf-8') as f:
-        json.dump({'v': FP_VERSION, 'lang': lang, 'built': built, 'keys': keys,
+        json.dump({'v': FP_VERSION, 'lang': lang, 'src': SOURCE.get(lang, 'tcgdex'), 'built': built, 'keys': keys,
                    'fp': base64.b64encode(blob).decode('ascii')}, f, separators=(',', ':'))
-    index[lang] = {'v': FP_VERSION, 'built': built, 'count': len(keys), 'file': f'fp-{lang}.json',
+    index[lang] = {'v': FP_VERSION, 'src': SOURCE.get(lang, 'tcgdex'), 'built': built, 'count': len(keys), 'file': f'fp-{lang}.json',
                    'bytes': os.path.getsize(os.path.join(OUT, f'fp-{lang}.json'))}
 
 

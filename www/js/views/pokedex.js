@@ -4,6 +4,7 @@ import { state, qty } from '../store.js';
 import { LANGS, online } from '../api.js';
 import { speciesName } from '../dex.js';
 import { openCard } from './card.js';
+import { groupVersions } from '../versions.js';
 import { syncSpecies } from '../sync.js';
 
 const GENS = [[1, 151], [152, 251], [252, 386], [387, 493], [494, 649], [650, 721], [722, 809], [810, 905], [906, 1025]];
@@ -46,17 +47,8 @@ export function pokedexRoot() {
       const grid = h('div', { class: 'dex-grid' });
       const count = h('div', { class: 'muted small count' });
       input.addEventListener('input', debounce(() => { D.q = input.value.trim().toLowerCase(); draw(); }, 150));
-      // Search bar that stays pinned while you scroll down (and scrolls away when you scroll up)
-      const searchWrap = h('div', { class: 'dex-search' }, input);
-      if (state.settings.dexStickySearch !== false) {
-        let lastY = body.scrollTop;
-        body.addEventListener('scroll', () => {
-          const y = body.scrollTop;
-          if (y > lastY + 2) searchWrap.classList.add('pinned');
-          else if (y < lastY - 2) searchWrap.classList.remove('pinned');
-          lastY = y;
-        }, { passive: true });
-      }
+      // Search bar stays pinned at the top while you scroll
+      const searchWrap = h('div', { class: 'dex-search' + (state.settings.dexStickySearch !== false ? ' pinned' : '') }, input);
       body.append(searchWrap,
         h('div', { class: 'toolbar' }, chips(gens, D.gen, (v) => { D.gen = v; draw(); })),
         h('div', { class: 'toolbar' },
@@ -115,6 +107,11 @@ export function openPokemon(id, tab = 'pokedex') {
         draw();
       } });
       const ownedN = all.filter((c) => qty(c.key)).length;
+      // Toggle: show each card once with its language versions inside (remembered)
+      const combineBtn = h('button', { class: 'chip' + (state.settings.dexCombine !== false ? ' on' : ''), onclick: async () => {
+        const { saveSettings } = await import('../store.js');
+        saveSettings({ dexCombine: state.settings.dexCombine === false });
+      } }, '🔗 Combine languages');
       // Toggle: grey out cards you don't own (remembered)
       const dimBtn = h('button', { class: 'chip' + (state.settings.dexDimMissing !== false ? ' on' : ''), onclick: async () => {
         const on = state.settings.dexDimMissing === false;
@@ -139,24 +136,36 @@ export function openPokemon(id, tab = 'pokedex') {
           chips([{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))], F.lang, (v) => { F.lang = v; F.setKey = null; draw(); })),
         h('div', { class: 'toolbar' }, setBtn,
           chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], F.owned, (v) => { F.owned = v; draw(); }),
-          dimBtn),
+          dimBtn, combineBtn),
         res);
       draw();
-      function draw() {
+      async function draw() {
         const set = F.setKey && state.sets.get(F.setKey);
         setBtn.textContent = set ? `📦 ${set.name} ✕` : '📦 Any set';
         setBtn.classList.toggle('on', !!set);
         let cards = all;
         if (F.lang !== 'all') cards = cards.filter((c) => c.lang === F.lang);
         if (F.setKey) cards = cards.filter((c) => c.setKey === F.setKey);
-        if (F.owned === 'owned') cards = cards.filter((c) => qty(c.key));
-        if (F.owned === 'missing') cards = cards.filter((c) => !qty(c.key));
         cards = [...cards].sort((a, b) => (state.sets.get(b.setKey)?.releaseDate || '').localeCompare(state.sets.get(a.setKey)?.releaseDate || ''));
-        const keys = cards.map((c) => c.key);
+        // One tile per card, with its English/Japanese/Chinese versions inside
+        const combine = state.settings.dexCombine !== false && F.lang === 'all';
+        let groups = cards.map((c) => ({ rep: c, keys: [c.key] }));
+        if (combine) groups = await groupVersions(cards);
+        const anyOwned = (g) => g.keys.some((k) => qty(k));
+        if (F.owned === 'owned') groups = groups.filter(anyOwned);
+        if (F.owned === 'missing') groups = groups.filter((g) => !anyOwned(g));
+        const byRep = new Map(groups.map((g) => [g.rep.key, g.keys]));
+        const reps = groups.map((g) => g.rep);
+        const keys = reps.map((c) => c.key);
+        const merged = cards.length - groups.length;
         res.innerHTML = '';
-        res.append(h('div', { class: 'muted small count' }, `${cards.length} cards`),
-          cardGrid(cards, { dimMissing: state.settings.dexDimMissing !== false, showSet: true, onClick: (c) => openCard(c.key, keys),
-            empty: empty('No cards', state.sets.size ? 'No cards match these filters.' : 'Download card data in Settings first.') }));
+        res.append(h('div', { class: 'muted small count' }, `${groups.length} cards`, combine && merged > 0 ? ` (${merged} other-language versions combined — tap a card to pick the language)` : ''),
+          cardGrid(reps, {
+            dimMissing: state.settings.dexDimMissing !== false, showSet: true,
+            versionsOf: combine ? (c) => byRep.get(c.key) : null,
+            onClick: (c) => openCard(c.key, keys, { versionsOf: (k) => byRep.get(k) || [k] }),
+            empty: empty('No cards', state.sets.size ? 'No cards match these filters.' : 'Download card data in Settings first.'),
+          }));
       }
     },
   });
