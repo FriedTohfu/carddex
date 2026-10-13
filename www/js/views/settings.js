@@ -49,6 +49,7 @@ export function openSettings() {
 
         section('Collection', '',
           toggle('Count secret rares in set progress', state.settings.includeSecrets, (on) => saveSettings({ includeSecrets: on })),
+          toggle('Pokédex shows my latest card of each Pokémon', state.settings.dexShowCards, (on) => saveSettings({ dexShowCards: on })),
           h('div', { class: 'field' }, h('span', {}, 'Theme'),
             chips([{ value: 'auto', label: 'Auto' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }], state.settings.theme, (v) => saveSettings({ theme: v })))),
 
@@ -60,7 +61,7 @@ export function openSettings() {
         storageSection(),
 
         section('About', '',
-          h('p', { class: 'muted small' }, 'CardDex is a fan-made personal app and is not affiliated with Nintendo, The Pokémon Company or Game Freak. Card data and images: TCGdex (tcgdex.dev). Pokédex data and sprites: PokéAPI (pokeapi.co).')),
+          h('p', { class: 'muted small' }, 'CardDex is a fan-made personal app and is not affiliated with Nintendo, The Pokémon Company or Game Freak. Card data and images: TCGdex (tcgdex.dev); Simplified Chinese: PTCG-CHS-Datasets by duanxr (personal, non-commercial use). Pokédex data and sprites: PokéAPI (pokeapi.co).')),
       );
     },
   });

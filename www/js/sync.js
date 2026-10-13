@@ -1,6 +1,6 @@
 // Downloads card lists, Pokédex data and images to the phone.
 import * as db from './db.js';
-import { tcg, fetchJSON, fetchBlob, pool, POKEAPI, SPRITE, SCAN_DATA, cardImageUrl, online } from './api.js';
+import { tcg, fetchJSON, fetchBlob, pool, POKEAPI, SPRITE, SCAN_DATA, CHS_BASE, cardImg, online } from './api.js';
 import { state, emit, rebuildDex, setSpecies, dexOverrides } from './store.js';
 import { fingerprintBlob, FP_VERSION, FP_LEN } from './fp.js';
 
@@ -18,6 +18,10 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
   const errors = [];
   try {
     for (const lang of langs) {
+      if (lang === 'zh-cn') {
+        try { await syncChs({ force }); } catch (e) { errors.push(`zh-cn: ${e.message}`); }
+        continue;
+      }
       report(`Checking ${lang.toUpperCase()} sets…`, 0, 0);
       let list;
       try { list = await tcg.sets(lang); } catch (e) { errors.push(`${lang}: ${e.message}`); continue; }
@@ -54,6 +58,85 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
     report('', 0, 0);
   }
   return errors;
+}
+
+// ---------- Simplified Chinese (PTCG-CHS-Datasets) ----------
+function denominator(nums) {
+  const count = new Map();
+  for (const n of nums) {
+    const m = /\/\s*(\d+)\s*$/.exec(n || '');
+    if (m) count.set(+m[1], (count.get(+m[1]) || 0) + 1);
+  }
+  let best = 0, c = 0;
+  for (const [k, v] of count) if (v > c) { best = k; c = v; }
+  return best;
+}
+
+async function syncChs({ force = false } = {}) {
+  const lang = 'zh-cn';
+  report('Checking Simplified Chinese cards…', 0, 0);
+  let sha = null;
+  try { sha = (await fetchJSON('https://api.github.com/repos/duanxr/PTCG-CHS-Datasets/commits/main', { retries: 0, timeout: 15000 }))?.sha || null; } catch { /* check skipped */ }
+  const info = state.syncInfo[lang];
+  const have = [...state.sets.values()].some((s) => s.src === 'chs');
+  if (!force && have && info?.sha && sha === info.sha) return;
+  report('Downloading Simplified Chinese card list (about 25 MB)…', 0, 0);
+  const d = await fetchJSON(`${CHS_BASE}/ptcg_chs_infos.json`, { timeout: 300000, retries: 1 });
+  if (!d?.collections) throw new Error('Simplified Chinese card list unavailable');
+  const sets = [], cards = [];
+  for (const col of d.collections) {
+    const setKey = `${lang}:chs-${col.id}`;
+    const list = col.cards || [];
+    sets.push({
+      key: setKey, lang, id: `chs-${col.id}`, src: 'chs', code: col.commodityCode || '',
+      name: String(col.name || col.commodityCode || col.id).trim(),
+      serie: col.seriesText || '', releaseDate: col.salesDate || '',
+      total: list.length, official: denominator(list.map((c) => c.details?.collectionNumber)),
+      logo: col.image ? `https://images.weserv.nl/?url=${encodeURIComponent(`${CHS_BASE}/${col.image}`.replace(/^https?:\/\//, ''))}&w=240&output=webp` : '',
+      symbol: '', syncedAt: Date.now(),
+    });
+    list.forEach((cd, i) => {
+      const det = cd.details || {};
+      const num = String(det.collectionNumber || '').trim();
+      cards.push({
+        key: `${lang}:chs-${cd.id}`, lang, id: `chs-${cd.id}`, src: 'chs',
+        localId: (num.split('/')[0] || '').trim() || String(i + 1), number: num,
+        name: String(cd.name || det.cardName || '').trim(),
+        image: cd.image ? `${CHS_BASE}/${cd.image}` : '', setKey, order: i,
+        det: {
+          rarity: det.rarityText, illustrator: (det.illustratorName || []).join(', '), hp: det.hp,
+          category: det.cardTypeText, regulationMark: det.regulationMarkText, number: num,
+        },
+      });
+    });
+  }
+  // Replace older Simplified Chinese data (keeping anything in your collection, lists or binders)
+  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
+  const newKeys = new Set(cards.map((c) => c.key));
+  const oldCards = [...state.cards.values()].filter((c) => c.lang === lang && !c.custom && !newKeys.has(c.key) && !keep.has(c.key));
+  await db.delMany('cards', oldCards.map((c) => c.key));
+  for (const c of oldCards) state.cards.delete(c.key);
+  const keptSets = new Set([...state.cards.values()].filter((c) => c.lang === lang).map((c) => c.setKey));
+  const newSetKeys = new Set(sets.map((s) => s.key));
+  const oldSets = [...state.sets.values()].filter((s) => s.lang === lang && !s.custom && !newSetKeys.has(s.key) && !keptSets.has(s.key));
+  await db.delMany('sets', oldSets.map((s) => s.key));
+  for (const s of oldSets) { state.sets.delete(s.key); state.cardsBySet.delete(s.key); }
+  // Save
+  await db.putMany('sets', sets);
+  for (let i = 0; i < cards.length; i += 2000) {
+    await db.putMany('cards', cards.slice(i, i + 2000));
+    report('Saving Simplified Chinese cards', Math.min(cards.length, i + 2000), cards.length);
+  }
+  for (const s of sets) state.sets.set(s.key, s);
+  for (const c of cards) state.cards.set(c.key, c);
+  for (const s of sets) {
+    const mine = (state.cardsBySet.get(s.key) || []).filter((c) => c.custom);
+    state.cardsBySet.set(s.key, [...cards.filter((c) => c.setKey === s.key), ...mine].sort((a, b) => a.order - b.order));
+  }
+  // drop empty leftovers from the old source
+  for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
+  state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, sha, source: 'PTCG-CHS-Datasets' };
+  await db.put('meta', state.syncInfo, 'syncInfo');
 }
 
 async function saveSet(lang, brief, full) {
@@ -166,7 +249,7 @@ async function fetchOne(key) {
   if (!card?.image) return null;
   // Reuse the picture if you've already viewed it
   const cached = await db.get('imgcache', key);
-  const blob = cached?.b || await fetchBlob(cardImageUrl(card.image, 'low'));
+  const blob = cached?.b || await fetchBlob(cardImg(card, 'low'));
   if (!blob || blob.size <= 500) return null;
   let fp = null;
   try { fp = await fingerprintBlob(blob); } catch { /* image couldn't be read */ }
@@ -336,6 +419,7 @@ export async function cardDetail(key) {
   if (cached && (Date.now() - cached._at < WEEK || !online())) return cached;
   if (!online()) return cached || null;
   const card = state.cards.get(key);
+  if (card?.src === 'chs') return { ...card.det };
   if (!card || card.custom) return cached || null;
   try {
     const d = await tcg.card(card.lang, card.id);

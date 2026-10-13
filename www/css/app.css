@@ -389,3 +389,15 @@ textarea.input { resize: vertical; }
 .set-pick { justify-content: flex-start; margin-top: 0; }
 .danger-text { color: #b3261e; }
 .custom-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.strip-title { margin-top: 6px; font-weight: 600; }
+.match-alt .alt-set { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px; }
+/* ---------- Collection groups ---------- */
+.group { margin-bottom: 8px; }
+.group-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 4px; text-align: left; position: sticky; top: -4px; background: var(--bg); z-index: 2; }
+.group-head b { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.group-head .chev { width: 16px; color: var(--muted); }
+.group-tools { display: flex; gap: 16px; justify-content: flex-end; margin: -4px 2px 4px; }
+.sprite.dex-card { width: 52px; height: 72px; border-radius: 4px; overflow: hidden; box-shadow: var(--shadow); }
+.sprite.dex-card img { object-fit: cover; image-rendering: auto; }
+.dex-cell .sprite.dex-card { opacity: 1; filter: none; }
+.sprite.big.dex-card { width: 80px; height: 112px; }

@@ -71,6 +71,19 @@ export const tcg = {
 export function cardImageUrl(image, quality = 'low') {
   return image ? `${image}/${quality}.webp` : null;
 }
+
+// Simplified Chinese cards come from the PTCG-CHS-Datasets project (official
+// Chinese card data). Their pictures are large PNGs, so small previews go
+// through a free image-resizing service (images.weserv.nl).
+export const CHS_BASE = 'https://raw.githubusercontent.com/duanxr/PTCG-CHS-Datasets/main';
+export function cardImg(card, quality = 'low') {
+  if (!card?.image) return null;
+  if (card.src === 'chs') {
+    if (quality === 'high' || quality === 'raw') return card.image;
+    return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=245&output=webp&q=82`;
+  }
+  return cardImageUrl(card.image, quality === 'raw' ? 'low' : quality);
+}
 export function assetUrl(base) {
   return base ? `${base}.webp` : null;
 }

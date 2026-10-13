@@ -45,13 +45,28 @@ def get(url, binary=False, tries=3):
     return None
 
 
+CHS_BASE = os.environ.get('CHS_BASE', 'https://raw.githubusercontent.com/duanxr/PTCG-CHS-Datasets/main')
+
+
+def chs_list():
+    # Simplified Chinese: official card data from the PTCG-CHS-Datasets project.
+    # Only fingerprints (numbers) are saved here, not the pictures or card text.
+    d = get(f'{CHS_BASE}/ptcg_chs_infos.json', tries=3)
+    if not d:
+        return []
+    return [(f"chs-{cd['id']}", f"{CHS_BASE}/{cd['image']}") for col in d.get('collections', [])
+            for cd in col.get('cards', []) if cd.get('image')]
+
+
 def card_list(lang):
+    if lang == 'zh-cn':
+        return chs_list()
     sets = get(f'{TCG}/{lang}/sets')
     if not sets:
         return []
     def one(s):
         full = get(f"{TCG}/{lang}/sets/{urllib.parse.quote(s['id'])}")
-        return [(c['id'], c.get('image')) for c in (full or {}).get('cards', []) if c.get('image')]
+        return [(c['id'], c['image'] + '/low.webp') for c in (full or {}).get('cards', []) if c.get('image')]
     with ThreadPoolExecutor(8) as ex:
         out = []
         for part in ex.map(one, sets):
@@ -125,7 +140,7 @@ def main():
                         print('   time limit reached, saving progress (next run continues)', flush=True)
                         break
                     batch = todo[i:i + 96]
-                    imgs = list(ex.map(lambda t: get(f'{t[1]}/low.webp', binary=True, tries=2), batch))
+                    imgs = list(ex.map(lambda t: get(t[1], binary=True, tries=2), batch))
                     b64 = [base64.b64encode(b).decode('ascii') if b and len(b) > 500 else None for b in imgs]
                     res = page.evaluate(JS, b64)
                     for (cid, _), r in zip(batch, res):

@@ -2,7 +2,7 @@
 import * as db from './db.js';
 import { state, qty, onChange } from './store.js';
 import { cachedOrFetch } from './imgcache.js';
-import { cardImageUrl, assetUrl, online, LANGS, SPRITE } from './api.js';
+import { cardImg, assetUrl, online, LANGS, SPRITE } from './api.js';
 
 // Let .append() skip null/false so optional pieces can be written inline
 for (const proto of [Element.prototype, DocumentFragment.prototype]) {
@@ -287,17 +287,17 @@ export function forgetImage(key) {
 
 export async function cardSrc(card, quality = 'low') {
   if (!card) return null;
-  if (quality === 'high' && online() && card.image) return cardImageUrl(card.image, 'high');
+  if (quality === 'high' && online() && card.image) return cardImg(card, 'high');
   if (state.imageKeys.has(card.key)) { const u = await localURL('images', card.key); if (u) return u; }
   if (!card.image) return null;
-  return cachedOrFetch(card.key, cardImageUrl(card.image, 'low'));
+  return cachedOrFetch(card.key, cardImg(card, 'low'));
 }
 export async function spriteSrc(id) {
   return (await localURL('sprites', id)) || (online() ? SPRITE(id) : null);
 }
 export async function logoSrc(url) {
   if (!url) return null;
-  const full = assetUrl(url);
+  const full = /^https:\/\/images\.weserv\.nl|\.(png|webp|jpe?g)$/i.test(url) ? url : assetUrl(url);
   const local = await localURL('logos', full);
   if (local) return local;
   if (!online()) return null;
@@ -335,10 +335,11 @@ export function lazyImg(loader, alt = '', cls = '') {
 export function cardArt(card, quality = 'low') {
   // Big view: show the small picture straight away, then swap in the sharp one when it arrives
   const img = lazyImg(() => cardSrc(card, 'low'), card?.name || '');
+  if (card?.src === 'chs') img._fallback = async () => card.image; // if the resizing service is down
   if (quality === 'high' && card?.image && online()) {
     const hi = new Image();
     hi.onload = () => { img.src = hi.src; img.style.display = ''; img.closest('.art')?.classList.add('loaded'); img.closest('.art')?.classList.remove('noimg'); };
-    hi.src = cardImageUrl(card.image, 'high');
+    hi.src = cardImg(card, 'high');
   }
   return h('div', { class: 'art' },
     img,

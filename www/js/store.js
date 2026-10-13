@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
   theme: 'auto',            // auto | light | dark
   includeSecrets: true,     // count secret rares toward set progress
   keepOwnedOffline: true,   // save images of cards you own so they show offline
+  dexShowCards: true,       // Pokédex shows your latest card of each Pokémon
   scanLangs: [],            // empty = all enabled languages
   scanContinuous: true,     // return to the camera after adding a card
 };

@@ -3,8 +3,10 @@
 import { h, icon, pushBack, toast, cardArt, langBadge, chips, chooseDialog } from '../ui.js';
 import { state, changeOwned, qty, VARIANTS } from '../store.js';
 import { loadFingerprints, updateScanData, scanDataStale } from '../sync.js';
-import { queryFingerprints, bestMatches, confidence } from '../fp.js';
-import { LANGS, online } from '../api.js';
+import { confidence } from '../fp.js';
+import { matchPhoto } from '../detect.js';
+import * as db from '../db.js';
+import { LANGS, online, cardImg } from '../api.js';
 import { openCard } from './card.js';
 import { openPicker } from './search.js';
 
@@ -21,7 +23,7 @@ export async function openScanner() {
   video.setAttribute('playsinline', ''); video.muted = true;
   const still = h('canvas', { class: 'scan-still', hidden: true });
   const frame = h('div', { class: 'scan-frame' }, h('i', { class: 'c tl' }), h('i', { class: 'c tr' }), h('i', { class: 'c bl' }), h('i', { class: 'c br' }));
-  const hint = h('div', { class: 'scan-hint' }, 'Line the card up with the frame');
+  const hint = h('div', { class: 'scan-hint' }, 'Fit the card roughly inside the frame');
   const status = h('div', { class: 'scan-status' });
   const tally = h('span', { class: 'scan-tally', hidden: true });
   const results = h('div', { class: 'scan-results', hidden: true });
@@ -150,9 +152,29 @@ export async function openScanner() {
     results.innerHTML = '';
     results.append(h('div', { class: 'scan-wait' }, h('span', { class: 'mini-ball spin' }), 'Looking for a match…'));
     await new Promise((r) => setTimeout(r, 30));
-    const queries = queryFingerprints(src, rect);
-    const matches = bestMatches(queries, fps, 12, (k) => allowed(k) && state.cards.has(k));
+    // Finds the card's edges, straightens it, shortlists with fingerprints,
+    // then double-checks the finalists against their pictures.
+    const matches = await matchPhoto(src, rect, fps, {
+      allowed: (k) => allowed(k) && state.cards.has(k),
+      getImage: cardBitmap,
+      finalists: online() ? 16 : 10,
+    });
     showResults(matches, matches[0], src, rect);
+  }
+
+  async function cardBitmap(key) {
+    let blob = (await db.get('images', key)) || (await db.get('imgcache', key))?.b;
+    if (!blob && online()) {
+      const card = state.cards.get(key);
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const r = await fetch(cardImg(card, 'low'), { signal: ctrl.signal });
+        clearTimeout(t);
+        if (r.ok) { blob = await r.blob(); db.put('imgcache', { b: blob, t: Date.now() }, key).catch(() => {}); }
+      } catch { /* can't check this one */ }
+    }
+    return blob ? createImageBitmap(blob) : null;
   }
 
   function showResults(matches, chosen, src, rect, message) {
@@ -171,7 +193,18 @@ export async function openScanner() {
     }
     const card = state.cards.get(chosen.key);
     const set = state.sets.get(card.setKey);
-    const conf = confidence(chosen.score);
+    const conf = chosen.sim != null
+      ? (chosen.sim > 0.55 ? { label: 'Strong match', cls: 'good' } : chosen.sim > 0.35 ? { label: 'Possible match', cls: 'ok' } : { label: 'Weak match', cls: 'weak' })
+      : confidence(chosen.score);
+    const others = matches.filter((m) => m.key !== chosen.key);
+    const versions = others.filter((m) => state.cards.get(m.key)?.name === card.name);
+    const close = others.filter((m) => state.cards.get(m.key)?.name !== card.name);
+    const strip = (list) => h('div', { class: 'match-strip' }, list.map((m) => {
+      const c = state.cards.get(m.key);
+      const st = state.sets.get(c.setKey);
+      return h('button', { class: 'match-alt', onclick: () => showResults(matches, m, src, rect) },
+        cardArt(c), h('small', {}, `${LANGS[c.lang]?.short} #${c.localId}`), h('small', { class: 'alt-set' }, st?.name || ''));
+    }));
     const owned = qty(card.key);
     results.append(
       h('div', { class: 'match-main' },
@@ -187,12 +220,10 @@ export async function openScanner() {
               const v = await chooseDialog('Add which version?', VARIANTS.map(([value, label]) => ({ value, label })));
               if (v) add(card, v);
             } }, 'Add as…')))),
-      matches.length > 1 ? h('div', { class: 'muted small' }, 'Not it? Other close matches:') : null,
-      h('div', { class: 'match-strip' }, matches.filter((m) => m.key !== chosen.key).map((m) => {
-        const c = state.cards.get(m.key);
-        return h('button', { class: 'match-alt', onclick: () => showResults(matches, m, src, rect) },
-          cardArt(c), h('small', {}, `${LANGS[c.lang]?.short} #${c.localId}`));
-      })),
+      versions.length ? h('div', { class: 'small strip-title' }, `Other versions of ${card.name} — check the set and foil:`) : null,
+      versions.length ? strip(versions) : null,
+      close.length ? h('div', { class: 'muted small strip-title' }, 'Not it? Other close matches:') : null,
+      close.length ? strip(close) : null,
       actions);
   }
 
@@ -232,7 +263,13 @@ export async function openScanner() {
       const c = h('canvas'); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
       c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
       bmp.close?.();
-      adjust(c, null);
+      // Assume the card is roughly in the middle; edges are found automatically
+      const fw = Math.min(c.width * 0.9, c.height * 0.9 * (63 / 88)), fh = fw * (88 / 63);
+      const rect = { x: (c.width - fw) / 2, y: (c.height - fh) / 2, w: fw, h: fh };
+      still.width = c.width; still.height = c.height;
+      still.getContext('2d').drawImage(c, 0, 0);
+      showStill();
+      await runMatch(c, rect);
     } catch { toast('Couldn’t open that photo'); }
   }
 

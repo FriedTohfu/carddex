@@ -1,5 +1,5 @@
 // Pokédex tab: every Pokémon; tap one to see all its cards.
-import { h, nav, chips, cardGrid, empty, debounce, lazyImg, spriteSrc, toast } from '../ui.js';
+import { h, nav, chips, cardGrid, empty, debounce, lazyImg, spriteSrc, cardSrc, toast } from '../ui.js';
 import { state, qty } from '../store.js';
 import { LANGS, online } from '../api.js';
 import { speciesName } from '../dex.js';
@@ -11,9 +11,20 @@ const D = { q: '', gen: 0, caught: 'all', nameLang: 'en' };
 
 function ownedFor(id) {
   const keys = state.dexIndex.get(id) || [];
-  let n = 0;
-  for (const k of keys) if (qty(k)) n++;
-  return { owned: n, total: keys.length };
+  let n = 0, latest = null, latestAt = -1;
+  for (const k of keys) if (qty(k)) {
+    n++;
+    const at = state.owned.get(k)?.addedAt || 0;
+    if (at > latestAt) { latestAt = at; latest = k; }
+  }
+  return { owned: n, total: keys.length, latest };
+}
+
+// The picture for a Pokédex entry: your most recently added card of it, or the sprite
+function dexPicture(s, o) {
+  const card = state.settings.dexShowCards && o.latest ? state.cards.get(o.latest) : null;
+  if (card) return h('div', { class: 'sprite dex-card' }, lazyImg(() => cardSrc(card), card.name));
+  return h('div', { class: 'sprite' }, lazyImg(() => spriteSrc(s.id), ''));
 }
 
 export function pokedexRoot() {
@@ -59,7 +70,7 @@ export function pokedexRoot() {
         for (const [s, o] of rows) {
           frag.append(h('button', { class: 'dex-cell' + (o.owned ? ' caught' : ''), onclick: () => openPokemon(s.id) },
             h('span', { class: 'dex-no' }, `#${String(s.id).padStart(4, '0')}`),
-            h('div', { class: 'sprite' }, lazyImg(() => spriteSrc(s.id), '')),
+            dexPicture(s, o),
             h('span', { class: 'dex-name' }, speciesName(s, D.nameLang)),
             h('span', { class: 'dex-own' }, o.total ? `${o.owned}/${o.total}` : '–')));
         }
@@ -93,9 +104,12 @@ export function openPokemon(id, tab = 'pokedex') {
         draw();
       } });
       const ownedN = all.filter((c) => qty(c.key)).length;
+      const latestKey = ownedFor(id).latest;
       body.append(
         h('div', { class: 'mon-hero' },
-          h('div', { class: 'sprite big' }, lazyImg(() => spriteSrc(id), '')),
+          state.settings.dexShowCards && latestKey
+            ? h('button', { class: 'sprite big dex-card', onclick: () => openCard(latestKey) }, lazyImg(() => cardSrc(state.cards.get(latestKey)), ''))
+            : h('div', { class: 'sprite big' }, lazyImg(() => spriteSrc(id), '')),
           h('div', {},
             h('div', { class: 'mon-names' },
               s?.ja ? h('span', {}, '🇯🇵 ', s.ja) : null,
