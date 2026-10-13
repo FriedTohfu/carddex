@@ -29,6 +29,8 @@ export async function openScanner() {
   const results = h('div', { class: 'scan-results', hidden: true });
   const torchBtn = h('button', { class: 'scan-icon', 'aria-label': 'Torch', hidden: true, onclick: toggleTorch }, icon('flash'));
   const fileInput = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: onFile });
+  // The phone's own camera app (best focus on every phone)
+  const nativeInput = h('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true, onchange: onNativeFile });
 
   const langOpts = [{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: LANGS[l].short }))];
   const scopeChips = chips(langOpts, scope === 'all' ? 'all' : scope[0], (v) => { scope = v === 'all' ? 'all' : [v]; updateStatus(); });
@@ -49,15 +51,21 @@ export async function openScanner() {
     h('div', { class: 'scan-scope' }, scopeChips, status),
     zoomWrap,
     h('div', { class: 'scan-bottom' },
-      h('button', { class: 'scan-icon labeled', onclick: () => fileInput.click() }, icon('image'), h('small', {}, 'Photo')),
+      h('div', { class: 'scan-side' },
+        h('button', { class: 'scan-icon labeled', onclick: () => nativeInput.click() }, icon('camera'), h('small', {}, 'Camera app')),
+        h('button', { class: 'scan-icon labeled', onclick: () => fileInput.click() }, icon('image'), h('small', {}, 'Gallery'))),
       shutter,
       h('button', { class: 'scan-icon labeled', onclick: manual }, icon('search'), h('small', {}, 'Search'))),
-    results, fileInput);
+    results, fileInput, nativeInput);
   document.body.append(root);
   const removeBack = pushBack(() => close(true));
   requestAnimationFrame(() => root.classList.add('open'));
   updateStatus();
-  startCamera();
+  if (state.settings.scanNativeCamera) {
+    // Go straight to the phone's camera app (set in Settings → Scanning)
+    hint.textContent = 'Using your phone’s camera app — tap “Camera app” to scan another';
+    nativeInput.click();
+  } else startCamera();
 
   let preparing = false;
   async function updateStatus() {
@@ -384,6 +392,12 @@ export async function openScanner() {
       title: 'Find the card', multi: false,
       onPick: async (c) => { await add(c, 'normal'); },
     });
+  }
+
+  function onNativeFile() {
+    fileInput.files = nativeInput.files;
+    onFile();
+    nativeInput.value = '';
   }
 
   async function onFile() {

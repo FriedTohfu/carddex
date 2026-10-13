@@ -409,3 +409,5 @@ textarea.input { resize: vertical; }
 .scanner.has-results .scan-zoom { display: none; }
 .shutter.busy { animation: pulse-shutter .8s ease-in-out infinite; }
 @keyframes pulse-shutter { 50% { transform: scale(.88); box-shadow: 0 0 0 9px rgba(255,255,255,.25); } }
+.scan-side { display: flex; flex-direction: column; gap: 8px; }
+.scan-side .scan-icon.labeled { width: 76px; height: 54px; }

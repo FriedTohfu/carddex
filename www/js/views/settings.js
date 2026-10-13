@@ -138,7 +138,8 @@ function scanSection() {
       if (r.missing.length && !r.updated.length) throw new Error('Scan data isn’t available for your languages yet.');
       return [];
     }) }, icon('download', 18), ' Update scan data'),
-    toggle('Go straight back to the camera after adding a card', state.settings.scanContinuous, (on) => saveSettings({ scanContinuous: on })));
+    toggle('Go straight back to the camera after adding a card', state.settings.scanContinuous, (on) => saveSettings({ scanContinuous: on })),
+    toggle('Always use my phone’s camera app (if the live camera won’t focus)', !!state.settings.scanNativeCamera, (on) => saveSettings({ scanNativeCamera: on })));
 }
 
 function storageSection() {
