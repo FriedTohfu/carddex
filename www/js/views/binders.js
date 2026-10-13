@@ -3,6 +3,7 @@ import { h, nav, empty, sheet, promptDialog, confirmDialog, chooseDialog, toast,
 import { state, bindersSorted, createBinder, saveBinder, deleteBinder, LAYOUTS, qty, changeOwned } from '../store.js';
 import { openCard } from './card.js';
 import { openPicker, pickSetDialog } from './search.js';
+import { saveOffline, offlineSub } from './offline.js';
 
 const COLORS = ['#d63a3a', '#2f6fdf', '#2c9b5a', '#f2b531', '#7b4fd6', '#1f2430', '#e46fa1', '#e07b2c'];
 
@@ -244,6 +245,7 @@ export function openBinder(id) {
       { value: 'size', label: `Change pockets (now ${b.size})`, icon: '🔢', sub: 'Cards flow onto the new layout in order' },
       { value: 'fillset', label: 'Fill empty pockets from a set', icon: '📦' },
       { value: 'need', label: 'Add needed cards to a wishlist', icon: '❤️' },
+      { value: 'offline', label: 'Save this binder for offline', icon: '📥', sub: offlineSub(b.pages.flat().filter(Boolean)) },
       { value: 'delpage', label: `Delete page ${pageNo + 1}`, icon: '📄' },
       { value: 'delete', label: 'Delete binder', icon: '🗑️' },
     ]);
@@ -284,6 +286,8 @@ export function openBinder(id) {
       list.cards = [...list.cards, ...add];
       await saveWishlist(list);
       toast(`Added ${add.length} cards to ${list.name}`);
+    } else if (pick === 'offline') {
+      saveOffline([...new Set(b.pages.flat().filter(Boolean))], b.name);
     } else if (pick === 'delpage') {
       if (b.pages.length <= 1) return toast('A binder needs at least one page');
       if (!(await confirmDialog(`Delete page ${pageNo + 1}?`, { ok: 'Delete', danger: true }))) return;

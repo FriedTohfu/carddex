@@ -4,6 +4,9 @@ name: Build Android app
 on:
   push:
     branches: [main, master]
+    paths-ignore:
+      - 'data/**'
+      - 'README.md'
   workflow_dispatch:
 
 permissions:

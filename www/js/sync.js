@@ -1,8 +1,8 @@
 // Downloads card lists, Pokédex data and images to the phone.
 import * as db from './db.js';
-import { tcg, fetchJSON, fetchBlob, pool, POKEAPI, SPRITE, cardImageUrl, online } from './api.js';
+import { tcg, fetchJSON, fetchBlob, pool, POKEAPI, SPRITE, SCAN_DATA, cardImageUrl, online } from './api.js';
 import { state, emit, rebuildDex, setSpecies, dexOverrides } from './store.js';
-import { fingerprintBlob } from './fp.js';
+import { fingerprintBlob, FP_VERSION, FP_LEN } from './fp.js';
 
 export const job = { running: false, label: '', done: 0, total: 0, stop: false };
 function report(label, done, total) {
@@ -153,12 +153,61 @@ export async function syncSpecies(nested = false) {
   }
 }
 
-// ---------- Card images (also used for scanning) ----------
+// ---------- Card images saved for offline use ----------
 export function cardsMissingImages(keys) {
   return keys.filter((k) => !state.imageKeys.has(k) && state.cards.get(k)?.image);
 }
 
-export async function downloadImages(keys, label = 'Downloading card images') {
+/** Downloads one card's small image and keeps it on the phone. */
+async function fetchOne(key) {
+  const card = state.cards.get(key);
+  if (!card?.image) return null;
+  const blob = await fetchBlob(cardImageUrl(card.image, 'low'));
+  if (!blob || blob.size <= 500) return null;
+  let fp = null;
+  try { fp = await fingerprintBlob(blob); } catch { /* image couldn't be read */ }
+  return { blob, fp };
+}
+
+function remember(key, fp) {
+  state.imageKeys.add(key);
+  if (fp) { localFps?.set(key, fp); merged = null; }
+}
+
+// Quiet background saving (e.g. cards you add to your collection). No progress bar.
+const quiet = { queue: new Set(), running: false };
+export function keepOffline(keys) {
+  for (const k of cardsMissingImages(keys)) quiet.queue.add(k);
+  runQuiet();
+}
+async function runQuiet() {
+  if (quiet.running || !online()) return;
+  quiet.running = true;
+  let saved = 0;
+  try {
+    while (quiet.queue.size && online()) {
+      const batch = [...quiet.queue].slice(0, 4);
+      batch.forEach((k) => quiet.queue.delete(k));
+      await Promise.all(batch.map(async (key) => {
+        if (state.imageKeys.has(key)) return;
+        try {
+          const r = await fetchOne(key);
+          if (!r) return;
+          await db.put('images', r.blob, key);
+          if (r.fp) await db.put('fps', r.fp, key);
+          remember(key, r.fp);
+          saved++;
+        } catch { /* try again another time */ }
+      }));
+    }
+  } finally {
+    quiet.running = false;
+    if (saved) emit('images');
+  }
+}
+
+/** Saves a group of cards for offline use, with a progress bar. */
+export async function downloadImages(keys, label = 'Saving cards for offline') {
   if (job.running) throw new Error('Another download is already running.');
   if (!online()) throw new Error('You are offline.');
   const todo = cardsMissingImages(keys);
@@ -172,16 +221,12 @@ export async function downloadImages(keys, label = 'Downloading card images') {
   };
   try {
     await pool(todo, 6, async (key) => {
-      const card = state.cards.get(key);
       try {
-        const blob = await fetchBlob(cardImageUrl(card.image, 'low'));
-        if (blob && blob.size > 500) {
-          let fp = null;
-          try { fp = await fingerprintBlob(blob); } catch { /* image couldn't be read */ }
-          imgs.push([key, blob]);
-          if (fp) fps.push([key, fp]);
-          state.imageKeys.add(key);
-          if (fp) fpCache?.set(key, fp);
+        const r = await fetchOne(key);
+        if (r) {
+          imgs.push([key, r.blob]);
+          if (r.fp) fps.push([key, r.fp]);
+          remember(key, r.fp);
         } else failed++;
       } catch { failed++; }
       done++;
@@ -200,18 +245,84 @@ export async function downloadImages(keys, label = 'Downloading card images') {
 export async function deleteImages(keys) {
   await db.delMany('images', keys);
   await db.delMany('fps', keys);
-  for (const k of keys) { state.imageKeys.delete(k); fpCache?.delete(k); }
+  for (const k of keys) { state.imageKeys.delete(k); localFps?.delete(k); }
+  merged = null;
   emit('images');
 }
 
-// Fingerprints are loaded into memory the first time you scan.
-let fpCache = null;
+// ---------- Scan data ----------
+// The scanner compares your photo with a "fingerprint" of every card.
+// Fingerprints for all cards are made on GitHub once a month (see
+// build/make_scan_data.py) and downloaded as one small file per language.
+// Cards you saved offline also have their own fingerprints.
+let localFps = null;   // from images saved on the phone
+let remoteFps = null;  // from the downloaded scan data
+let merged = null;
+
 export async function loadFingerprints() {
-  if (!fpCache) {
+  if (!localFps) {
     const entries = await db.getAllEntries('fps');
-    fpCache = new Map([...entries].filter(([, v]) => v));
+    localFps = new Map([...entries].filter(([, v]) => v));
   }
-  return fpCache;
+  if (!remoteFps) {
+    remoteFps = new Map();
+    for (const lang of state.settings.langs) {
+      const rec = await db.get('meta', `scan:${lang}`);
+      if (!rec || rec.v !== FP_VERSION) continue;
+      const n = rec.size || FP_LEN;
+      rec.keys.forEach((id, i) => remoteFps.set(`${lang}:${id}`, rec.fp.subarray(i * n, (i + 1) * n)));
+    }
+  }
+  if (!merged) merged = new Map([...remoteFps, ...localFps]);
+  return merged;
+}
+
+export async function scanDataInfo() {
+  const out = {};
+  for (const lang of state.settings.langs) {
+    const rec = await db.get('meta', `scan:${lang}`);
+    out[lang] = rec && rec.v === FP_VERSION ? { count: rec.keys.length, built: rec.built } : null;
+  }
+  return out;
+}
+
+const SCAN_CHECK_EVERY = 7 * 24 * 3600 * 1000;
+/** True when scan data has never been fetched or hasn't been checked for a week. */
+export async function scanDataStale() {
+  const last = await db.get('meta', 'scanCheck');
+  return !last || Date.now() - last > SCAN_CHECK_EVERY;
+}
+
+/**
+ * Downloads scan data for your languages (only files that changed).
+ * Returns {updated: [...langs], missing: [...langs]}.
+ */
+export async function updateScanData({ force = false } = {}) {
+  if (!online()) throw new Error('Connect to the internet to get scan data.');
+  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 1 });
+  if (!index) throw new Error('Scan data isn’t ready yet. GitHub builds it after you upload the app, which can take an hour the first time.');
+  const updated = [], missing = [];
+  for (const lang of state.settings.langs) {
+    const e = index[lang];
+    if (!e || e.v !== FP_VERSION) { missing.push(lang); continue; }
+    const cur = await db.get('meta', `scan:${lang}`);
+    if (!force && cur && cur.v === e.v && cur.built === e.built) continue;
+    report(`Getting scan data (${lang.toUpperCase()}, ~${Math.max(1, Math.round((e.bytes || 0) / 1048576))} MB)`, 0, 0);
+    try {
+      const d = await fetchJSON(`${SCAN_DATA}/${e.file}?b=${encodeURIComponent(e.built)}`, { timeout: 120000, retries: 1 });
+      if (!d?.keys || !d.fp) { missing.push(lang); continue; }
+      const bin = atob(d.fp);
+      const fp = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) fp[i] = bin.charCodeAt(i);
+      await db.put('meta', { v: d.v, built: d.built, keys: d.keys, fp, size: d.keys.length ? fp.length / d.keys.length : FP_LEN }, `scan:${lang}`);
+      updated.push(lang);
+    } catch { missing.push(lang); }
+  }
+  report('', 0, 0);
+  await db.put('meta', Date.now(), 'scanCheck');
+  remoteFps = null; merged = null;
+  emit('scan');
+  return { updated, missing };
 }
 
 // ---------- Card details (rarity, illustrator, prices) ----------

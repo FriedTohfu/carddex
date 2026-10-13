@@ -3,6 +3,7 @@ import { h, nav, cardGrid, empty, promptDialog, confirmDialog, chooseDialog, toa
 import { state, wishlistsSorted, createWishlist, deleteWishlist, saveWishlist, qty } from '../store.js';
 import { openCard } from './card.js';
 import { openPicker } from './search.js';
+import { saveOffline, offlineSub } from './offline.js';
 
 const EMOJIS = ['⭐', '❤️', '🔥', '⚡', '💧', '🌿', '🌙', '👑', '💎', '🎁', '🎯', '🐉'];
 
@@ -88,6 +89,7 @@ export function openWishlist(id) {
       { value: 'sort', label: 'Sort by set', icon: '↕️' },
       { value: 'dup', label: 'Duplicate list', icon: '📄' },
       { value: 'share', label: 'Share as text', icon: '📤' },
+      { value: 'offline', label: 'Save these cards for offline', icon: '📥', sub: offlineSub(w.cards) },
       { value: 'delete', label: 'Delete wishlist', icon: '🗑️' },
     ]);
     if (pick === 'rename') {
@@ -117,6 +119,8 @@ export function openWishlist(id) {
       }).filter(Boolean).join('\n');
       const { shareText } = await import('./settings.js');
       shareText(w.name, text);
+    } else if (pick === 'offline') {
+      saveOffline(w.cards, w.name);
     } else if (pick === 'delete') {
       if (await confirmDialog(`Delete “${w.name}”?`, { ok: 'Delete', danger: true })) {
         await deleteWishlist(id);

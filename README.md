@@ -64,19 +64,22 @@ Whenever you upload changed files, GitHub builds a new version automatically. Do
 
 ## First time you open the app
 
-1. Connect to **Wi-Fi**.
-2. The **Get started** screen appears. Choose your languages and tap **Download card data**. This fetches the full card list (a few MB) and the Pokédex.
-3. Optional but recommended for scanning: go to **Settings (⚙️ on the Collection tab) → Card images** and download images.
-   - **Images for sets I collect** gets just the sets you own cards from.
-   - **Get all** gets every card in a language. That's roughly 400 MB for English, so use Wi-Fi.
-   - Images are also saved automatically whenever you open a set while online.
-4. After that, **everything works offline**.
+1. Connect to the internet.
+2. A spinning Poké Ball shows while the app loads. Then the **Get started** screen appears. Choose your languages and tap **Download card data**. This fetches the card list (a few MB), the Pokédex and the scan data.
+3. That's it. **Card pictures load from the internet**, so nothing big downloads.
+
+**Want cards to show without internet?** Save them for offline:
+- Cards in your collection are saved automatically. They're small, about 20 KB each. You can turn this off in Settings → Offline cards.
+- Any set, wishlist or binder: **⋯ menu → Save … for offline**.
+- A single card: open it and tap **📥 Save for offline**.
+
+Your collection, wishlists, binders, search, Pokédex and scanning all still work offline. Only pictures you haven't saved need internet.
 
 ## What's in the app
 
 | Where | What it does |
 |---|---|
-| 📷 **Scan button** (red, bottom right) | Point the camera at a card, line it up with the frame and tap the shutter. The app compares the photo with saved card images and shows the closest matches. Tap **Add**. You can also use **Photo** to scan a picture from your gallery (drag and pinch to frame the card), or **Search** to find it by name. Use the language buttons at the top to narrow the search, e.g. **JP** only. |
+| 📷 **Scan button** (red, bottom right) | Point the camera at a card, line it up with the frame and tap the shutter. The app compares the photo with every card and shows the closest matches. Tap **Add**. You can also use **Photo** to scan a picture from your gallery (drag and pinch to frame the card), or **Search** to find it by name. Use the language buttons at the top to narrow the search, e.g. **JP** only. |
 | **Collection** | Your stats and estimated value, and every set you've started with a progress bar (e.g. 87/198). Tap a set to see owned cards (in colour) and missing ones (greyed out). **My cards** shows everything you own, sortable. |
 | ⚡ **Quick add** (inside a set) | Tap cards to add them instantly, which is great for entering a whole booster box. |
 | **Search** | Search any card by name (`pikachu`) or number (`25/102`). Filter by language, set and owned/missing, and sort by newest, oldest, name or number. |
@@ -84,7 +87,7 @@ Whenever you upload changed files, GitHub builds a new version automatically. Do
 | **Wishlists** | Make as many lists as you like. Rename them, change their icon, sort, duplicate, share as text, or remove cards you now own. On any set: **⋯ → Add missing cards to a wishlist**. |
 | **Binders** | Make binders with 4, 9 or 12 pockets per page and pick a colour. Fill them card by card, or **Fill from a set** to lay out a whole set in order. Swipe between pages, **Move/swap** cards, see all pages at once (grid button), and mark cards you still **Need**. You can change the pocket size later and the cards reflow. |
 | **Card page** (tap any card) | Big image (tap to zoom) and counts for Normal, Reverse holo, Holo and 1st Edition. Also condition, notes, rarity, illustrator, market price (when online), and buttons to add to a wishlist or binder. Swipe left or right for the next card. |
-| **Settings** | Languages, updating card data, image downloads, scan options, counting secret rares in set progress, light/dark theme, and **Backup/Restore**. |
+| **Settings** | Languages, updating card data, offline cards, scan data, counting secret rares in set progress, light/dark theme, and **Backup/Restore**. |
 
 ### ⚠️ Back up your collection
 
@@ -92,7 +95,8 @@ Your collection lives only on your phone. Uninstalling the app or clearing its d
 
 ## Good to know
 
-- **Scanning is "snap and confirm".** It's best on cards whose images you've downloaded. Lay the card flat in good light and fill the frame. If the top match is wrong, the correct card is usually in the strip of other matches underneath.
+- **Scanning is "snap and confirm".** Lay the card flat in good light and fill the frame. If the top match is wrong, the correct card is usually in the strip of other matches underneath.
+- **How scanning works without downloading every image:** your GitHub repository has a second job, **Build scan data**. It downloads every card image once, works out a small "fingerprint" for each card, and saves them in the `data` folder (about 2 MB per language). The app downloads that file the first time you scan, and checks weekly for new sets. The job runs automatically once a month. The first run takes roughly 30–90 minutes, and you can start it any time from **Actions → Build scan data → Run workflow**.
 - **Card data** comes from [TCGdex](https://tcgdex.dev), a free community database. Coverage for Japanese and especially Chinese cards depends on what TCGdex has. A few cards may have no image. If a language shows as "Not available", TCGdex doesn't offer it right now. Try **Update card data** later.
 - **Pokédex data and sprites** come from [PokéAPI](https://pokeapi.co).
 - This is a fan-made personal app. It's not affiliated with Nintendo, The Pokémon Company or Game Freak.
@@ -102,3 +106,4 @@ Your collection lives only on your phone. Uninstalling the app or clearing its d
 - The app is plain HTML, CSS and JavaScript in `www/` (no build step), wrapped as an Android app with [Capacitor](https://capacitorjs.com).
 - To preview on a computer, run `npx http-server www` and open it in Chrome's phone view.
 - `build/android-setup.sh` adds the camera permission, icon, splash screen, version number and signing key during the GitHub build.
+- `build/make_scan_data.py` builds the scanner's fingerprint files. It runs the app's own `www/js/fp.js` in Chromium so the numbers match exactly.

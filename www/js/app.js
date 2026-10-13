@@ -2,7 +2,7 @@
 import { openDB } from './db.js';
 import { state, loadAll, onChange } from './store.js';
 import { h, icon, nav, handleBack, toast } from './ui.js';
-import { job } from './sync.js';
+import { job, keepOffline } from './sync.js';
 import { initCollection } from './views/collection.js';
 import { initSearch } from './views/search.js';
 import { initPokedex } from './views/pokedex.js';
@@ -36,7 +36,7 @@ async function main() {
     h('button', { class: 'tab', 'data-tab': id, onclick: () => nav.switchTab(id) }, icon(ic, 22), h('span', {}, label))));
   const fab = h('button', { id: 'scan-fab', 'aria-label': 'Scan a card', onclick: () => openScanner() }, icon('camera', 28));
   const jobBar = h('div', { id: 'jobbar', hidden: true },
-    h('div', { class: 'job-text' }), h('div', { class: 'progress' }, h('div')),
+    h('div', { class: 'job-text-row' }, h('span', { class: 'mini-ball spin' }), h('span', { class: 'job-text' })), h('div', { class: 'progress' }, h('div')),
     h('button', { class: 'link', onclick: () => { job.stop = true; toast('Stopping…'); } }, 'Stop'));
   const offline = h('div', { id: 'offline', hidden: navigator.onLine !== false }, icon('wifi_off', 14), ' Offline — everything saved on your phone still works');
   app.append(offline, screens, jobBar, fab, bar);
@@ -56,7 +56,16 @@ async function main() {
       jobBar.querySelector('.progress > div').style.width = job.total ? `${(job.done / job.total) * 100}%` : '15%';
     }
   });
-  addEventListener('online', () => { offline.hidden = true; });
+  // Quietly keep pictures of cards you own on the phone
+  let keepTimer = null;
+  const keepOwned = () => {
+    if (!state.settings.keepOwnedOffline) return;
+    clearTimeout(keepTimer);
+    keepTimer = setTimeout(() => keepOffline([...state.owned.keys()]), 1500);
+  };
+  onChange((what) => { if (what === 'owned') keepOwned(); });
+  keepOwned();
+  addEventListener('online', () => { offline.hidden = true; keepOwned(); });
   addEventListener('offline', () => { offline.hidden = false; });
 
   // Android back button
@@ -72,9 +81,20 @@ async function main() {
     setTimeout(() => toast('Tip: make a backup in Settings → Backup', 3500), 1500);
   }
   document.body.classList.add('ready');
+  hideBoot();
+}
+
+// Keep the spinning Poké Ball up for at least a moment so start-up feels smooth
+const BOOT_MIN_MS = 1400;
+function hideBoot() {
+  const boot = document.getElementById('boot');
+  if (!boot) return;
+  const wait = Math.max(0, BOOT_MIN_MS - performance.now());
+  setTimeout(() => { boot.classList.add('hide'); setTimeout(() => boot.remove(), 400); }, wait);
 }
 
 main().catch((e) => {
   console.error(e);
+  document.getElementById('boot')?.remove();
   document.getElementById('app').innerHTML = `<div class="fatal"><h2>Something went wrong</h2><p>${String(e?.message || e)}</p></div>`;
 });

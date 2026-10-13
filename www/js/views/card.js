@@ -4,6 +4,7 @@ import { state, qty, changeOwned, updateOwnedMeta, VARIANTS, CONDITIONS, wishlis
 import { cardDetail, priceOf } from '../sync.js';
 import { LANGS } from '../api.js';
 import { speciesName } from '../dex.js';
+import { saveOffline, removeOffline } from './offline.js';
 
 /** Opens a card. `list` (optional) lets you step to the previous/next card. */
 export function openCard(key, list = null) {
@@ -68,7 +69,7 @@ export function openCard(key, list = null) {
       extra.append(h('dl', { class: 'facts' }, rows.map(([k, v]) => [h('dt', {}, k), h('dd', {}, String(v))])));
     });
 
-    unsub = onChange((w) => { if (w === 'owned' || w === 'wishlists' || w === 'binders') refreshSections(); });
+    unsub = onChange((w) => { if (w === 'owned' || w === 'wishlists' || w === 'binders' || w === 'images') refreshSections(); });
     function refreshSections() {
       const d = body.querySelector('.detail');
       if (!d) return;
@@ -116,7 +117,12 @@ export function openCard(key, list = null) {
         h('button', { class: 'btn', onclick: () => toggleWishlist(card) }, icon('heart', 18), ' Wishlist'),
         h('button', { class: 'btn', onclick: () => addToBinder(card) }, icon('binder', 18), ' Binder')),
       inLists.length ? h('div', { class: 'tags' }, inLists.map((w) => h('span', { class: 'tag' }, `${w.emoji || '⭐'} ${w.name}`))) : null,
-      inBinders.length ? h('div', { class: 'tags' }, inBinders.map((b) => h('span', { class: 'tag', style: { borderColor: b.color } }, `📒 ${b.name}`))) : null);
+      inBinders.length ? h('div', { class: 'tags' }, inBinders.map((b) => h('span', { class: 'tag', style: { borderColor: b.color } }, `📒 ${b.name}`))) : null,
+      !card.image ? null : state.imageKeys.has(card.key)
+        ? h('div', { class: 'offline-line' }, h('span', { class: 'good-text small' }, '✓ Saved on this phone (shows offline)'),
+          qty(card.key) ? null : h('button', { class: 'link small', onclick: () => removeOffline([card.key], card.name) }, 'Remove'))
+        : h('div', { class: 'offline-line' }, h('span', { class: 'muted small' }, 'Shows when you’re online'),
+          h('button', { class: 'link small', onclick: () => saveOffline([card.key], card.name) }, '📥 Save for offline')));
   }
 
   function dexSection(card) {

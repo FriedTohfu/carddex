@@ -1,16 +1,16 @@
 // Settings: languages, downloads (card data, Pokédex, images), backup.
 import { h, nav, sheet, toast, confirmDialog, chooseDialog, icon, chips, fmtDate } from '../ui.js';
 import { state, saveSettings, exportBackup, importBackup, setCatalog, rebuildDex, emit } from '../store.js';
-import { syncCatalog, syncSpecies, downloadImages, deleteImages, job } from '../sync.js';
+import { syncCatalog, syncSpecies, deleteImages, cardsMissingImages, keepOffline, updateScanData, scanDataInfo, job } from '../sync.js';
+import { sizeText } from './offline.js';
 import { LANGS, online } from '../api.js';
 import * as db from '../db.js';
 
-const AVG_IMG_KB = 22;
 
 export function openSettings() {
   nav.push('collection', {
     title: 'Settings',
-    watch: ['settings', 'catalog', 'images', 'species', 'sprites'],
+    watch: ['settings', 'catalog', 'images', 'species', 'sprites', 'scan'],
     render(body) {
       body.append(
         section('Card languages', 'Only these languages are downloaded and shown. Turning one off hides it and lets you delete its data.',
@@ -43,9 +43,7 @@ export function openSettings() {
 
         imagesSection(),
 
-        section('Scanning', 'Scanning compares your photo with card images saved on your phone. More saved images = more cards it can recognise.',
-          toggle('Go straight back to the camera after adding a card', state.settings.scanContinuous, (on) => saveSettings({ scanContinuous: on })),
-          toggle('Save images automatically when I open a set', state.settings.autoImages, (on) => saveSettings({ autoImages: on }))),
+        scanSection(),
 
         section('Collection', '',
           toggle('Count secret rares in set progress', state.settings.includeSecrets, (on) => saveSettings({ includeSecrets: on })),
@@ -86,37 +84,47 @@ async function run(fn) {
 }
 
 function imagesSection() {
-  const rows = state.settings.langs.map((code) => {
-    const keys = [...state.cards.values()].filter((c) => c.lang === code && c.image).map((c) => c.key);
-    const have = keys.filter((k) => state.imageKeys.has(k)).length;
-    const missing = keys.length - have;
-    return h('div', { class: 'data-row' },
-      h('b', {}, `${LANGS[code].flag} ${LANGS[code].label}`),
-      h('small', { class: 'muted' }, `${have.toLocaleString()} of ${keys.length.toLocaleString()} images saved`),
-      missing ? h('button', { class: 'btn mini', onclick: async () => {
-        const mb = Math.round((missing * AVG_IMG_KB) / 1024);
-        if (await confirmDialog(`Download ${missing.toLocaleString()} ${LANGS[code].label} images (about ${mb} MB)? Use Wi-Fi. You can stop any time.`, { ok: 'Download' })) {
-          run(() => downloadImages(keys, `Saving ${LANGS[code].label} images`).then(() => []));
-        }
-      } }, `Get all (~${Math.round((missing * AVG_IMG_KB) / 1024)} MB)`) : h('small', { class: 'good-text' }, '✓ All saved'));
-  });
-  const ownedSets = new Set([...state.owned.keys()].map((k) => state.cards.get(k)?.setKey).filter(Boolean));
-  const ownedSetKeys = [...ownedSets].flatMap((s) => (state.cardsBySet.get(s) || []).map((c) => c.key));
-  return section('Card images', 'Images let you see cards offline and are what the scanner recognises. Each image is about 20 KB.',
-    h('button', { class: 'btn primary wide', onclick: () => run(() => downloadImages(ownedSetKeys, 'Saving images for your sets').then(() => [])) },
-      icon('download', 18), ` Images for sets I collect (${ownedSets.size} sets)`),
-    h('div', { class: 'data-rows' }, rows),
+  const saved = [...state.imageKeys].filter((k) => state.cards.has(k));
+  const ownedKeys = [...state.owned.keys()];
+  const ownedMissing = cardsMissingImages(ownedKeys).length;
+  return section('Offline cards', 'Card pictures load from the internet. Save the ones you want to see without internet — from any set, wishlist or binder (⋯ menu), or on a card’s page.',
+    h('p', { class: 'small' }, h('b', {}, saved.length.toLocaleString()), ` cards saved on this phone (about ${sizeText(saved.length)}).`),
+    toggle('Keep my collection’s cards offline automatically', state.settings.keepOwnedOffline, async (on) => {
+      await saveSettings({ keepOwnedOffline: on });
+      if (on) keepOffline(ownedKeys);
+    }),
+    ownedMissing && state.settings.keepOwnedOffline ? h('p', { class: 'muted small' }, `${ownedMissing} of your cards will be saved next time you’re online.`) : null,
     h('button', { class: 'btn ghost wide', onclick: async () => {
-      const pick = await chooseDialog('Delete saved images', [
-        ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].label} images` })),
-        { value: 'all', label: 'All images' },
+      const pick = await chooseDialog('Remove saved cards', [
+        { value: 'notowned', label: 'Cards I don’t own', sub: 'Keeps your collection offline' },
+        ...state.settings.langs.map((l) => ({ value: l, label: `All ${LANGS[l].label} cards` })),
+        { value: 'all', label: 'Everything' },
       ]);
       if (!pick) return;
-      if (!(await confirmDialog('Delete these images? Scanning will not recognise those cards until you download them again.', { ok: 'Delete', danger: true }))) return;
-      const keys = [...state.imageKeys].filter((k) => pick === 'all' || k.startsWith(pick + ':'));
+      const keys = [...state.imageKeys].filter((k) => pick === 'all' || (pick === 'notowned' ? !state.owned.has(k) : k.startsWith(pick + ':')));
+      if (!keys.length) return toast('Nothing to remove');
+      if (!(await confirmDialog(`Remove ${keys.length} saved cards? They’ll still show when you’re online.`, { ok: 'Remove', danger: true }))) return;
       await deleteImages(keys);
-      toast(`Deleted ${keys.length} images`);
-    } }, 'Delete saved images…'));
+      toast(`Removed ${keys.length} cards`);
+    } }, 'Remove saved cards…'));
+}
+
+function scanSection() {
+  const info = h('div', { class: 'data-rows' }, h('p', { class: 'muted small' }, 'Checking…'));
+  scanDataInfo().then((d) => {
+    info.innerHTML = '';
+    info.append(...state.settings.langs.map((l) => h('div', { class: 'data-row' },
+      h('b', {}, `${LANGS[l].flag} ${LANGS[l].label}`),
+      h('small', { class: 'muted' }, d[l] ? `Recognises ${d[l].count.toLocaleString()} cards · built ${fmtDate(d[l].built)}` : 'Not downloaded yet'))));
+  });
+  return section('Scanning', 'The scanner needs a small “scan data” file per language (about 2 MB). It downloads automatically the first time you scan while online, then scanning also works offline. New sets are added monthly.',
+    info,
+    h('button', { class: 'btn wide', onclick: () => run(async () => {
+      const r = await updateScanData({ force: true });
+      if (r.missing.length && !r.updated.length) throw new Error('Scan data isn’t available for your languages yet.');
+      return [];
+    }) }, icon('download', 18), ' Update scan data'),
+    toggle('Go straight back to the camera after adding a card', state.settings.scanContinuous, (on) => saveSettings({ scanContinuous: on })));
 }
 
 function storageSection() {
@@ -143,6 +151,7 @@ async function removeLanguage(code) {
   await db.delMany('sets', setKeys.filter((k) => !keepSets.has(k)));
   setCatalog(await db.getAll('sets'), await db.getAll('cards'));
   delete state.syncInfo[code];
+  await db.del('meta', `scan:${code}`);
   await db.put('meta', state.syncInfo, 'syncInfo');
   rebuildDex();
   emit('catalog');
@@ -152,7 +161,6 @@ async function removeLanguage(code) {
 // ---------- First-run setup ----------
 export function openSetup() {
   let langs = [...state.settings.langs];
-  let images = true;
   sheet({
     title: 'Get started', full: true,
     content: (b, { close }) => {
@@ -161,15 +169,19 @@ export function openSetup() {
         h('div', { class: 'toggle-list' }, Object.entries(LANGS).map(([code, l]) => toggle(`${l.flag} ${l.label}`, langs.includes(code), (on) => {
           langs = on ? [...langs, code] : langs.filter((x) => x !== code);
         }))),
-        toggle('Also save images while browsing sets (recommended for scanning)', images, (on) => { images = on; }),
-        h('p', { class: 'muted small' }, 'The card list is a few MB. Images download separately (Settings → Card images) so you choose how much space to use.'),
+        h('p', { class: 'muted small' }, 'The card list is a few MB. Card pictures load from the internet, and you can save any of them for offline later.'),
         h('button', { class: 'btn primary wide', onclick: async () => {
           if (!langs.length) return toast('Pick at least one language');
           if (!online()) return toast('Connect to the internet first');
-          await saveSettings({ langs: Object.keys(LANGS).filter((x) => langs.includes(x)), autoImages: images });
+          await saveSettings({ langs: Object.keys(LANGS).filter((x) => langs.includes(x)) });
           close();
           try { navigator.storage?.persist?.(); } catch { /* ignore */ }
-          run(async () => { const e = await syncCatalog(); if (!state.species.length) await syncSpecies(); return e; });
+          run(async () => {
+            const e = await syncCatalog();
+            if (!state.species.length) await syncSpecies();
+            try { await updateScanData(); } catch { /* not built yet — the scanner retries later */ }
+            return e;
+          });
         } }, icon('download', 18), ' Download card data'));
     },
   });

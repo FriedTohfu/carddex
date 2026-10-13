@@ -5,6 +5,7 @@
 const W = 128, H = 178;           // working size (card aspect ≈ 63 × 88 mm)
 const ART = { x: 0.08, y: 0.10, w: 0.84, h: 0.42 }; // where the artwork usually sits
 export const FP_LEN = 70;
+export const FP_VERSION = 1; // bump if the fingerprint maths changes (scan data gets rebuilt)
 
 let work = null, wctx = null;
 function workCanvas() {

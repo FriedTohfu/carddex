@@ -2,9 +2,9 @@
 // The photo is matched against card images saved on the phone (works offline).
 import { h, icon, pushBack, toast, cardArt, langBadge, chips, chooseDialog } from '../ui.js';
 import { state, changeOwned, qty, VARIANTS } from '../store.js';
-import { loadFingerprints } from '../sync.js';
+import { loadFingerprints, updateScanData, scanDataStale } from '../sync.js';
 import { queryFingerprints, bestMatches, confidence } from '../fp.js';
-import { LANGS } from '../api.js';
+import { LANGS, online } from '../api.js';
 import { openCard } from './card.js';
 import { openPicker } from './search.js';
 
@@ -51,12 +51,25 @@ export async function openScanner() {
   updateStatus();
   startCamera();
 
+  let preparing = false;
   async function updateStatus() {
     const fps = await loadFingerprints();
     let n = 0;
-    for (const k of fps.keys()) if (allowed(k)) n++;
-    status.textContent = n ? `Can recognise ${n.toLocaleString()} cards` : 'No card images saved yet — see Settings → Card images';
-    status.classList.toggle('warn', !n);
+    for (const k of fps.keys()) if (allowed(k) && state.cards.has(k)) n++;
+    status.classList.remove('warn');
+    // First scan (or weekly check): fetch the small scan data file
+    if (online() && !preparing && (!n || await scanDataStale())) {
+      preparing = true;
+      status.innerHTML = '';
+      status.append(h('span', { class: 'mini-ball spin' }), ' Getting scan data…');
+      try { await updateScanData(); } catch { /* not available yet */ }
+      return updateStatus();
+    }
+    if (n) status.textContent = `Can recognise ${n.toLocaleString()} cards`;
+    else {
+      status.textContent = online() ? 'Scan data isn’t ready yet — use Search, or try again later' : 'Connect to the internet once to set up scanning';
+      status.classList.add('warn');
+    }
   }
 
   function allowed(key) {
@@ -125,15 +138,17 @@ export async function openScanner() {
 
   async function runMatch(src, rect) {
     const fps = await loadFingerprints();
-    const pool = [...fps.keys()].filter(allowed);
+    const pool = [...fps.keys()].filter((k) => allowed(k) && state.cards.has(k));
     if (!pool.length) {
-      showResults([], null, src, rect, 'No card images are saved yet, so there’s nothing to compare with. Go to Settings → Card images, or tap “Search” to find the card by name.');
+      showResults([], null, src, rect, online()
+        ? 'Scan data isn’t ready yet, so there’s nothing to compare with. Tap “Search” to find the card by name.'
+        : 'Scanning needs a one-time download of scan data. Connect to the internet and open the scanner again, or tap “Search”.');
       return;
     }
     results.hidden = false;
     root.classList.add('has-results');
     results.innerHTML = '';
-    results.append(h('div', { class: 'scan-wait' }, h('div', { class: 'spinner' }), 'Looking for a match…'));
+    results.append(h('div', { class: 'scan-wait' }, h('span', { class: 'mini-ball spin' }), 'Looking for a match…'));
     await new Promise((r) => setTimeout(r, 30));
     const queries = queryFingerprints(src, rect);
     const matches = bestMatches(queries, fps, 12, (k) => allowed(k) && state.cards.has(k));

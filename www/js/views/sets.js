@@ -1,9 +1,8 @@
 // A single set: progress, all cards, owned/missing filter, quick-add mode.
 import { h, nav, cardGrid, progressBar, chips, toast, langBadge, lazyImg, logoSrc, fmtDate, icon, chooseDialog, promptDialog } from '../ui.js';
 import { onChange, state, setProgress, setCardsForProgress, changeOwned, qty, createWishlist, saveWishlist, createBinder, saveBinder, wishlistsSorted } from '../store.js';
-import { downloadImages, cardsMissingImages, job } from '../sync.js';
+import { saveOffline, removeOffline, offlineSub } from './offline.js';
 import { openCard } from './card.js';
-import { online } from '../api.js';
 
 export function setRow(set, onClick) {
   const p = setProgress(set.key);
@@ -63,21 +62,19 @@ export function openSet(setKey, tab = nav.current) {
         const bar = body.querySelector('.set-hero .progress > div'); if (bar) bar.style.width = `${q.pct * 100}%`;
       };
       function refresh() { const st = body.scrollTop; body.innerHTML = ''; page.render(body); body.scrollTop = st; }
-      // Save images for this set in the background (needed for offline + scanning)
-      if (state.settings.autoImages && online() && !job.running) {
-        const need = cardsMissingImages(all.map((c) => c.key));
-        if (need.length) downloadImages(need, `Saving ${set.name} images`).catch(() => {});
-      }
     },
   };
   page.destroy = () => { page._off?.(); page._off = null; };
   nav.push(tab, page);
 
+  function allKeys() { return (state.cardsBySet.get(setKey) || []).map((c) => c.key); }
+
   async function options() {
     const pick = await chooseDialog(set.name, [
       { value: 'wish', label: 'Add missing cards to a wishlist', icon: '❤️' },
       { value: 'binder', label: 'Make a binder for this set', icon: '📒' },
-      { value: 'img', label: 'Download images for this set', icon: '⬇️', sub: `${cardsMissingImages((state.cardsBySet.get(setKey) || []).map((c) => c.key)).length} not saved yet` },
+      { value: 'img', label: 'Save this set for offline', icon: '📥', sub: offlineSub(allKeys()) },
+      { value: 'unimg', label: 'Remove this set from offline', icon: '🗑️' },
       { value: 'all', label: 'Mark every card as owned', icon: '✅' },
     ]);
     const cards = setCardsForProgress(setKey);
@@ -101,8 +98,9 @@ export function openSet(setKey, tab = nav.current) {
       await saveBinder(b);
       toast(`Binder “${name}” created with ${b.pages.length} pages`);
     } else if (pick === 'img') {
-      if (!online()) return toast('Connect to the internet to download images');
-      downloadImages((state.cardsBySet.get(setKey) || []).map((c) => c.key), `Saving ${set.name} images`).catch((e) => toast(e.message));
+      saveOffline(allKeys(), set.name);
+    } else if (pick === 'unimg') {
+      removeOffline(allKeys(), set.name);
     } else if (pick === 'all') {
       const { confirmDialog } = await import('../ui.js');
       if (!(await confirmDialog(`Mark all ${cards.length} cards in ${set.name} as owned?`, { ok: 'Mark owned' }))) return;

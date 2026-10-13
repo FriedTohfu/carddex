@@ -3,6 +3,8 @@
 // Pokédex names/sprites: PokéAPI — https://pokeapi.co
 export const TCG = 'https://api.tcgdex.net/v2';
 export const POKEAPI = 'https://pokeapi.co/api/v2';
+// Scan data built by this app's own GitHub repository (see build/make_scan_data.py)
+export const SCAN_DATA = 'https://raw.githubusercontent.com/FriedTohfu/carddex/main/data';
 export const SPRITE = (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 
 export const LANGS = {

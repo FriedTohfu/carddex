@@ -6,7 +6,7 @@ const DEFAULT_SETTINGS = {
   langs: ['en', 'ja', 'zh-tw', 'zh-cn'],
   theme: 'auto',            // auto | light | dark
   includeSecrets: true,     // count secret rares toward set progress
-  autoImages: true,         // download images for a set when you open it
+  keepOwnedOffline: true,   // save images of cards you own so they show offline
   scanLangs: [],            // empty = all enabled languages
   scanContinuous: true,     // return to the camera after adding a card
 };
