@@ -1,15 +1,15 @@
-import json, urllib.request, re, os, html, time
+import json, urllib.request, os
 os.makedirs('out5', exist_ok=True)
-UA={'User-Agent':'Mozilla/5.0 (CardDex personal collection app)'}
-pick=json.load(open('pick.json'))
+def get(u):
+    try:
+        with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'CardDex'}),timeout=60) as r: return json.loads(r.read())
+    except Exception as e: return {'err': str(e)}
 out={}
-for code, ids in pick.items():
-    names=[]
-    for cid in ids:
-        try:
-            with urllib.request.urlopen(urllib.request.Request(f'https://www.pokemon-card.com/card-search/details.php/card/{cid}/regu/all',headers=UA),timeout=40) as r: t=r.read().decode('utf-8','replace')
-        except Exception as e: names.append('ERR'); continue
-        names += [html.unescape(re.sub('<[^>]+>','',n)).strip() for h,n in re.findall(r'class="List_item"><a href="([^"]*)"[^>]*>(.*?)</a>', t, re.S) if not h.startswith('http')]
-        time.sleep(0.3)
-    out[code]=names
+lst=get('https://api.tcgdex.net/v2/ja/sets')
+out['n_sets']=len(lst) if isinstance(lst,list) else lst
+ids=[s['id'] for s in lst] if isinstance(lst,list) else []
+out['vintage_in_list']=[i for i in ids if i.startswith(('PMCG','neo','VS','web','E','PCG','ADV'))]
+for sid in ['PMCG1','neo1','PCG1','E1','SV2a']:
+    d=get(f'https://api.tcgdex.net/v2/ja/sets/{sid}')
+    out[sid]={'name':d.get('name'),'releaseDate':d.get('releaseDate'),'cardCount':d.get('cardCount'),'ncards':len(d.get('cards') or []),'first':(d.get('cards') or [None])[0],'err':d.get('err')}
 json.dump(out,open('out5/res.json','w'),ensure_ascii=False,indent=1)
