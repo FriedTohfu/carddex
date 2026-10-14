@@ -1,6 +1,38 @@
 {
- "sets_status": 404,
- "nsets": 0,
- "oldest": [],
- "total_cards": 0
+ "https://www.jpn-cards.com/v2/set/": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"2FH5pJJoQB-BkLMdCYBc-A\"}"
+ ],
+ "https://www.jpn-cards.com/v2/set": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"wT77FqlUReWGlu7qlt7tkg\"}"
+ ],
+ "https://jpn-cards.com/v2/set/": [
+  0,
+  "<urlopen error [Errno -5] No address associated with hostname>"
+ ],
+ "https://www.jpn-cards.com/v2/sets/": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"8_RHCcmuSpuwV17YpHNmDw\"}"
+ ],
+ "https://www.jpn-cards.com/set/": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"V5t3H3sqQz2pwdxMCYBc-A\"}"
+ ],
+ "https://www.jpn-cards.com/sets": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"-GaGSSUXSGq5tKua2prcFg\"}"
+ ],
+ "https://www.jpn-cards.com/": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"suA4qBp4TL-CAabjxtoGcA\"}"
+ ],
+ "https://www.jpn-cards.com/v2/card/?set_code=s10D": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"Cxn2qEuiRaWwZ89z6WHkDg\"}"
+ ],
+ "https://www.jpn-cards.com/card/?set_code=s10D": [
+  404,
+  "{\"status\":\"error\",\"code\":404,\"message\":\"Application not found\",\"request_id\":\"J9nV6A4wRUqf-6JkWUN5dQ\"}"
+ ]
 }
