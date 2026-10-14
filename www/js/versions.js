@@ -31,7 +31,8 @@ function sameFacts(a, b, da, db) {
   if (!ia || ia !== ib) return false;
   if (!da.hp || !db.hp || +da.hp !== +db.hp) return false;
   const ra = state.sets.get(a.setKey)?.releaseDate, rb = state.sets.get(b.setKey)?.releaseDate;
-  if (ra && rb && Math.abs(new Date(ra) - new Date(rb)) > 550 * 864e5) return false; // ~18 months
+  // Old Japanese sets often came out up to ~3 years before their English versions
+  if (ra && rb && Math.abs(new Date(ra) - new Date(rb)) > 4 * 365 * 864e5) return false;
   return true;
 }
 
@@ -72,6 +73,9 @@ export async function groupVersions(cards, details = new Map()) {
     if (seen.has(g)) continue;
     seen.add(g);
     g.sort((a, b) => order.indexOf(a.lang) - order.indexOf(b.lang));
+    // A version without a picture borrows one from its twin (same artwork)
+    const donor = g.find((x) => x.image);
+    for (const x of g) if (!x.image && donor) x.altKey = donor.key;
     out.push({ rep: g[0], keys: g.map((x) => x.key) });
   }
   return out;

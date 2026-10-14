@@ -140,8 +140,19 @@ async function syncChs({ force = false } = {}) {
   await db.put('meta', state.syncInfo, 'syncInfo');
 }
 
-/** At start-up: phones that still have the old official-site Japanese list switch back to TCGdex. */
+async function dropEmptySet(key) {
+  const st = state.sets.get(key);
+  if (!st || st.custom || (state.cardsBySet.get(key) || []).length) return false;
+  await db.del('sets', key);
+  state.sets.delete(key); state.cardsBySet.delete(key);
+  return true;
+}
+
+/** At start-up: tidy up empty placeholder sets, and phones that still have the old official-site Japanese list switch back to TCGdex. */
 export async function autoUpdateCardData() {
+  let tidied = false;
+  for (const key of [...state.sets.keys()]) if (await dropEmptySet(key)) tidied = true;
+  if (tidied) emit('catalog');
   if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
   if (![...state.sets.values()].some((st) => st.src === 'pcj')) return false;
   const errors = await syncCatalog(['ja']);
@@ -298,6 +309,8 @@ async function remapKeys(remap) {
 
 async function saveSet(lang, brief, full) {
   const key = `${lang}:${full.id}`;
+  // TCGdex lists some placeholder sets with no cards yet (e.g. Chinese codes under Japanese): skip them
+  if (!(full.cards || []).length) { await dropEmptySet(key); return; }
   const set = {
     key, lang, id: full.id, name: full.name || brief.name || full.id,
     serie: full.serie?.name || '', serieId: full.serie?.id || '',
