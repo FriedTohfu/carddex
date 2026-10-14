@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-10-14f",
+    "date": "2026-10-14",
+    "title": "Better language combining",
+    "items": [
+      "Scan data updates download by themselves at start-up, so English and Japanese versions can be matched by their artwork",
+      "Cards without HP listed can still be matched by illustrator"
+    ]
+  },
+  {
     "id": "2026-10-14e",
     "date": "2026-10-14",
     "title": "New Japanese card list (pkmn.gg)",

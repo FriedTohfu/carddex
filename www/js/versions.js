@@ -29,7 +29,8 @@ function sameFacts(a, b, da, db) {
   if (!da || !db) return false;
   const ia = norm(da.illustrator), ib = norm(db.illustrator);
   if (!ia || ia !== ib) return false;
-  if (!da.hp || !db.hp || +da.hp !== +db.hp) return false;
+  // HP must match when both sides have it (some card lists don't include HP)
+  if (da.hp && db.hp && +da.hp !== +db.hp) return false;
   const ra = state.sets.get(a.setKey)?.releaseDate, rb = state.sets.get(b.setKey)?.releaseDate;
   // Old Japanese sets often came out up to ~3 years before their English versions
   if (ra && rb && Math.abs(new Date(ra) - new Date(rb)) > 4 * 365 * 864e5) return false;

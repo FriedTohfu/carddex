@@ -89,6 +89,8 @@ async function main() {
   ota.markGood();
   // Check once when the app starts (and when you tap "Check now" in Settings)
   setTimeout(() => ota.checkForUpdate(), 4000);
+  // Newer scan data (also used to match the same card across languages): only changed files download
+  setTimeout(() => import('./sync.js').then((m) => m.updateScanData()).catch(() => {}), 12000);
   // Pictures for old Japanese cards, from Bulbapedia (saved after the first time)
   setTimeout(() => import('./bulba.js').then((m) => m.fillVintagePictures()).catch(() => {}), 9000);
   // After an update: what changed
