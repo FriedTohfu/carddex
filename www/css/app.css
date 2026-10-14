@@ -442,3 +442,7 @@ textarea.input { resize: vertical; }
 .pocket.drag-src { opacity: .3; }
 .pocket.drop-target, .icon-btn.drop-target { outline: 3px solid var(--accent); outline-offset: 2px; }
 .binder-page .pocket { -webkit-touch-callout: none; user-select: none; }
+
+/* What's new */
+.whatsnew { margin: 4px 0 18px; padding-left: 20px; line-height: 1.45; }
+.whatsnew li { margin: 6px 0; }

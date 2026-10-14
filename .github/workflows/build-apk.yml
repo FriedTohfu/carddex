@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Get the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history, for the release notes
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -62,11 +64,17 @@ jobs:
           name: CardDex-apk
           path: CardDex.apk
 
+      - name: Write release notes (what changed since the last build)
+        run: |
+          PREV="$(git tag -l 'build-*' --sort=-v:refname | head -1)"
+          python build/release_notes.py "$PREV" > release-notes.md
+          cat release-notes.md
+
       - name: Publish APK (Releases page download)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: CardDex build ${{ github.run_number }}
-          body: Download **CardDex.apk** below and open it on your Android phone to install or update.
+          body_path: release-notes.md
           files: CardDex.apk
           make_latest: true

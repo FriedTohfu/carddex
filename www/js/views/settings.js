@@ -165,6 +165,7 @@ function updatesSection() {
         const r = await ota.checkForUpdate({ force: true, quiet: false });
         toast({ none: 'You’re up to date ✓', downloaded: 'Update downloaded — tap Restart now', 'needs-apk': 'A new APK is needed — see the banner', unsupported: 'Only works in the installed app', offline: 'You’re offline', error: 'Couldn’t check right now' }[r] || r);
       } }, 'Check now'),
+      h('button', { class: 'btn', onclick: async () => (await import('../whatsnew.js')).showAllWhatsNew() }, 'What’s new'),
       h('button', { class: 'btn', onclick: async () => (await import('../ota.js')).useInstalledVersion() }, 'Use installed version')));
 }
 
