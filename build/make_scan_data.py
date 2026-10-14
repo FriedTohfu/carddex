@@ -59,7 +59,7 @@ def chs_list():
 
 
 JA_LIST = os.path.join(ROOT, 'data', 'ja-official.json')
-JA_IMAGES = os.path.join(ROOT, 'data', 'ja-images.json')
+JA_EXTRA = os.path.join(ROOT, 'data', 'ja-extra.json')
 JA_IMG_BASE = os.environ.get('JA_BASE', 'https://www.pokemon-card.com')
 
 
@@ -92,27 +92,36 @@ def card_list(lang):
     sets = get(f'{TCG}/{lang}/sets')
     if not sets:
         return []
-    # Japanese cards TCGdex has no picture for: the official site's picture (data/ja-images.json)
-    extra = {}
-    if lang == 'ja' and os.path.exists(JA_IMAGES):
-        d = json.load(open(JA_IMAGES, encoding='utf-8'))
-        extra = {k: d['base'] + v for k, v in d.get('images', {}).items()}
+    # Japanese: TCGdex's gaps are filled from the official card list (data/ja-extra.json)
+    extra, extra_rows = {}, []
+    if lang == 'ja' and os.path.exists(JA_EXTRA):
+        d = json.load(open(JA_EXTRA, encoding='utf-8'))
+        for cid, sid, local, *_rest in d.get('cards', []):
+            url = d['base'] + _rest[2]
+            extra_rows.append((cid, sid, local, url))
+            if str(local).isdigit():
+                extra[f'{sid.lower()}|{int(local)}'] = url
     def one(s):
         full = get(f"{TCG}/{lang}/sets/{urllib.parse.quote(s['id'])}")
         out = []
         for c in (full or {}).get('cards', []):
+            lid = str(c.get('localId') or '')
+            seen_nums.add(f"{str(s['id']).lower()}|{int(lid) if lid.isdigit() else lid}")
             if c.get('image'):
                 out.append((c['id'], c['image'] + '/low.webp'))
-            elif extra:
-                lid = str(c.get('localId') or '')
-                url = extra.get(f"{str(s['id']).lower()}|{int(lid)}") if lid.isdigit() else None
-                if url:
-                    out.append((c['id'], url))
+            elif lid.isdigit() and extra.get(f"{str(s['id']).lower()}|{int(lid)}"):
+                out.append((c['id'], extra[f"{str(s['id']).lower()}|{int(lid)}"]))
         return out
+    seen_nums = set()
     with ThreadPoolExecutor(8) as ex:
         out = []
         for part in ex.map(one, sets):
             out.extend(part)
+    have = {cid for cid, _ in out}
+    for cid, sid, local, url in extra_rows:
+        key = f'{sid.lower()}|{int(local) if str(local).isdigit() else local}'
+        if cid not in have and key not in seen_nums:
+            out.append((cid, url))
     return out
 
 

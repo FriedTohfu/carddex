@@ -48,7 +48,7 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
       }, () => job.stop);
       if (lang === 'ja' && !job.stop) {
         await dropOfficialJa();
-        try { await applyJaImages(true); } catch { /* pictures fill in next start-up */ }
+        try { await applyJaExtra(true); } catch { /* fills in next start-up */ }
       }
       const cards = [...state.cards.values()].filter((c) => c.lang === lang).length;
       state.syncInfo[lang] = { at: Date.now(), sets: list.length, cards };
@@ -156,7 +156,7 @@ export async function autoUpdateCardData() {
   let tidied = false;
   for (const key of [...state.sets.keys()]) if (await dropEmptySet(key)) tidied = true;
   if (tidied) emit('catalog');
-  try { if (await applyJaImages()) emit('catalog'); } catch { /* next start-up */ }
+  try { if (await applyJaExtra()) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
   if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
   if (![...state.sets.values()].some((st) => st.src === 'pcj')) return false;
   const errors = await syncCatalog(['ja']);
@@ -164,28 +164,70 @@ export async function autoUpdateCardData() {
 }
 
 /**
- * TCGdex has no pictures for many Japanese cards: fill those from the official
- * Japanese site's pictures (matched by set code + card number, list built on GitHub).
+ * TCGdex is missing many Japanese cards and pictures. data/ja-extra.json (built on
+ * GitHub from the official Japanese card list) fills the gaps: missing cards go into
+ * the matching TCGdex set (same set code + number), missing pictures are filled in,
+ * and products TCGdex doesn't list become their own sets.
  */
-export async function applyJaImages(force = false) {
+export async function applyJaExtra(force = false) {
   if (!online()) return 0;
   const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
-  const info = index?.jaImages;
-  if (!info || (!force && state.syncInfo.jaImages === info.built)) return 0;
-  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-images.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 120000, retries: 1 });
-  if (!d?.images) return 0;
-  const changed = [];
-  for (const c of state.cards.values()) {
-    if (c.lang !== 'ja' || c.custom || c.src) continue;
-    if (c.image && c.imgSrc !== 'pcj') continue; // TCGdex has its own picture
-    const id = state.sets.get(c.setKey)?.id?.toLowerCase();
-    const p = id && d.images[`${id}|${parseInt(c.localId, 10)}`];
-    if (p && c.image !== d.base + p) { c.image = d.base + p; c.imgSrc = 'pcj'; changed.push(c); }
+  const info = index?.jaExtra;
+  if (!info || (!force && state.syncInfo.jaExtra === info.built)) return 0;
+  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-extra.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 180000, retries: 1 });
+  if (!d?.cards) return 0;
+  const lang = 'ja';
+  const newSets = [];
+  for (const st of d.sets || []) {
+    const key = `${lang}:${st.id}`;
+    const cur = state.sets.get(key);
+    if (cur && !cur.extra) continue; // TCGdex has this set: keep its details
+    newSets.push({
+      key, lang, id: st.id, name: st.name || st.id, serie: st.serie || '', releaseDate: st.releaseDate || '',
+      total: st.official || 0, official: st.official || 0, logo: cur?.logo || '', symbol: cur?.symbol || '', extra: true, syncedAt: Date.now(),
+    });
   }
-  for (let i = 0; i < changed.length; i += 2000) await db.putMany('cards', changed.slice(i, i + 2000));
-  state.syncInfo.jaImages = info.built;
+  for (const st of newSets) state.sets.set(st.key, st);
+  // TCGdex cards by set + number, to find the same card
+  const byNum = new Map();
+  for (const c of state.cards.values()) {
+    if (c.lang !== lang || c.custom || c.extra) continue;
+    const n = parseInt(c.localId, 10);
+    if (!Number.isNaN(n)) byNum.set(`${c.setKey}|${n}`, c);
+  }
+  const put = [], touched = new Set();
+  for (const [id, sid, local, num, name, img, rarity, hp, illus] of d.cards) {
+    const setKey = `${lang}:${sid}`;
+    if (!state.sets.has(setKey)) continue;
+    const image = d.base + img;
+    const n = parseInt(local, 10);
+    const same = byNum.get(`${setKey}|${n}`) || (!state.cards.get(`${lang}:${id}`)?.extra && state.cards.get(`${lang}:${id}`));
+    if (same) {
+      // TCGdex has the card: only borrow the picture if it has none
+      if ((!same.image || same.imgSrc === 'pcj') && same.image !== image) { same.image = image; same.imgSrc = 'pcj'; put.push(same); }
+      continue;
+    }
+    const card = {
+      key: `${lang}:${id}`, lang, id, localId: local, number: num, name, image, imgSrc: 'pcj', setKey, order: 0, extra: true,
+      det: { rarity: rarity || undefined, hp: hp || undefined, illustrator: illus || undefined, number: num, category: hp ? 'Pokemon' : undefined },
+    };
+    state.cards.set(card.key, card);
+    put.push(card); touched.add(setKey);
+  }
+  // Put each changed set's cards in number order
+  const queued = new Set(put);
+  const lists = new Map([...touched].map((k) => [k, []]));
+  for (const c of state.cards.values()) lists.get(c.setKey)?.push(c);
+  for (const [k, list] of lists) {
+    list.sort((a, b) => (parseInt(a.localId, 10) || 9999) - (parseInt(b.localId, 10) || 9999) || String(a.localId).localeCompare(String(b.localId)));
+    list.forEach((c, i) => { if (c.order !== i) { c.order = i; if (!queued.has(c)) { queued.add(c); put.push(c); } } });
+    state.cardsBySet.set(k, list);
+  }
+  await db.putMany('sets', newSets);
+  for (let i = 0; i < put.length; i += 2000) await db.putMany('cards', put.slice(i, i + 2000));
+  state.syncInfo.jaExtra = info.built;
   await db.put('meta', state.syncInfo, 'syncInfo');
-  return changed.length;
+  return put.length;
 }
 
 /** Removes the official-site Japanese list, moving your cards to the matching TCGdex cards (same set code and number). */
@@ -618,7 +660,7 @@ export async function cardDetail(key) {
   if (cached && (Date.now() - cached._at < WEEK || !online())) return cached;
   if (!online()) return cached || null;
   const card = state.cards.get(key);
-  if (card?.src === 'chs' || card?.src === 'pcj') return { ...card.det };
+  if (card?.src === 'chs' || card?.src === 'pcj' || card?.extra) return { ...card.det };
   if (!card || card.custom) return cached || null;
   try {
     const d = await tcg.card(card.lang, card.id);
