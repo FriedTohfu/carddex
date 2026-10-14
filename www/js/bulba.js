@@ -133,7 +133,7 @@ async function applySaved(setKey, saved) {
 let running = false;
 /** Fills in pictures for every old Japanese set that has none. Quietly does nothing if Bulbapedia can't be reached. */
 export async function fillVintagePictures() {
-  if (running || !state.settings.langs.includes('ja')) return 0;
+  if (running || !state.settings.langs.includes('ja') || state.syncInfo.ja?.source === 'pkmn.gg') return 0;
   running = true;
   let total = 0;
   try {

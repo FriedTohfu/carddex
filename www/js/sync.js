@@ -22,6 +22,10 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
         try { await syncChs({ force }); } catch (e) { errors.push(`zh-cn: ${e.message}`); }
         continue;
       }
+      if (lang === 'ja') {
+        // Japanese: the pkmn.gg list built on GitHub (falls back to TCGdex if it isn't there)
+        try { if (await syncJaGG({ force })) continue; } catch (e) { errors.push(`ja: ${e.message}`); }
+      }
       report(`Checking ${lang.toUpperCase()} sets…`, 0, 0);
       let list;
       try { list = await tcg.sets(lang); } catch (e) { errors.push(`${lang}: ${e.message}`); continue; }
@@ -176,8 +180,17 @@ export async function autoUpdateCardData() {
   let tidied = false;
   for (const key of [...state.sets.keys()]) if (await dropEmptySet(key)) tidied = true;
   if (tidied) emit('catalog');
-  try { if (await healMissingSets('ja')) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
-  try { if (await applyJaExtra()) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
+  if (state.settings.langs.includes('ja') && online() && !job.running) {
+    const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
+    if (index?.jaGG && state.syncInfo.ja?.built !== index.jaGG.built) {
+      const errors = await syncCatalog(['ja']);
+      return !errors?.length;
+    }
+  }
+  if (!jaIsGG()) {
+    try { if (await healMissingSets('ja')) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
+    try { if (await applyJaExtra()) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
+  }
   if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
   if (![...state.sets.values()].some((st) => st.src === 'pcj')) return false;
   const errors = await syncCatalog(['ja']);
@@ -249,6 +262,72 @@ export async function applyJaExtra(force = false) {
   state.syncInfo.jaExtra = info.built;
   await db.put('meta', state.syncInfo, 'syncInfo');
   return put.length;
+}
+
+const jaIsGG = () => state.syncInfo.ja?.source === 'pkmn.gg';
+
+/** Japanese cards from pkmn.gg (data/ja-pkmngg.json): every set back to 1996, with Japanese scans. */
+async function syncJaGG({ force = false } = {}) {
+  const lang = 'ja';
+  report('Checking Japanese cards…', 0, 0);
+  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 1 }).catch(() => null);
+  const info = index?.jaGG;
+  if (!info) return false;
+  if (!force && state.syncInfo.ja?.built === info.built && [...state.sets.values()].some((st) => st.src === 'gg')) return true;
+  report('Downloading Japanese card list…', 0, 0);
+  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-pkmngg.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 240000, retries: 1 });
+  if (!d?.cards?.length) return false;
+  const sets = d.sets.map((st) => ({
+    key: `${lang}:gg-${st.id}`, lang, id: `gg-${st.id}`, src: 'gg', name: st.name, serie: st.series || '',
+    releaseDate: st.releaseDate || '', total: st.total || 0, official: st.printed || 0,
+    logo: st.logo || '', symbol: st.symbol || '', syncedAt: Date.now(),
+  }));
+  const released = new Map(d.sets.map((st) => [`${lang}:gg-${st.id}`, st.releaseDate || '']));
+  const order = new Map(), cards = [];
+  for (const [id, sid, number, numDisp, nameJa, nameEn, rarity, artist, type, thumb, large] of d.cards) {
+    const setKey = `${lang}:gg-${sid}`;
+    const i = order.get(setKey) || 0; order.set(setKey, i + 1);
+    cards.push({
+      key: `${lang}:gg-${id}`, lang, id: `gg-${id}`, src: 'gg', localId: number, number: numDisp,
+      name: nameJa || nameEn, nameEn: nameEn || undefined, image: thumb, imageHi: large, setKey, order: i,
+      det: { rarity: rarity || undefined, illustrator: artist || undefined, category: type === 'Pokémon' ? 'Pokemon' : (type || undefined), number: numDisp },
+    });
+  }
+  // Move your cards from the old Japanese data (same Japanese name, number and release month)
+  const norm = (x) => String(x || '').normalize('NFKC').replace(/\s+/g, '').toLowerCase();
+  const sig = (name, num, date) => `${norm(name)}|${parseInt(num, 10)}|${String(date || '').slice(0, 7)}`;
+  const bySig = new Map(cards.map((c) => [sig(c.name, c.localId, released.get(c.setKey)), c.key]));
+  const remap = new Map();
+  for (const c of state.cards.values()) {
+    if (c.lang !== lang || c.src === 'gg' || c.custom) continue;
+    const k = bySig.get(sig(c.name, c.localId, state.sets.get(c.setKey)?.releaseDate));
+    if (k) remap.set(c.key, k);
+  }
+  await remapKeys(remap);
+  // Replace all older Japanese data (keeping anything still in your collection, lists or binders)
+  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
+  const newKeys = new Set(cards.map((c) => c.key)), newSets = new Set(sets.map((st) => st.key));
+  const oldCards = [...state.cards.values()].filter((c) => c.lang === lang && !c.custom && !newKeys.has(c.key) && !keep.has(c.key));
+  await db.delMany('cards', oldCards.map((c) => c.key));
+  for (const c of oldCards) state.cards.delete(c.key);
+  const used = new Set([...state.cards.values()].filter((c) => c.lang === lang && !newKeys.has(c.key)).map((c) => c.setKey));
+  const oldSets = [...state.sets.values()].filter((st) => st.lang === lang && !st.custom && !newSets.has(st.key) && !used.has(st.key));
+  await db.delMany('sets', oldSets.map((st) => st.key));
+  for (const st of oldSets) { state.sets.delete(st.key); state.cardsBySet.delete(st.key); }
+  await db.putMany('sets', sets);
+  for (let i = 0; i < cards.length; i += 2000) {
+    await db.putMany('cards', cards.slice(i, i + 2000));
+    report('Saving Japanese cards', Math.min(cards.length, i + 2000), cards.length);
+  }
+  for (const st of sets) state.sets.set(st.key, st);
+  for (const c of cards) state.cards.set(c.key, c);
+  const bySet = new Map(sets.map((st) => [st.key, []]));
+  for (const c of cards) bySet.get(c.setKey)?.push(c);
+  for (const [k, list] of bySet) state.cardsBySet.set(k, [...list, ...(state.cardsBySet.get(k) || []).filter((c) => c.custom)]);
+  for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
+  state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, built: info.built, source: 'pkmn.gg' };
+  await db.put('meta', state.syncInfo, 'syncInfo');
+  return true;
 }
 
 /** Removes the official-site Japanese list, moving your cards to the matching TCGdex cards (same set code and number). */
@@ -685,7 +764,7 @@ export async function cardDetail(key) {
   if (cached && (Date.now() - cached._at < WEEK || !online())) return cached;
   if (!online()) return cached || null;
   const card = state.cards.get(key);
-  if (card?.src === 'chs' || card?.src === 'pcj' || card?.extra) return { ...card.det };
+  if (card?.src === 'chs' || card?.src === 'pcj' || card?.src === 'gg' || card?.extra) return { ...card.det };
   if (!card || card.custom) return cached || null;
   try {
     const d = await tcg.card(card.lang, card.id);

@@ -81,9 +81,17 @@ def ja_list():
 SOURCE = {'zh-cn': 'chs'}  # Japanese and English come from TCGdex
 
 
+JA_GG = os.path.join(ROOT, 'data', 'ja-pkmngg.json')
+
+
 def card_list(lang):
     if lang == 'zh-cn':
         return chs_list()
+    if lang == 'ja' and os.path.exists(JA_GG):
+        # Japanese: the pkmn.gg list (build/make_ja_pkmngg.py)
+        SOURCE['ja'] = 'gg'
+        d = json.load(open(JA_GG, encoding='utf-8'))
+        return [(f'gg-{c[0]}', c[9]) for c in d.get('cards', []) if c[9]]
     if lang == 'ja':
         lst = ja_list()
         if lst is not None:

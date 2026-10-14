@@ -82,6 +82,7 @@ export function archivedImg(url) {
 }
 export function cardImg(card, quality = 'low') {
   if (!card?.image) return null;
+  if (card.src === 'gg') return quality === 'high' || quality === 'raw' ? (card.imageHi || card.image) : card.image;
   if (card.src === 'chs') {
     if (quality === 'high' || quality === 'raw') return card.image;
     return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=245&output=webp&q=82`;
