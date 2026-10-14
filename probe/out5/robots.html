@@ -1,0 +1,22 @@
+User-agent: *
+
+# Admin pages
+Disallow: /admin/
+
+# Auth pages
+Disallow: /auth/
+
+# OG image routes
+Disallow: /api/og/*
+
+# Error page
+Disallow: /_error
+
+# Googlebot occasionally extracts the literal Next.js dynamic-route placeholder
+# from the bundle and tries to fetch /series/[seriesSlug]/[setSlug] verbatim.
+# This rule blocks that exact literal URL — it is NOT a wildcard. Real set
+# pages like /series/sword-and-shield/celebrations do not match and remain
+# crawlable (and are listed in the sitemap).
+Disallow: /series/[seriesSlug]/[setSlug]
+
+Sitemap: https://www.pkmn.gg/sitemap.xml
