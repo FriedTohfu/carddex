@@ -1,0 +1,14 @@
+/jp/series/original/expansion-pack
+/jp/series/original/guren-town-gym-deck
+/jp/series/original/hanada-city-gym-deck
+/jp/series/original/intro-pack-bulbasaur
+/jp/series/original/intro-pack-squirtle
+/jp/series/original/jungle
+/jp/series/original/kuchiba-city-gym-deck
+/jp/series/original/mystery-of-the-fossils
+/jp/series/original/nivi-city-gym-deck
+/jp/series/original/quick-starter-gift-set-green
+/jp/series/original/quick-starter-gift-set-red
+/jp/series/original/rocket-gang
+/jp/series/original/tamamushi-city-gym-deck
+/jp/series/original/yamabuki-city-gym-deck
