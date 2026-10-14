@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-10-14d",
+    "date": "2026-10-14",
+    "title": "Pictures for old Japanese cards",
+    "items": [
+      "Japanese cards from 1996–2006 (Expansion Pack, neo, VS, web, e-Card, PCG) get their pictures from Bulbapedia",
+      "The app fetches them in the background after you open it (about a minute the first time), then remembers them",
+      "Cards printed in English too may show the English print's picture (same artwork)"
+    ]
+  },
+  {
     "id": "2026-10-14c",
     "date": "2026-10-14",
     "title": "All sets show again",

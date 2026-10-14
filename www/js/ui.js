@@ -340,7 +340,7 @@ export function cardArt(card, quality = 'low') {
   // Big view: show the small picture straight away, then swap in the sharp one when it arrives
   const img = lazyImg(() => cardSrc(card, 'low'), card?.name || '');
   if (card?.src === 'chs') img._fallback = async () => card.image; // if the resizing service is down
-  if (card?.src === 'pcj' && /bulbagarden/.test(card.image || '')) img._fallback = async () => archivedImg(card.image);
+  if (/bulbagarden/.test(card?.image || '')) img._fallback = async () => archivedImg(card.image);
   const shown = (!card?.image && card?.altKey && state.cards.get(card.altKey)) || card;
   if (quality === 'high' && shown?.image && online()) {
     const hi = new Image();

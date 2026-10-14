@@ -86,9 +86,10 @@ export function cardImg(card, quality = 'low') {
     if (quality === 'high' || quality === 'raw') return card.image;
     return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=245&output=webp&q=82`;
   }
-  if (card.src === 'pcj' && /archives\.bulbagarden\.net/.test(card.image)) {
+  if (/archives\.bulbagarden\.net/.test(card.image)) {
     // Older Japanese cards: Bulbapedia's own resized copies
     if (quality === 'high' || quality === 'raw') return card.image;
+    if (card.thumb) return card.thumb;
     const m = card.image.match(/^(.*\/media\/upload)(\/[0-9a-f]\/[0-9a-f]{2}\/)([^/]+)$/);
     return m ? `${m[1]}/thumb${m[2]}${m[3]}/250px-${m[3]}` : card.image;
   }

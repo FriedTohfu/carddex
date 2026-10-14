@@ -49,6 +49,7 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
       if (lang === 'ja' && !job.stop) {
         await dropOfficialJa();
         try { await applyJaExtra(true); } catch { /* fills in next start-up */ }
+        import('./bulba.js').then((m) => m.fillVintagePictures()).catch(() => {});
       }
       const cards = [...state.cards.values()].filter((c) => c.lang === lang).length;
       state.syncInfo[lang] = { at: Date.now(), sets: list.length, cards };

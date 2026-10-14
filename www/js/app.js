@@ -89,6 +89,8 @@ async function main() {
   ota.markGood();
   // Check once when the app starts (and when you tap "Check now" in Settings)
   setTimeout(() => ota.checkForUpdate(), 4000);
+  // Pictures for old Japanese cards, from Bulbapedia (saved after the first time)
+  setTimeout(() => import('./bulba.js').then((m) => m.fillVintagePictures()).catch(() => {}), 9000);
   // After an update: what changed
   setTimeout(() => import('./whatsnew.js').then((m) => m.maybeShowWhatsNew()).catch(() => {}), 1800);
   // New card lists (e.g. the official Japanese list) arrive without having to tap "Update card data"
