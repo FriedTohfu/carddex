@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-10-14c",
+    "date": "2026-10-14",
+    "title": "All sets show again",
+    "items": [
+      "Set lists no longer stop part-way: \"Choose a set\" and Search keep loading older sets as you scroll, back to 1996",
+      "If any Japanese sets went missing from your phone, they're downloaded again automatically (checked once a day)"
+    ]
+  },
+  {
     "id": "2026-10-14b",
     "date": "2026-10-14",
     "title": "Thousands more Japanese cards",

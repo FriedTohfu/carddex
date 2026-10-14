@@ -441,3 +441,20 @@ export function fmtDate(d) {
   const dt = new Date(d);
   return isNaN(dt) ? d : dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
 }
+
+/** Shows a long list in chunks, adding more as you scroll near the end (no cut-off). */
+export function progressiveList(container, items, render, step = 150) {
+  let shown = 0;
+  const sentinel = h('div', { class: 'list-sentinel', 'aria-hidden': 'true' });
+  const more = () => {
+    const next = items.slice(shown, shown + step);
+    shown += next.length;
+    sentinel.before(...next.map(render));
+    if (shown >= items.length) { obs.disconnect(); sentinel.remove(); }
+  };
+  const obs = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) more(); }, { rootMargin: '800px 0px' });
+  container.append(sentinel);
+  more();
+  if (shown < items.length) obs.observe(sentinel);
+  return container;
+}

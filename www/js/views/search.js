@@ -1,5 +1,5 @@
 // Search tab: find any card by name or number, filter by language and set.
-import { h, nav, chips, cardGrid, empty, debounce, chooseDialog, sheet, icon, langBadge } from '../ui.js';
+import { h, nav, chips, cardGrid, empty, debounce, chooseDialog, sheet, icon, langBadge, progressiveList } from '../ui.js';
 import { state, allSetsSorted, qty } from '../store.js';
 import { LANGS } from '../api.js';
 import { normalizeName } from '../dex.js';
@@ -92,18 +92,8 @@ export function searchRoot() {
         if (!S.q.trim() && !S.setKey && S.owned === 'all') {
           // Browse sets when nothing is typed
           const sets = allSetsSorted().filter((s) => S.lang === 'all' || s.lang === S.lang);
-          const list = h('div', { class: 'set-list' });
-          const more = h('button', { class: 'btn ghost wide' });
-          let shown = 0;
-          const showMore = () => {
-            list.append(...sets.slice(shown, shown + 200).map((s) => setRow(s, () => openSet(s.key, 'search'))));
-            shown = Math.min(sets.length, shown + 200);
-            more.textContent = `Show more sets (${(sets.length - shown).toLocaleString()} older)`;
-            more.hidden = shown >= sets.length;
-          };
-          more.onclick = showMore;
-          results.append(h('h3', { class: 'section-title' }, `Browse ${sets.length.toLocaleString()} sets`), list, more);
-          showMore();
+          results.append(h('h3', { class: 'section-title' }, `Browse ${sets.length.toLocaleString()} sets`),
+            progressiveList(h('div', { class: 'set-list' }), sets, (s) => setRow(s, () => openSet(s.key, 'search'))));
           return;
         }
         const cards = searchCards(S);
@@ -136,7 +126,7 @@ export function pickSetDialog(lang = 'all') {
           const q = input.value.trim().toLowerCase();
           const sets = allSetsSorted().filter((s) => (lang === 'all' || s.lang === lang) && (!q || s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
           list.innerHTML = '';
-          list.append(...sets.slice(0, 250).map((s) => setRow(s, () => { result = s.key; close(); })));
+          progressiveList(list, sets, (s) => setRow(s, () => { result = s.key; close(); }));
         };
         input.addEventListener('input', debounce(draw, 150));
         b.append(input, list);

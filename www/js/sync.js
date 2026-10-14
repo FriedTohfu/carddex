@@ -143,6 +143,25 @@ async function syncChs({ force = false } = {}) {
   await db.put('meta', state.syncInfo, 'syncInfo');
 }
 
+/** Once a day: download any of TCGdex's sets (with cards) that aren't on the phone. */
+async function healMissingSets(lang) {
+  if (!online() || job.running || !state.settings.langs.includes(lang)) return 0;
+  const k = `healed.${lang}`;
+  if (Date.now() - (state.syncInfo[k] || 0) < 864e5) return 0;
+  const list = await tcg.sets(lang).catch(() => null);
+  if (!Array.isArray(list)) return 0;
+  const empty = state.syncInfo.emptySets || {};
+  const missing = list.filter((s) => !state.sets.get(`${lang}:${s.id}`) && !(empty[`${lang}:${s.id}`] > Date.now() - 7 * 864e5));
+  let n = 0;
+  await pool(missing, 5, async (brief) => {
+    try { const full = await tcg.set(lang, brief.id); if (full) { await saveSet(lang, brief, full); n++; } } catch { /* next time */ }
+  });
+  state.syncInfo[k] = Date.now();
+  await db.put('meta', state.syncInfo, 'syncInfo');
+  if (n && lang === 'ja') await applyJaExtra(true).catch(() => {});
+  return n;
+}
+
 async function dropEmptySet(key) {
   const st = state.sets.get(key);
   if (!st || st.custom || (state.cardsBySet.get(key) || []).length) return false;
@@ -156,6 +175,7 @@ export async function autoUpdateCardData() {
   let tidied = false;
   for (const key of [...state.sets.keys()]) if (await dropEmptySet(key)) tidied = true;
   if (tidied) emit('catalog');
+  try { if (await healMissingSets('ja')) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
   try { if (await applyJaExtra()) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
   if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
   if (![...state.sets.values()].some((st) => st.src === 'pcj')) return false;
@@ -381,7 +401,11 @@ async function remapKeys(remap) {
 async function saveSet(lang, brief, full) {
   const key = `${lang}:${full.id}`;
   // TCGdex lists some placeholder sets with no cards yet (e.g. Chinese codes under Japanese): skip them
-  if (!(full.cards || []).length) { await dropEmptySet(key); return; }
+  if (!(full.cards || []).length) {
+    (state.syncInfo.emptySets ||= {})[key] = Date.now();
+    await dropEmptySet(key);
+    return;
+  }
   const set = {
     key, lang, id: full.id, name: full.name || brief.name || full.id,
     serie: full.serie?.name || '', serieId: full.serie?.id || '',
