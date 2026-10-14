@@ -1,15 +1,13 @@
-import json, urllib.request, os
+import json, urllib.request, os, re, gzip
 os.makedirs('out5', exist_ok=True)
+UA={'User-Agent':'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126 Mobile Safari/537.36','Accept-Encoding':'gzip'}
 def get(u):
     try:
-        with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'CardDex'}),timeout=60) as r: return json.loads(r.read())
-    except Exception as e: return {'err': str(e)}
-out={}
-lst=get('https://api.tcgdex.net/v2/ja/sets')
-out['n_sets']=len(lst) if isinstance(lst,list) else lst
-ids=[s['id'] for s in lst] if isinstance(lst,list) else []
-out['vintage_in_list']=[i for i in ids if i.startswith(('PMCG','neo','VS','web','E','PCG','ADV'))]
-for sid in ['PMCG1','neo1','PCG1','E1','SV2a']:
-    d=get(f'https://api.tcgdex.net/v2/ja/sets/{sid}')
-    out[sid]={'name':d.get('name'),'releaseDate':d.get('releaseDate'),'cardCount':d.get('cardCount'),'ncards':len(d.get('cards') or []),'first':(d.get('cards') or [None])[0],'err':d.get('err')}
-json.dump(out,open('out5/res.json','w'),ensure_ascii=False,indent=1)
+        with urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=60) as r:
+            b=r.read(); b=gzip.decompress(b) if b[:2]==b'\x1f\x8b' else b; return r.status,b.decode('utf-8','replace')
+    except urllib.error.HTTPError as e: return e.code, e.read()[:500].decode('utf-8','replace')
+    except Exception as e: return 0,str(e)
+st={}
+for name,u in [('robots','https://www.pkmn.gg/robots.txt'),('series','https://www.pkmn.gg/jp/series'),('terms','https://www.pkmn.gg/terms')]:
+    s,t=get(u); st[name]=[s,len(t)]; open(f'out5/{name}.html','w').write(t)
+json.dump(st,open('out5/res.json','w'),indent=1)
