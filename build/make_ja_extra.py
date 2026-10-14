@@ -61,13 +61,15 @@ def tcgdex_sets(asia):
         off = re.search(r'official:\s*(\d+)', t)
         serie = series.get(os.path.basename(os.path.dirname(sf)), '')
         cdir = os.path.join(os.path.dirname(sf), sid)
-        cards = set()
+        cards, names = set(), set()
         if os.path.isdir(cdir):
             for cf in glob.glob(os.path.join(cdir, '*.ts')):
-                if re.search(r'\bja:', open(cf, encoding='utf-8').read()):
+                ct = open(cf, encoding='utf-8').read()
+                if re.search(r'\bja:', ct):
                     cards.add(os.path.basename(cf)[:-3])
+                    names.add(jnorm(read_ts_field(ct, 'name')))
         sets[sid] = {'id': sid, 'name': name, 'releaseDate': date, 'serie': serie,
-                     'official': int(off.group(1)) if off else 0, 'cards': cards}
+                     'official': int(off.group(1)) if off else 0, 'cards': cards, 'names': names}
     return sets
 
 
@@ -242,6 +244,8 @@ def main(official_path, asia, setlist_path):
         cid = f'{sid}-{local}' if local else f"{sid}-x{c['id']}"
         if cid in seen:
             continue
+        if not local and sid in tsets and jnorm(c.get('name')) in tsets[sid]['names']:
+            continue  # no number, and TCGdex already has a card of that name in this set: most likely the same card
         seen.add(cid)
         if sid in tsets and local in tsets[sid]['cards']:
             have_tcg += 1  # TCGdex has it (the app only borrows the picture if TCGdex has none)
