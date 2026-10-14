@@ -28,5 +28,10 @@
   "count": 20345,
   "file": "fp-zh-cn.json",
   "bytes": 2133495
+ },
+ "jaImages": {
+  "built": "2026-10-14T00:04:42Z",
+  "count": 21003,
+  "file": "ja-images.json"
  }
 }

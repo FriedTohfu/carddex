@@ -59,6 +59,7 @@ def chs_list():
 
 
 JA_LIST = os.path.join(ROOT, 'data', 'ja-official.json')
+JA_IMAGES = os.path.join(ROOT, 'data', 'ja-images.json')
 JA_IMG_BASE = os.environ.get('JA_BASE', 'https://www.pokemon-card.com')
 
 
@@ -91,9 +92,23 @@ def card_list(lang):
     sets = get(f'{TCG}/{lang}/sets')
     if not sets:
         return []
+    # Japanese cards TCGdex has no picture for: the official site's picture (data/ja-images.json)
+    extra = {}
+    if lang == 'ja' and os.path.exists(JA_IMAGES):
+        d = json.load(open(JA_IMAGES, encoding='utf-8'))
+        extra = {k: d['base'] + v for k, v in d.get('images', {}).items()}
     def one(s):
         full = get(f"{TCG}/{lang}/sets/{urllib.parse.quote(s['id'])}")
-        return [(c['id'], c['image'] + '/low.webp') for c in (full or {}).get('cards', []) if c.get('image')]
+        out = []
+        for c in (full or {}).get('cards', []):
+            if c.get('image'):
+                out.append((c['id'], c['image'] + '/low.webp'))
+            elif extra:
+                lid = str(c.get('localId') or '')
+                url = extra.get(f"{str(s['id']).lower()}|{int(lid)}") if lid.isdigit() else None
+                if url:
+                    out.append((c['id'], url))
+        return out
     with ThreadPoolExecutor(8) as ex:
         out = []
         for part in ex.map(one, sets):

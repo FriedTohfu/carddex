@@ -92,7 +92,7 @@ export function cardImg(card, quality = 'low') {
     const m = card.image.match(/^(.*\/media\/upload)(\/[0-9a-f]\/[0-9a-f]{2}\/)([^/]+)$/);
     return m ? `${m[1]}/thumb${m[2]}${m[3]}/250px-${m[3]}` : card.image;
   }
-  if (card.src === 'pcj') {
+  if (card.src === 'pcj' || card.imgSrc === 'pcj') {
     // Official Japanese card pictures, resized by images.weserv.nl
     const w = quality === 'high' ? 700 : 245;
     return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=${w}&output=webp&q=82`;

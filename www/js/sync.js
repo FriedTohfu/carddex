@@ -46,7 +46,10 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
         } catch (e) { errors.push(`${lang}/${brief.id}: ${e.message}`); }
         report(`Downloading ${lang.toUpperCase()} card lists`, ++n, todo.length);
       }, () => job.stop);
-      if (lang === 'ja' && !job.stop) await dropOfficialJa();
+      if (lang === 'ja' && !job.stop) {
+        await dropOfficialJa();
+        try { await applyJaImages(true); } catch { /* pictures fill in next start-up */ }
+      }
       const cards = [...state.cards.values()].filter((c) => c.lang === lang).length;
       state.syncInfo[lang] = { at: Date.now(), sets: list.length, cards };
       await db.put('meta', state.syncInfo, 'syncInfo');
@@ -153,10 +156,36 @@ export async function autoUpdateCardData() {
   let tidied = false;
   for (const key of [...state.sets.keys()]) if (await dropEmptySet(key)) tidied = true;
   if (tidied) emit('catalog');
+  try { if (await applyJaImages()) emit('catalog'); } catch { /* next start-up */ }
   if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
   if (![...state.sets.values()].some((st) => st.src === 'pcj')) return false;
   const errors = await syncCatalog(['ja']);
   return !errors?.length;
+}
+
+/**
+ * TCGdex has no pictures for many Japanese cards: fill those from the official
+ * Japanese site's pictures (matched by set code + card number, list built on GitHub).
+ */
+export async function applyJaImages(force = false) {
+  if (!online()) return 0;
+  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
+  const info = index?.jaImages;
+  if (!info || (!force && state.syncInfo.jaImages === info.built)) return 0;
+  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-images.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 120000, retries: 1 });
+  if (!d?.images) return 0;
+  const changed = [];
+  for (const c of state.cards.values()) {
+    if (c.lang !== 'ja' || c.custom || c.src) continue;
+    if (c.image && c.imgSrc !== 'pcj') continue; // TCGdex has its own picture
+    const id = state.sets.get(c.setKey)?.id?.toLowerCase();
+    const p = id && d.images[`${id}|${parseInt(c.localId, 10)}`];
+    if (p && c.image !== d.base + p) { c.image = d.base + p; c.imgSrc = 'pcj'; changed.push(c); }
+  }
+  for (let i = 0; i < changed.length; i += 2000) await db.putMany('cards', changed.slice(i, i + 2000));
+  state.syncInfo.jaImages = info.built;
+  await db.put('meta', state.syncInfo, 'syncInfo');
+  return changed.length;
 }
 
 /** Removes the official-site Japanese list, moving your cards to the matching TCGdex cards (same set code and number). */
