@@ -3,13 +3,15 @@
    en: 8/8
    en: 21979 fingerprints saved
 == ja: reading card list
-   3882 cards with images, 3882 new
-   ja: 960/3882
-   ja: 1920/3882
-   ja: 2880/3882
-   ja: 3840/3882
-   ja: 3882/3882
-   ja: 3878 fingerprints saved
+   10211 cards with images, 6333 new
+   ja: 960/6333
+   ja: 1920/6333
+   ja: 2880/6333
+   ja: 3840/6333
+   ja: 4800/6333
+   ja: 5760/6333
+   ja: 6333/6333
+   ja: 10207 fingerprints saved
 == zh-tw: reading card list
    2146 cards with images, 0 new
 == zh-cn: reading card list
