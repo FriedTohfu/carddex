@@ -97,7 +97,7 @@ async function main() {
   setTimeout(() => import('./whatsnew.js').then((m) => m.maybeShowWhatsNew()).catch(() => {}), 1800);
   // New card lists (e.g. the official Japanese list) arrive without having to tap "Update card data"
   setTimeout(async () => {
-    try { if (await autoUpdateCardData()) toast('Japanese cards updated'); } catch { /* try again next start-up */ }
+    try { if (await autoUpdateCardData()) toast('Card lists updated'); } catch { /* try again next start-up */ }
   }, 2500);
 }
 

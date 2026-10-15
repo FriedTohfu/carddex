@@ -59,6 +59,7 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
       state.syncInfo[lang] = { at: Date.now(), sets: list.length, cards };
       await db.put('meta', state.syncInfo, 'syncInfo');
     }
+    if (!job.stop) { try { await applyExtra(true); } catch (e) { errors.push(`extra cards: ${e.message}`); } }
     if (!state.species.length && !job.stop) await syncSpecies(true);
     rebuildDex();
     emit('catalog');
@@ -187,12 +188,14 @@ export async function autoUpdateCardData() {
       return !errors?.length;
     }
   }
+  let extra = 0;
+  try { extra = await applyExtra(); if (extra) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
   if (!jaIsGG()) {
     try { if (await healMissingSets('ja')) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
     try { if (await applyJaExtra()) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
   }
-  if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return false;
-  if (![...state.sets.values()].some((st) => st.src === 'pcj')) return false;
+  if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return extra > 0;
+  if (![...state.sets.values()].some((st) => st.src === 'pcj')) return extra > 0;
   const errors = await syncCatalog(['ja']);
   return !errors?.length;
 }
@@ -265,6 +268,83 @@ export async function applyJaExtra(force = false) {
 }
 
 const jaIsGG = () => state.syncInfo.ja?.source === 'pkmn.gg';
+
+/** 'TG01' -> 'TG1', '001/165' -> '1': card numbers written the same way. */
+const numKey = (x) => {
+  const t = String(x ?? '').trim().toUpperCase().split('/')[0];
+  const m = t.match(/^([A-Z-]*?)0*(\d+)([A-Z]*)$/);
+  return m ? `${m[1]}${+m[2]}${m[3]}` : t;
+};
+
+/**
+ * data/extra.json (built on GitHub): English and Japanese cards our main lists are
+ * missing, from pkmn.gg's English list and dextcg.com. Missing cards go into the
+ * matching set; sets we don't have at all are added.
+ */
+export async function applyExtra(force = false) {
+  if (!online()) return 0;
+  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
+  const info = index?.extra;
+  if (!info || (!force && state.syncInfo.extra === info.built)) return 0;
+  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'extra.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 180000, retries: 1 });
+  if (!d?.cards) return 0;
+  const langs = new Set(state.settings.langs);
+  const newSets = [];
+  for (const st of d.sets || []) {
+    if (!langs.has(st.lang)) continue;
+    const cur = state.sets.get(st.key);
+    if (cur && !cur.extra) continue; // we have this set from the main list
+    newSets.push({
+      key: st.key, lang: st.lang, id: st.key.slice(st.key.indexOf(':') + 1), name: st.name, serie: st.serie || '',
+      releaseDate: st.releaseDate || '', total: st.total || 0, official: 0,
+      logo: cur?.logo || '', symbol: cur?.symbol || '', extra: true, syncedAt: Date.now(),
+    });
+  }
+  for (const st of newSets) state.sets.set(st.key, st);
+  // Numbers each set already has from the main lists
+  const has = new Set();
+  for (const c of state.cards.values()) if (!c.custom && c.src !== 'x') has.add(`${c.setKey}|${numKey(c.localId)}`);
+  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
+  const put = [], drop = [], touched = new Set(), fresh = new Set();
+  for (const [setKey, local, number, name, rarity, artist, thumb, large] of d.cards) {
+    const lang = setKey.slice(0, setKey.indexOf(':'));
+    if (!langs.has(lang) || !state.sets.has(setKey)) continue;
+    const id = `x-${setKey.slice(lang.length + 1)}-${local}`;
+    const key = `${lang}:${id}`;
+    if (has.has(`${setKey}|${numKey(local)}`)) {
+      // the main list has it now: the extra copy isn't needed
+      if (state.cards.get(key)?.src === 'x' && !keep.has(key)) drop.push(key);
+      continue;
+    }
+    fresh.add(key);
+    const card = {
+      key, lang, id, src: 'x', localId: String(local), number: number || String(local), name,
+      image: thumb, imageHi: large || thumb, setKey, order: 0, extra: true,
+      det: { rarity: rarity || undefined, illustrator: artist || undefined, number: number || String(local) },
+    };
+    state.cards.set(key, card);
+    put.push(card); touched.add(setKey);
+  }
+  // extra cards that are no longer in the file
+  for (const c of state.cards.values()) if (c.src === 'x' && !fresh.has(c.key) && !keep.has(c.key) && langs.has(c.lang)) drop.push(c.key);
+  for (const k of drop) { const c = state.cards.get(k); if (c) touched.add(c.setKey); state.cards.delete(k); }
+  // Put each changed set's cards in number order
+  const queued = new Set(put);
+  const lists = new Map([...touched].map((k) => [k, []]));
+  for (const c of state.cards.values()) lists.get(c.setKey)?.push(c);
+  const n = (c) => { const m = String(c.localId).match(/\d+/); return m ? +m[0] : 99999; };
+  for (const [k, list] of lists) {
+    list.sort((a, b) => (/^\d/.test(a.localId) ? 0 : 1) - (/^\d/.test(b.localId) ? 0 : 1) || n(a) - n(b) || String(a.localId).localeCompare(String(b.localId)));
+    list.forEach((c, i) => { if (c.order !== i) { c.order = i; if (!queued.has(c)) { queued.add(c); put.push(c); } } });
+    state.cardsBySet.set(k, list);
+  }
+  if (drop.length) await db.delMany('cards', [...new Set(drop)]);
+  await db.putMany('sets', newSets);
+  for (let i = 0; i < put.length; i += 2000) await db.putMany('cards', put.slice(i, i + 2000));
+  state.syncInfo.extra = info.built;
+  await db.put('meta', state.syncInfo, 'syncInfo');
+  return fresh.size;
+}
 
 /** Japanese cards from pkmn.gg (data/ja-pkmngg.json): every set back to 1996, with Japanese scans. */
 async function syncJaGG({ force = false } = {}) {
@@ -764,7 +844,7 @@ export async function cardDetail(key) {
   if (cached && (Date.now() - cached._at < WEEK || !online())) return cached;
   if (!online()) return cached || null;
   const card = state.cards.get(key);
-  if (card?.src === 'chs' || card?.src === 'pcj' || card?.src === 'gg' || card?.extra) return { ...card.det };
+  if (card?.src === 'chs' || card?.src === 'pcj' || card?.src === 'gg' || card?.src === 'x' || card?.extra) return { ...card.det };
   if (!card || card.custom) return cached || null;
   try {
     const d = await tcg.card(card.lang, card.id);

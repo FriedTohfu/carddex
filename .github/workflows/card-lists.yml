@@ -10,6 +10,7 @@ on:
     branches: [main, master]
     paths:
       - 'build/make_ja_pkmngg.py'
+      - 'build/make_extra.py'
       - 'build/save-data.sh'
       - '.github/workflows/card-lists.yml'
 
@@ -23,7 +24,7 @@ concurrency:
 jobs:
   lists:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 300
     env:
       PYTHONUNBUFFERED: '1'
     steps:
@@ -53,3 +54,14 @@ jobs:
       - name: Save Japanese card list
         if: always()
         run: bash build/save-data.sh "Update Japanese card list (pkmn.gg)"
+
+      - name: Fill gaps (pkmn.gg English + dextcg.com)
+        continue-on-error: true
+        env:
+          MAX_PROBES: '9000'
+        run: |
+          python build/make_extra.py 2>&1 | tee -a data/card-lists-log.txt
+
+      - name: Save gap fill
+        if: always()
+        run: bash build/save-data.sh "Update extra cards (gap fill)"

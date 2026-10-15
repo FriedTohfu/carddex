@@ -1,77 +1,87 @@
 [
-  {
-    "id": "2026-10-14f",
-    "date": "2026-10-14",
-    "title": "Better language combining",
-    "items": [
-      "Scan data updates download by themselves at start-up, so English and Japanese versions can be matched by their artwork",
-      "Cards without HP listed can still be matched by illustrator"
-    ]
-  },
-  {
-    "id": "2026-10-14e",
-    "date": "2026-10-14",
-    "title": "New Japanese card list (pkmn.gg)",
-    "items": [
-      "Japanese cards now come from pkmn.gg: every Japanese set back to the 1996 Expansion Pack, including Intro Packs, Gym decks, Vending sheets and promos",
-      "Real Japanese card scans for all of them, old sets included",
-      "Your Japanese cards are moved to the new list automatically (same name, number and set)",
-      "Search finds Japanese cards by English name too"
-    ]
-  },
-  {
-    "id": "2026-10-14d",
-    "date": "2026-10-14",
-    "title": "Pictures for old Japanese cards",
-    "items": [
-      "Japanese cards from 1996–2006 (Expansion Pack, neo, VS, web, e-Card, PCG) get their pictures from Bulbapedia",
-      "The app fetches them in the background after you open it (about a minute the first time), then remembers them",
-      "Cards printed in English too may show the English print's picture (same artwork)"
-    ]
-  },
-  {
-    "id": "2026-10-14c",
-    "date": "2026-10-14",
-    "title": "All sets show again",
-    "items": [
-      "Set lists no longer stop part-way: \"Choose a set\" and Search keep loading older sets as you scroll, back to 1996",
-      "If any Japanese sets went missing from your phone, they're downloaded again automatically (checked once a day)"
-    ]
-  },
-  {
-    "id": "2026-10-14b",
-    "date": "2026-10-14",
-    "title": "Thousands more Japanese cards",
-    "items": [
-      "About 12,000 Japanese cards TCGdex was missing are added from the official Japanese card list (everything since Diamond & Pearl), with pictures",
-      "Empty Japanese sets like Shiny Star V and Shining Darkness now have their cards",
-      "Japanese decks, gift sets and promo lists are added as their own sets, with names",
-      "Japanese cards without a picture now show the official one",
-      "Scanning covers the added Japanese cards (once the scan data finishes building)",
-      "\"What's new\" notes like this one after each update (also in Settings)"
-    ]
-  },
-  {
-    "id": "2026-10-14a",
-    "date": "2026-10-14",
-    "title": "Japanese cards back on TCGdex",
-    "items": [
-      "Japanese sets come from TCGdex again; your cards were moved across",
-      "No more duplicated empty sets (TCGdex placeholders are skipped)",
-      "English and Japanese versions of old cards now combine in the Pokédex (Japanese sets often came out up to 3 years earlier)",
-      "A version with no picture borrows its twin's picture (same artwork)"
-    ]
-  },
-  {
-    "id": "2026-10-13",
-    "date": "2026-10-13",
-    "title": "Search, binders and prices",
-    "items": [
-      "Search by card number, e.g. \"Mewtwo 164/162\" or \"#25\"",
-      "Drag cards between binder pockets and pages (long-press a card)",
-      "Search shows every set (Show more)",
-      "eBay sold prices read through a hidden browser inside the app (needs the new APK)",
-      "New card lists are picked up automatically at start-up"
-    ]
-  }
+ {
+  "id": "2026-10-15a",
+  "date": "2026-10-15",
+  "title": "Hundreds of missing cards added",
+  "items": [
+   "English and Japanese sets now fill in cards that were missing, using pkmn.gg's English list and dextcg.com.",
+   "Sets that weren't in the app at all are added too.",
+   "Your app picks up new cards by itself at start-up."
+  ]
+ },
+ {
+  "id": "2026-10-14f",
+  "date": "2026-10-14",
+  "title": "Better language combining",
+  "items": [
+   "Scan data updates download by themselves at start-up, so English and Japanese versions can be matched by their artwork",
+   "Cards without HP listed can still be matched by illustrator"
+  ]
+ },
+ {
+  "id": "2026-10-14e",
+  "date": "2026-10-14",
+  "title": "New Japanese card list (pkmn.gg)",
+  "items": [
+   "Japanese cards now come from pkmn.gg: every Japanese set back to the 1996 Expansion Pack, including Intro Packs, Gym decks, Vending sheets and promos",
+   "Real Japanese card scans for all of them, old sets included",
+   "Your Japanese cards are moved to the new list automatically (same name, number and set)",
+   "Search finds Japanese cards by English name too"
+  ]
+ },
+ {
+  "id": "2026-10-14d",
+  "date": "2026-10-14",
+  "title": "Pictures for old Japanese cards",
+  "items": [
+   "Japanese cards from 1996–2006 (Expansion Pack, neo, VS, web, e-Card, PCG) get their pictures from Bulbapedia",
+   "The app fetches them in the background after you open it (about a minute the first time), then remembers them",
+   "Cards printed in English too may show the English print's picture (same artwork)"
+  ]
+ },
+ {
+  "id": "2026-10-14c",
+  "date": "2026-10-14",
+  "title": "All sets show again",
+  "items": [
+   "Set lists no longer stop part-way: \"Choose a set\" and Search keep loading older sets as you scroll, back to 1996",
+   "If any Japanese sets went missing from your phone, they're downloaded again automatically (checked once a day)"
+  ]
+ },
+ {
+  "id": "2026-10-14b",
+  "date": "2026-10-14",
+  "title": "Thousands more Japanese cards",
+  "items": [
+   "About 12,000 Japanese cards TCGdex was missing are added from the official Japanese card list (everything since Diamond & Pearl), with pictures",
+   "Empty Japanese sets like Shiny Star V and Shining Darkness now have their cards",
+   "Japanese decks, gift sets and promo lists are added as their own sets, with names",
+   "Japanese cards without a picture now show the official one",
+   "Scanning covers the added Japanese cards (once the scan data finishes building)",
+   "\"What's new\" notes like this one after each update (also in Settings)"
+  ]
+ },
+ {
+  "id": "2026-10-14a",
+  "date": "2026-10-14",
+  "title": "Japanese cards back on TCGdex",
+  "items": [
+   "Japanese sets come from TCGdex again; your cards were moved across",
+   "No more duplicated empty sets (TCGdex placeholders are skipped)",
+   "English and Japanese versions of old cards now combine in the Pokédex (Japanese sets often came out up to 3 years earlier)",
+   "A version with no picture borrows its twin's picture (same artwork)"
+  ]
+ },
+ {
+  "id": "2026-10-13",
+  "date": "2026-10-13",
+  "title": "Search, binders and prices",
+  "items": [
+   "Search by card number, e.g. \"Mewtwo 164/162\" or \"#25\"",
+   "Drag cards between binder pockets and pages (long-press a card)",
+   "Search shows every set (Show more)",
+   "eBay sold prices read through a hidden browser inside the app (needs the new APK)",
+   "New card lists are picked up automatically at start-up"
+  ]
+ }
 ]
