@@ -1,49 +1,11 @@
 19 series
-431 sets
-  50/431 sets, 4565 cards
-  100/431 sets, 8843 cards
-  150/431 sets, 12688 cards
-  200/431 sets, 16139 cards
-  250/431 sets, 18480 cards
-  300/431 sets, 20218 cards
-  350/431 sets, 22138 cards
-  400/431 sets, 24705 cards
-Saved 431 sets, 25772 cards (25772 with pictures)
-== en: reading card list
-   21987 cards with images, 8 new
-   en: 8/8
-   en: 21979 fingerprints saved
-== ja: reading card list
-   25772 cards with images, 25772 new
-   ja: 960/25772
-   ja: 1920/25772
-   ja: 2880/25772
-   ja: 3840/25772
-   ja: 4800/25772
-   ja: 5760/25772
-   ja: 6720/25772
-   ja: 7680/25772
-   ja: 8640/25772
-   ja: 9600/25772
-   ja: 10560/25772
-   ja: 11520/25772
-   ja: 12480/25772
-   ja: 13440/25772
-   ja: 14400/25772
-   ja: 15360/25772
-   ja: 16320/25772
-   ja: 17280/25772
-   ja: 18240/25772
-   ja: 19200/25772
-   ja: 20160/25772
-   ja: 21120/25772
-   ja: 22080/25772
-   ja: 23040/25772
-   ja: 24000/25772
-   ja: 24960/25772
-   ja: 25772/25772
-   ja: 25772 fingerprints saved
-== zh-tw: reading card list
-   2146 cards with images, 0 new
-== zh-cn: reading card list
-   22882 cards with images, 0 new
+424 sets
+  50/424 sets, 4566 cards
+  100/424 sets, 8844 cards
+  150/424 sets, 12754 cards
+  200/424 sets, 16150 cards
+  250/424 sets, 18501 cards
+  300/424 sets, 20233 cards
+  350/424 sets, 22264 cards
+  400/424 sets, 24899 cards
+Saved 424 sets, 25773 cards (25773 with pictures)
