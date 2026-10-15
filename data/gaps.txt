@@ -13,299 +13,336 @@ NEW SET en  Pokémon TCG Classic - Blastoise (2023-11-17) from pkmn.gg: 34 cards
 NEW SET en  Pokémon Futsal Collection (2020-09-11) from pkmn.gg: 5 cards
 NEW SET en  McDonald's Collection 2017 (2017-11-07) from pkmn.gg: 12 cards
 NEW SET en  Miscellaneous (1999-01-09) from pkmn.gg: 1 cards
-SKIP en 30th Celebration - Expansions [me55]: unknown numbering (161 cards, sample ['R', 'B', 'G'])
-NEW SET ja Starter Set ex Deck Sprigatito & Meowscarada ex - Expansions (2026-07-31) from dextcg: 18 cards
-NEW SET en Mega Evolution - Expansions (2025-09-26) from dextcg: 188 cards
-NEW SET en Mega Evolution Promos - Expansions (2025-09-13) from dextcg: 117 cards
-SKIP ja Start Deck 100 Battle Collection - Expansions [jpn_mc] -> ja:gg-MC_jp: 774 missing looks like a numbering mismatch
-NEW SET ja MEGA Unnumbered Promos - Expansions (2025-09-01) from dextcg: 4 cards
-NEW SET ja Heat Wave Arena - Expansions (2025-03-14) from dextcg: 92 cards
-NEW SET en 151 - Expansions (2023-09-22) from dextcg: 207 cards
-NEW SET ja Stellar Tera Type Starter Set: Ceruledge ex - Expansions (2024-08-30) from dextcg: 22 cards
-NEW SET en Scarlet & Violet - Expansions (2023-03-31) from dextcg: 258 cards
-NEW SET en Scarlet & Violet Promos - Expansions (2023-01-06) from dextcg: 225 cards
-NEW SET ja Battle Master Deck: Chien-Pao ex - Expansions (2024-05-18) from dextcg: 19 cards
-NEW SET ja Pokémon Card Game Classic: Blastoise & Suicune ex Deck - Expansions (2023-11-17) from dextcg: 34 cards
-NEW SET ja Skeledirge ex Terastal Starter Set - Expansions (2023-09-22) from dextcg: 20 cards
-NEW SET ja World Championships 2023 Yokohama Deck: Pikachu - Expansions (2023-07-28) from dextcg: 32 cards
-NEW SET ja Scarlet & Violet Promos - Expansions (2022-11-18) from dextcg: 291 cards
-NEW SET ja Charizard VSTAR vs Rayquaza VMAX Special Deck Set - Expansions (2022-11-04) from dextcg: 32 cards
-NEW SET ja Start Deck 100 CoroCoro Comic Version - Expansions (2022-03-27) from dextcg: 25 cards
-SKIP en Celebrations: Classic Collection - Expansions [cel25c]: unknown numbering (25 cards, sample ['4_A', '17_A', '76_A'])
-NEW SET ja Darkrai VSTAR Starter Set - Expansions (2022-03-11) from dextcg: 20 cards
-NEW SET ja 25th Anniversary Golden Box - Expansions (2021-12-02) from dextcg: 16 cards
-NEW SET ja Promo Card Pack 25th Anniversary Edition - Expansions (2021-10-22) from dextcg: 25 cards
-NEW SET en Sword & Shield - Expansions (2020-02-07) from dextcg: 216 cards
-SKIP en Sword & Shield Promos - Expansions [swshp] -> en:swsh1: 307 missing looks like a numbering mismatch
-NEW SET ja V Starter Set: Fighting - Expansions (2019-12-06) from dextcg: 25 cards
-NEW SET ja Sword & Shield Promos - Expansions (2019-11-15) from dextcg: 333 cards
-NEW SET ja Sword & Shield Unnumbered Promos - Expansions (2022-11-18) from dextcg: 24 cards
-NEW SET ja Extra Regulation Box - Expansions (2019-10-04) from dextcg: 48 cards
-NEW SET ja Tag All Stars - Expansions (2019-10-04) from dextcg: 235 cards
-SKIP en Celestial Storm - Expansions [sm7]: unknown numbering (187 cards, sample ['177', '164', '177a'])
-SKIP en Forbidden Light - Expansions [sm6]: unknown numbering (150 cards, sample ['135', '133', '138'])
-SKIP en Shining Legends - Expansions [sm35]: unknown numbering (81 cards, sample ['78', '40', '56'])
-SKIP en Burning Shadows - Expansions [sm3]: unknown numbering (177 cards, sample ['150', '169', '147'])
-SKIP en Guardians Rising - Expansions [sm2]: unknown numbering (180 cards, sample ['158', '150', '140'])
-NEW SET en Sun & Moon - Expansions (2017-02-03) from dextcg: 164 cards
-NEW SET en Sun & Moon Promos - Expansions (2016-12-09) from dextcg: 251 cards
-NEW SET ja Eevee GX Starter Sets - Expansions (2018-11-24) from dextcg: 38 cards
-NEW SET ja GX Ultra Shiny - Expansions (2018-10-02) from dextcg: 250 cards
-NEW SET ja GX Starter Decks - Expansions (2018-05-03) from dextcg: 131 cards
-NEW SET ja Champion Road - Expansions (2018-05-03) from dextcg: 86 cards
-NEW SET ja Ash vs Team Rocket Deck Kit - Expansions (2017-04-21) from dextcg: 30 cards
-NEW SET ja Sun & Moon Promos - Expansions (2016-12-09) from dextcg: 408 cards
-SKIP en Generations - Expansions [g1]: unknown numbering (117 cards, sample ['RC28', 'RC32', '12'])
-SKIP en Roaring Skies - Expansions [xy6]: unknown numbering (112 cards, sample ['105', '77a', '104'])
-NEW SET ja BREAK Starter Pack - Expansions (2016-02-27) from dextcg: 84 cards
-NEW SET en XY - Expansions (2014-02-05) from dextcg: 146 cards
-NEW SET en XY Promos - Expansions (2013-10-11) from dextcg: 216 cards
-SKIP en Legendary Treasures - Expansions [bw11]: unknown numbering (140 cards, sample ['115', '114', 'RC24'])
-NEW SET ja Super Legend Set: Xerneas EX & Yveltal EX - Expansions (2014-11-15) from dextcg: 25 cards
-NEW SET ja Hyper Metal Chain Deck - Expansions (2014-09-14) from dextcg: 20 cards
-NEW SET en Black & White - Expansions (2011-04-24) from dextcg: 115 cards
-NEW SET en Black & White Promos - Expansions (2011-03-09) from dextcg: 99 cards
-NEW SET ja XY Promos - Expansions (2013-11-08) from dextcg: 298 cards
-SKIP en Call of Legends - Expansions [col1]: unknown numbering (106 cards, sample ['33', '20', 'SL10'])
-NEW SET ja EX Battle Boost - Expansions (2013-07-13) from dextcg: 99 cards
-NEW SET en HeartGold & SoulSilver - Expansions (2010-02-10) from dextcg: 124 cards
-NEW SET ja Battle Gift Set: Thundurus vs Tornadus - Expansions (2011-11-18) from dextcg: 26 cards
-NEW SET ja Beginning Set + - Expansions (2011-08-05) from dextcg: 40 cards
-NEW SET ja Battle Theme Deck: Victini - Expansions (2011-06-17) from dextcg: 24 cards
-NEW SET ja White Collection - Expansions (2010-12-17) from dextcg: 56 cards
-NEW SET ja Collection Sheet: Journey Partners - Expansions (2010-09-18) from dextcg: 9 cards
-NEW SET ja Black & White Promos - Expansions (2010-12-17) from dextcg: 236 cards
-SKIP en Arceus - Expansions [pl4]: unknown numbering (111 cards, sample ['97', '16', 'SH11'])
-SKIP en Platinum - Expansions [pl1]: unknown numbering (133 cards, sample ['53', '122', 'SH6'])
-NEW SET ja LEGEND Promos - Expansions (2009-10-07) from dextcg: 79 cards
-NEW SET ja LEGEND Unnumbered Promos - Expansions (2010-07-27) from dextcg: 13 cards
-NEW SET en Stormfront - Expansions (2008-11-05) from dextcg: 106 cards
-NEW SET ja Arceus LV.X Deck: Lightning & Psychic - Expansions (2009-04-18) from dextcg: 17 cards
-NEW SET en Legends Awakened - Expansions (2008-08-19) from dextcg: 146 cards
-NEW SET en Majestic Dawn - Expansions (2008-05-21) from dextcg: 100 cards
-NEW SET en Great Encounters - Expansions (2008-02-13) from dextcg: 106 cards
-NEW SET en Secret Wonders - Expansions (2007-11-07) from dextcg: 132 cards
-NEW SET en Mysterious Treasures - Expansions (2007-08-22) from dextcg: 124 cards
-NEW SET en Diamond & Pearl - Expansions (2007-05-23) from dextcg: 130 cards
-NEW SET ja Gift Box DPt: Pikachu Half Deck - Expansions (2008-11-20) from dextcg: 15 cards
-NEW SET ja Entry Pack DPt: Palkia Half Deck - Expansions (2008-10-10) from dextcg: 13 cards
-NEW SET ja DPt-P Promos - Expansions (2008-10-09) from dextcg: 51 cards
-NEW SET en EX Deoxys - Expansions (2005-02-14) from dextcg: 108 cards
-NEW SET en EX Team Rocket Returns - Expansions (2004-11-08) from dextcg: 111 cards
-NEW SET en EX Hidden Legends - Expansions (2004-06-14) from dextcg: 102 cards
-NEW SET en EX Team Magma vs Team Aqua - Expansions (2004-03-15) from dextcg: 97 cards
-NEW SET ja Palkia LV.X Constructed Standard Deck - Expansions (2007-07-05) from dextcg: 10 cards
-NEW SET en EX Ruby & Sapphire - Expansions (2003-07-19) from dextcg: 109 cards
-NEW SET en Nintendo Promos - Expansions (2003-07-01) from dextcg: 40 cards
-NEW SET ja Rampardos the Attacker - Expansions (2007-03-02) from dextcg: 11 cards
-NEW SET ja Bastiodon the Defender - Expansions (2007-03-02) from dextcg: 16 cards
-NEW SET ja Entry Pack - Expansions (2006-10-27) from dextcg: 32 cards
-NEW SET ja Diamond & Pearl Promos - Expansions (2006-11-15) from dextcg: 127 cards
-SKIP en Skyridge - Expansions [ecard3]: unknown numbering (182 cards, sample ['H30', '146', '148'])
-SKIP en Aquapolis - Expansions [ecard2]: unknown numbering (186 cards, sample ['H29', 'H11', '150'])
-NEW SET en Box Toppers (e-Card series) - Expansions (2002-09-15) from dextcg: 12 cards
-NEW SET ja Ocean's Kyogre ex Constructed Starter Deck - Expansions (2006-03-10) from dextcg: 16 cards
-NEW SET ja Gift Box Mew • Lucario: Pokémon ☆ - Expansions (2005-11-16) from dextcg: 2 cards
-NEW SET ja Gift Box Emerald: Rayquaza Half Deck - Expansions (2004-11-19) from dextcg: 19 cards
-NEW SET ja Venusaur, Charizard, and Blastoise Random Constructed Starter Decks - Expansions (2004-03-19) from dextcg: 52 cards
-NEW SET ja PCG-P Promos - Expansions (2004-04-08) from dextcg: 154 cards
-NEW SET ja Miracle of the Desert - Expansions (2003-03-18) from dextcg: 53 cards
-NEW SET ja Pokémon-e Starter Deck - Expansions (2001-12-01) from dextcg: 29 cards
-NEW SET en Wizards Promos - Expansions (1999-01-09) from dextcg: 53 cards
-NEW SET ja Pokémon VS - Expansions (2001-08-10) from dextcg: 142 cards
-NEW SET en McDonald's Collection 2023 - Expansions (2023-07-27) from dextcg: 15 cards
-NEW SET en McDonald's Collection 2019 (🇫🇷) - Expansions (2018-10-30) from dextcg: 40 cards
-NEW SET en McDonald's Collection 2018 (🇫🇷) - Expansions (2018-06-13) from dextcg: 40 cards
-NEW SET en McDonald's Collection 2013 (🇫🇷) - Expansions (2013-10-13) from dextcg: 12 cards
-NEW SET en Trading Card Game Classic: Blastoise & Suicune ex Deck - Expansions (2023-11-17) from dextcg: 34 cards
-NEW SET ja Intro Pack Neo: Chikorita Side Deck - Expansions (2001-04-05) from dextcg: 10 cards
-NEW SET en Battle Academy 2022: Eevee Deck - Expansions (2022-03-26) from dextcg: 18 cards
-NEW SET en Battle Academy 2020: Mewtwo Deck - Expansions (2020-06-21) from dextcg: 17 cards
-NEW SET en Sun & Moon Trainer Kit: Alolan Ninetales Half Deck - Expansions (2018-06-01) from dextcg: 30 cards
-NEW SET en Sun & Moon Trainer Kit: Alolan Raichu Half Deck - Expansions (2017-04-21) from dextcg: 30 cards
-NEW SET ja Guren Town Gym - Expansions (1998-02-27) from dextcg: 20 cards
-NEW SET ja Yamabuki City Gym - Expansions (1998-02-27) from dextcg: 19 cards
-NEW SET ja Leaders' Stadium - Expansions (1998-10-24) from dextcg: 96 cards
-NEW SET en HS Trainer Kit: Raichu Half Deck - Expansions (2010-05-12) from dextcg: 30 cards
-NEW SET en Diamond & Pearl Trainer Kit: Lucario Half Deck - Expansions (2007-09-24) from dextcg: 11 cards
-NEW SET en EX Trainer Kit: Minun Half Deck - Expansions (2006-03-01) from dextcg: 12 cards
-NEW SET en EX Trainer Kit: Latios Half Deck - Expansions (2004-06-01) from dextcg: 10 cards
-NEW SET ja Energies 2025 - Expansions (2025-08-01) from dextcg: 8 cards
-NEW SET ja Energies 2024 - Expansions (2024-07-19) from dextcg: 8 cards
-NEW SET ja Energies 2023 - Expansions (2023-01-20) from dextcg: 8 cards
-NEW SET en Energies 2022 - Expansions (2022-02-25) from dextcg: 8 cards
-NEW SET ja Energies 2022 - Expansions (2022-02-25) from dextcg: 8 cards
-NEW SET ja Energies 2020 - Expansions (2020-02-07) from dextcg: 9 cards
-NEW SET en Energies 2019 - Expansions (2019-02-01) from dextcg: 9 cards
-NEW SET ja Energies 2019 - Expansions (2019-02-01) from dextcg: 9 cards
-NEW SET en Energies 2013 - Expansions (2013-01-01) from dextcg: 9 cards
-NEW SET ja Energies 2017 - Expansions (2017-02-03) from dextcg: 9 cards
-NEW SET ja Energies 2013 - Expansions (2013-01-01) from dextcg: 9 cards
-NEW SET en Energies 2011 - Expansions (2011-01-01) from dextcg: 8 cards
-NEW SET ja Energies 2012 - Expansions (2012-09-14) from dextcg: 5 cards
-NEW SET ja Energies 2010 - Expansions (2010-01-01) from dextcg: 8 cards
-NEW SET en Energies 2009 - Expansions (2009-01-01) from dextcg: 8 cards
-NEW SET ja Energies 2009: M - Expansions (2009-07-18) from dextcg: 8 cards
-NEW SET en Energies 2007 - Expansions (2007-01-01) from dextcg: 8 cards
-NEW SET en Energies 2006 - Expansions (2006-01-01) from dextcg: 6 cards
-NEW SET ja Energies 2009 - Expansions (2009-01-01) from dextcg: 8 cards
-NEW SET ja Energies 2006 - Expansions (2006-01-01) from dextcg: 16 cards
-NEW SET en Energies 2005 - Expansions (2005-01-01) from dextcg: 6 cards
-NEW SET ja Energies 2004 - Expansions (2004-07-01) from dextcg: 1 cards
-NEW SET en Energize Your Game 2002 - Expansions (2002-01-02) from dextcg: 8 cards
-NEW SET ja Energies 2003 - Expansions (2003-01-01) from dextcg: 17 cards
-NEW SET ja Energies 2001: Pokémon-e - Expansions (2001-12-01) from dextcg: 6 cards
-NEW SET ja Energies 1996 - Expansions (1996-10-20) from dextcg: 6 cards
-NEW SET ja Melee! Pokémon Scramble - Expansions (2010-07-10) from dextcg: 19 cards
-NEW SET en Poké Card Creator Pack - Expansions (2004-07-26) from dextcg: 5 cards
-NEW SET ja PokéPark Premium File: Blue Sheet - Expansions (2005-03-18) from dextcg: 9 cards
-NEW SET en e-Reader Sample Set - Expansions (2002-08-01) from dextcg: 10 cards
-NEW SET ja McDonald's Pokémon-e Minimum Pack - Expansions (2002-02-26) from dextcg: 18 cards
-NEW SET ja T Promos - Expansions (2002-01-10) from dextcg: 24 cards
-NEW SET ja e-Reader Sample Set - Expansions (2001-08-24) from dextcg: 10 cards
-NEW SET ja J Promos - Expansions (2001-08-15) from dextcg: 2 cards
-NEW SET ja P Promos - Expansions (2001-07-07) from dextcg: 47 cards
-NEW SET ja Pikachu World - Expansions (2010-07-08) from dextcg: 10 cards
-NEW SET en Pokémon Art Academy Competition - Expansions (2015-06-08) from dextcg: 12 cards
-NEW SET en World Collection - Expansions (2010-07-01) from dextcg: 9 cards
-NEW SET en World Championships: Trainer Cards - Expansions (2004-08-20) from dextcg: 75 cards
-NEW SET ja Southern Islands: Rainbow Island - Expansions (1999-07-31) from dextcg: 9 cards
-NEW SET en Tropical Mega Battle Half Deck - Expansions (2001-08-26) from dextcg: 17 cards
-NEW SET en Unnumbered Promos - Expansions (2001-07-21) from dextcg: 18 cards
-NEW SET ja Vending Machine Expansion Sheet 3: Green - Expansions (1998-11-24) from dextcg: 45 cards
-NEW SET ja Vending Machine Expansion Sheet 2: Red - Expansions (1998-06-17) from dextcg: 36 cards
-NEW SET ja Vending Machine Expansion Sheet 1: Blue - Expansions (1998-03-23) from dextcg: 36 cards
-NEW SET ja Unnumbered Promos - Expansions (1996-10-15) from dextcg: 278 cards
-ADDED  408  ja:x-dex-jpn_smp  Sun & Moon Promos - Expansions
-ADDED  316  ja:x-dex-jpn_swshp  Sword & Shield Promos - Expansions
-ADDED  298  ja:x-dex-jpn_xyp  XY Promos - Expansions
-ADDED  291  ja:x-dex-jpn_svp  Scarlet & Violet Promos - Expansions
-ADDED  258  en:x-dex-sv1  Scarlet & Violet - Expansions
-ADDED  250  ja:x-dex-jpn_sm8b  GX Ultra Shiny - Expansions
-ADDED  236  ja:x-dex-jpn_bwp  Black & White Promos - Expansions
-ADDED  235  ja:x-dex-jpn_sm12a  Tag All Stars - Expansions
+SKIP en 30th Celebration [me55]: unknown numbering (161 cards, sample ['R', 'B', 'G'])
+NEW SET ja Starter Set ex Deck Sprigatito & Meowscarada ex (2026-07-31) from dextcg: 18 cards
+NEW SET ja Starter Set ex Deck Eevee ex (2026-07-31) from dextcg: 20 cards
+NEW SET en Mega Evolution Promos (2025-09-13) from dextcg: 117 cards
+SKIP ja Start Deck 100 Battle Collection [jpn_mc] -> ja:gg-MC_jp: 774 missing looks like a numbering mismatch
+NEW SET ja MEGA Unnumbered Promos (2025-09-01) from dextcg: 4 cards
+NEW SET ja Heat Wave Arena (2025-03-14) from dextcg: 92 cards
+NEW SET ja Stellar Tera Type Starter Set: Ceruledge ex (2024-08-30) from dextcg: 22 cards
+NEW SET en Scarlet & Violet Promos (2023-01-06) from dextcg: 225 cards
+NEW SET ja Battle Master Deck: Chien-Pao ex (2024-05-18) from dextcg: 19 cards
+NEW SET ja Pokémon Card Game Classic: Blastoise & Suicune ex Deck (2023-11-17) from dextcg: 34 cards
+NEW SET ja Skeledirge ex Terastal Starter Set (2023-09-22) from dextcg: 20 cards
+NEW SET ja ex Start Decks (2023-07-07) from dextcg: 139 cards
+NEW SET ja Scarlet & Violet Unnumbered Promos (2022-11-18) from dextcg: 14 cards
+NEW SET ja Start Deck 100 CoroCoro Comic Version (2022-03-27) from dextcg: 25 cards
+SKIP en Celebrations: Classic Collection [cel25c]: unknown numbering (25 cards, sample ['4_A', '17_A', '76_A'])
+NEW SET ja Darkrai VSTAR Starter Set (2022-03-11) from dextcg: 20 cards
+NEW SET ja 25th Anniversary Golden Box (2021-12-02) from dextcg: 16 cards
+NEW SET ja Promo Card Pack 25th Anniversary Edition (2021-10-22) from dextcg: 25 cards
+NEW SET en Sword & Shield Promos (2020-02-07) from dextcg: 307 cards
+NEW SET ja Sword & Shield Premium Trainer Box (2019-12-07) from dextcg: 24 cards
+NEW SET ja V Starter Set: Fighting (2019-12-06) from dextcg: 25 cards
+NEW SET ja Extra Regulation Box (2019-10-04) from dextcg: 48 cards
+SKIP en Celestial Storm [sm7]: unknown numbering (187 cards, sample ['177', '164', '177a'])
+SKIP en Forbidden Light [sm6]: unknown numbering (150 cards, sample ['135', '133', '138'])
+SKIP en Shining Legends [sm35]: unknown numbering (81 cards, sample ['78', '40', '56'])
+SKIP en Burning Shadows [sm3]: unknown numbering (177 cards, sample ['150', '169', '147'])
+SKIP en Guardians Rising [sm2]: unknown numbering (180 cards, sample ['158', '150', '140'])
+NEW SET en Sun & Moon Promos (2016-12-09) from dextcg: 251 cards
+NEW SET ja Eevee GX Starter Sets (2018-11-24) from dextcg: 38 cards
+NEW SET ja GX Starter Decks (2018-05-03) from dextcg: 131 cards
+NEW SET ja Ash vs Team Rocket Deck Kit (2017-04-21) from dextcg: 30 cards
+NEW SET ja Sun & Moon Unnumbered Promos (2016-12-09) from dextcg: 30 cards
+SKIP en Generations [g1]: unknown numbering (117 cards, sample ['RC28', 'RC32', '12'])
+SKIP en Roaring Skies [xy6]: unknown numbering (112 cards, sample ['105', '77a', '104'])
+NEW SET ja BREAK Starter Pack (2016-02-27) from dextcg: 84 cards
+NEW SET en XY Promos (2013-10-11) from dextcg: 216 cards
+SKIP en Legendary Treasures [bw11]: unknown numbering (140 cards, sample ['115', '114', 'RC24'])
+NEW SET ja Emboar EX vs Togekiss EX Deck Kit (2015-07-18) from dextcg: 26 cards
+NEW SET ja Super Legend Set: Xerneas EX & Yveltal EX (2014-11-15) from dextcg: 25 cards
+NEW SET en Black & White Promos (2011-03-09) from dextcg: 99 cards
+NEW SET ja XY Promos (2013-11-08) from dextcg: 298 cards
+NEW SET ja XY Unnumbered Promos (2013-11-08) from dextcg: 142 cards
+SKIP en Call of Legends [col1]: unknown numbering (106 cards, sample ['33', '20', 'SL10'])
+NEW SET ja EX Battle Boost (2013-07-13) from dextcg: 99 cards
+NEW SET en HeartGold & SoulSilver Promos (2010-02-10) from dextcg: 25 cards
+NEW SET ja Battle Gift Set: Thundurus vs Tornadus (2011-11-18) from dextcg: 26 cards
+NEW SET ja Beginning Set + (2011-08-05) from dextcg: 40 cards
+NEW SET ja Collection Sheet: Journey Partners (2010-09-18) from dextcg: 9 cards
+NEW SET ja Black & White Promos (2010-12-17) from dextcg: 236 cards
+SKIP en Arceus [pl4]: unknown numbering (111 cards, sample ['97', '16', 'SH11'])
+SKIP en Platinum [pl1]: unknown numbering (133 cards, sample ['53', '122', 'SH6'])
+NEW SET ja LEGEND Unnumbered Promos (2010-07-27) from dextcg: 13 cards
+NEW SET ja Arceus LV.X Deck: Lightning & Psychic (2009-04-18) from dextcg: 17 cards
+NEW SET ja Arceus LV.X Deck: Grass & Fire (2009-04-18) from dextcg: 17 cards
+NEW SET ja Garchomp vs Charizard SP Deck: Charizard G Half Deck (2009-03-06) from dextcg: 16 cards
+NEW SET en Diamond & Pearl Promos (2007-04-30) from dextcg: 56 cards
+NEW SET ja Infernape vs Gallade SP Deck: Gallade Half Deck (2008-12-26) from dextcg: 18 cards
+NEW SET ja Gift Box DPt: Pikachu Half Deck (2008-11-20) from dextcg: 15 cards
+NEW SET ja Entry Pack DPt: Palkia Half Deck (2008-10-10) from dextcg: 13 cards
+NEW SET ja DPt-P Promos (2008-10-09) from dextcg: 51 cards
+NEW SET ja Entry Pack '08 DX: Raichu Half Deck (2007-11-30) from dextcg: 10 cards
+NEW SET en EX Deoxys (2005-02-14) from dextcg: 108 cards
+NEW SET en EX Team Rocket Returns (2004-11-08) from dextcg: 111 cards
+NEW SET en EX Hidden Legends (2004-06-14) from dextcg: 102 cards
+NEW SET ja Palkia LV.X Constructed Standard Deck (2007-07-05) from dextcg: 10 cards
+NEW SET en EX Ruby & Sapphire (2003-07-19) from dextcg: 109 cards
+NEW SET en Nintendo Promos (2003-07-01) from dextcg: 40 cards
+NEW SET ja Rampardos the Attacker (2007-03-02) from dextcg: 11 cards
+NEW SET ja Bastiodon the Defender (2007-03-02) from dextcg: 16 cards
+SKIP en Skyridge [ecard3]: unknown numbering (182 cards, sample ['H30', '146', '148'])
+SKIP en Aquapolis [ecard2]: unknown numbering (186 cards, sample ['H29', 'H11', '150'])
+NEW SET en Box Toppers (e-Card series) (2002-09-15) from dextcg: 12 cards
+NEW SET ja Gift Box Mew • Lucario: Pokémon ☆ (2005-11-16) from dextcg: 2 cards
+NEW SET ja Gift Box Mew • Lucario: Mightyena Quarter Deck (2005-11-16) from dextcg: 15 cards
+NEW SET ja Gift Box Emerald: Rayquaza Half Deck (2004-11-19) from dextcg: 19 cards
+NEW SET ja PCG-P Promos (2004-04-08) from dextcg: 154 cards
+NEW SET en Box Toppers (Legendary Collection) (2002-05-24) from dextcg: 4 cards
+NEW SET ja Gift Box: Latios ex Half Deck (2003-11-18) from dextcg: 18 cards
+NEW SET ja ADV-P Promos (2003-01-31) from dextcg: 63 cards
+NEW SET ja Pokémon-e Starter Deck (2001-12-01) from dextcg: 29 cards
+NEW SET en Wizards Promos (1999-01-09) from dextcg: 53 cards
+NEW SET en McDonald's Collection 2018 (🇫🇷) (2018-06-13) from dextcg: 40 cards
+NEW SET en McDonald's Collection 2013 (🇫🇷) (2013-10-13) from dextcg: 12 cards
+NEW SET en Trading Card Game Classic: Blastoise & Suicune ex Deck (2023-11-17) from dextcg: 34 cards
+NEW SET ja Intro Pack Neo: Chikorita Side Deck (2001-04-05) from dextcg: 10 cards
+NEW SET en My First Battle: Squirtle Deck (2023-09-29) from dextcg: 12 cards
+NEW SET en Battle Academy 2022: Eevee Deck (2022-03-26) from dextcg: 18 cards
+NEW SET en Battle Academy 2020: Mewtwo Deck (2020-06-21) from dextcg: 17 cards
+NEW SET ja Intro Pack: Squirtle Deck (1999-07-30) from dextcg: 41 cards
+NEW SET en Sun & Moon Trainer Kit: Alolan Ninetales Half Deck (2018-06-01) from dextcg: 30 cards
+NEW SET en Sun & Moon Trainer Kit: Alolan Raichu Half Deck (2017-04-21) from dextcg: 30 cards
+NEW SET ja Guren Town Gym (1998-02-27) from dextcg: 20 cards
+NEW SET en XY Trainer Kit: Suicune Half Deck (2016-04-27) from dextcg: 30 cards
+NEW SET ja Yamabuki City Gym (1998-02-27) from dextcg: 19 cards
+NEW SET en XY Trainer Kit: Latios Half Deck (2015-04-29) from dextcg: 30 cards
+NEW SET ja Tamamushi City Gym (1998-07-26) from dextcg: 22 cards
+NEW SET en XY Trainer Kit: Wigglytuff Half Deck (2014-11-01) from dextcg: 30 cards
+NEW SET ja Hanada City Gym (1998-04-27) from dextcg: 22 cards
+NEW SET en XY Trainer Kit: Sylveon Half Deck (2014-03-12) from dextcg: 30 cards
+NEW SET en Black & White Trainer Kit: Excadrill Half Deck (2011-09-12) from dextcg: 30 cards
+NEW SET en HS Trainer Kit: Raichu Half Deck (2010-05-12) from dextcg: 30 cards
+NEW SET en Diamond & Pearl Trainer Kit: Lucario Half Deck (2007-09-24) from dextcg: 11 cards
+NEW SET en EX Trainer Kit: Minun Half Deck (2006-03-01) from dextcg: 12 cards
+NEW SET en EX Trainer Kit: Latios Half Deck (2004-06-01) from dextcg: 10 cards
+NEW SET ja Energies 2025 (2025-08-01) from dextcg: 8 cards
+NEW SET ja Energies 2024 (2024-07-19) from dextcg: 8 cards
+NEW SET ja Energies 2023 (2023-01-20) from dextcg: 8 cards
+NEW SET en Energies 2022 (2022-02-25) from dextcg: 8 cards
+NEW SET ja Energies 2022 (2022-02-25) from dextcg: 8 cards
+NEW SET en Energies 2020 (2020-02-07) from dextcg: 9 cards
+NEW SET ja Energies 2020 (2020-02-07) from dextcg: 9 cards
+NEW SET en Energies 2019 (2019-02-01) from dextcg: 9 cards
+NEW SET en Energies 2017 (2017-02-03) from dextcg: 9 cards
+NEW SET ja Energies 2019 (2019-02-01) from dextcg: 9 cards
+NEW SET en Energies 2013 (2013-01-01) from dextcg: 9 cards
+NEW SET ja Energies 2017 (2017-02-03) from dextcg: 9 cards
+NEW SET ja Energies 2013 (2013-01-01) from dextcg: 9 cards
+NEW SET en Energies 2011 (2011-01-01) from dextcg: 8 cards
+NEW SET ja Energies 2012 (2012-09-14) from dextcg: 5 cards
+NEW SET en Energies 2010 (2010-02-10) from dextcg: 8 cards
+NEW SET ja Energies 2010 (2010-01-01) from dextcg: 8 cards
+NEW SET en Energies 2009 (2009-01-01) from dextcg: 8 cards
+NEW SET ja Energies 2009: M (2009-07-18) from dextcg: 8 cards
+NEW SET en Energies 2007 (2007-01-01) from dextcg: 8 cards
+NEW SET en Energies 2006 (2006-01-01) from dextcg: 6 cards
+NEW SET ja Energies 2009 (2009-01-01) from dextcg: 8 cards
+NEW SET ja Energies 2006 (2006-01-01) from dextcg: 16 cards
+NEW SET en Energies 2005 (2005-01-01) from dextcg: 6 cards
+NEW SET ja Energies 2004 (2004-07-01) from dextcg: 1 cards
+NEW SET en Energize Your Game 2002 (2002-01-02) from dextcg: 8 cards
+NEW SET ja Energies 2003 (2003-01-01) from dextcg: 17 cards
+NEW SET ja Energies 2001: Pokémon-e (2001-12-01) from dextcg: 6 cards
+NEW SET ja Energies 1996 (1996-10-20) from dextcg: 6 cards
+NEW SET ja Melee! Pokémon Scramble (2010-07-10) from dextcg: 19 cards
+NEW SET ja PokéPark Premium File: Blue Sheet (2005-03-18) from dextcg: 9 cards
+NEW SET en e-Reader Sample Set (2002-08-01) from dextcg: 10 cards
+NEW SET ja e-Reader Sample Set (2001-08-24) from dextcg: 10 cards
+NEW SET ja Pikachu World (2010-07-08) from dextcg: 10 cards
+NEW SET en Pokémon Art Academy Competition (2015-06-08) from dextcg: 12 cards
+NEW SET en World Collection (2010-07-01) from dextcg: 9 cards
+NEW SET en Battle Road: Victory Medals (2007-05-26) from dextcg: 9 cards
+NEW SET en World Championships: Trainer Cards (2004-08-20) from dextcg: 75 cards
+NEW SET ja Southern Islands: Rainbow Island (1999-07-31) from dextcg: 9 cards
+NEW SET en Tropical Mega Battle Half Deck (2001-08-26) from dextcg: 17 cards
+NEW SET en Unnumbered Promos (2001-07-21) from dextcg: 18 cards
+NEW SET ja Unnumbered Promos (1996-10-15) from dextcg: 278 cards
+ADDED  307  en:x-dex-swshp  Sword & Shield Promos
+ADDED  298  ja:x-dex-jpn_xyp  XY Promos
+ADDED  236  ja:x-dex-jpn_bwp  Black & White Promos
+ADDED  229  ja:x-dex-jpn_unp  Unnumbered Promos
 ADDED  226  en:x-svp  Scarlet & Violet Black Star Promos
-ADDED  225  en:x-dex-svp  Scarlet & Violet Promos - Expansions
-ADDED  216  en:x-dex-swsh1  Sword & Shield - Expansions
-ADDED  207  en:x-dex-sv35  151 - Expansions
-ADDED  188  en:x-dex-me1  Mega Evolution - Expansions
-ADDED  163  en:x-dex-sm1  Sun & Moon - Expansions
-ADDED  149  en:x-dex-smp  Sun & Moon Promos - Expansions
-ADDED  148  en:x-dex-hgss1  HeartGold & SoulSilver - Expansions
-ADDED  146  en:x-dex-xy1  XY - Expansions
-ADDED  146  en:x-dex-dp6  Legends Awakened - Expansions
-ADDED  132  en:x-dex-dp3  Secret Wonders - Expansions
-ADDED  131  ja:x-dex-jpn_smh  GX Starter Decks - Expansions
-ADDED  130  en:x-dex-dp1  Diamond & Pearl - Expansions
-ADDED  124  en:x-dex-dp2  Mysterious Treasures - Expansions
-ADDED  122  en:swsh4.5  Shining Fates
-ADDED  115  en:x-dex-bw1  Black & White - Expansions
-ADDED  114  en:x-dex-mep  Mega Evolution Promos - Expansions
-ADDED  112  en:x-dex-xyp  XY Promos - Expansions
-ADDED  111  en:x-dex-ex7  EX Team Rocket Returns - Expansions
-ADDED  109  en:x-dex-ex1  EX Ruby & Sapphire - Expansions
-ADDED  108  en:x-dex-ex8  EX Deoxys - Expansions
-ADDED  106  en:x-dex-dp4  Great Encounters - Expansions
-ADDED  103  en:x-dex-dp7  Stormfront - Expansions
-ADDED  102  en:x-dex-ex5  EX Hidden Legends - Expansions
-ADDED  100  en:x-dex-dp5  Majestic Dawn - Expansions
-ADDED   99  ja:x-dex-jpn_bwbb  EX Battle Boost - Expansions
-ADDED   97  en:x-dex-ex4  EX Team Magma vs Team Aqua - Expansions
-ADDED   92  ja:x-dex-jpn_sv9a  Heat Wave Arena - Expansions
-ADDED   86  ja:x-dex-jpn_sm6b  Champion Road - Expansions
-ADDED   86  ja:x-dex-jpn_dpp  Diamond & Pearl Promos - Expansions
-ADDED   84  ja:x-dex-jpn_xybsp  BREAK Starter Pack - Expansions
-ADDED   79  ja:x-dex-jpn_legp  LEGEND Promos - Expansions
-ADDED   70  en:swsh12.5  Crown Zenith
-ADDED   56  ja:x-dex-jpn_bw1w  White Collection - Expansions
-ADDED   56  en:dp1  Diamond & Pearl
-ADDED   51  ja:x-dex-jpn_plp  DPt-P Promos - Expansions
+ADDED  225  en:x-dex-svp  Scarlet & Violet Promos
+ADDED  154  ja:x-dex-jpn_pcgp  PCG-P Promos
+ADDED  149  en:x-dex-smp  Sun & Moon Promos
+ADDED  139  ja:x-dex-jpn_svd  ex Start Decks
+ADDED  131  ja:x-dex-jpn_smh  GX Starter Decks
+ADDED  129  ja:x-dex-jpn_xypunp  XY Unnumbered Promos
+ADDED  114  en:x-dex-mep  Mega Evolution Promos
+ADDED  112  en:x-dex-xyp  XY Promos
+ADDED  111  en:x-dex-ex7  EX Team Rocket Returns
+ADDED  109  en:x-dex-ex1  EX Ruby & Sapphire
+ADDED  108  en:x-dex-ex8  EX Deoxys
+ADDED  102  en:x-dex-ex5  EX Hidden Legends
+ADDED   99  ja:x-dex-jpn_bwbb  EX Battle Boost
+ADDED   92  ja:x-dex-jpn_sv9a  Heat Wave Arena
+ADDED   84  ja:x-dex-jpn_xybsp  BREAK Starter Pack
+ADDED   75  en:x-dex-tcgwc  World Championships: Trainer Cards
+ADDED   63  ja:x-dex-jpn_advp  ADV-P Promos
+ADDED   60  en:x-dex-ba22e  Battle Academy 2022: Eevee Deck
+ADDED   60  en:x-dex-ba20m  Battle Academy 2020: Mewtwo Deck
+ADDED   56  en:x-dex-dpp  Diamond & Pearl Promos
+ADDED   53  en:x-dex-basep  Wizards Promos
+ADDED   51  ja:x-dex-jpn_plp  DPt-P Promos
 ADDED   49  ja:gg-mmbp_jp  M Master Deck Build Box Power Style
-ADDED   48  ja:x-dex-jpn_erb  Extra Regulation Box - Expansions
+ADDED   48  ja:x-dex-jpn_erb  Extra Regulation Box
 ADDED   45  ja:gg-HXY_jp  XY Beginning Set
 ADDED   45  ja:gg-wak_jp  Everyone's Exciting Battle
 ADDED   41  ja:gg-smg_jp  Ultra Sun & Ultra Moon Deck Build Boxes
 ADDED   40  ja:gg-hsz_jp  National Beginning Set
-ADDED   40  ja:x-dex-jpn_hspl  Beginning Set + - Expansions
-ADDED   40  en:x-dex-np  Nintendo Promos - Expansions
-ADDED   38  ja:x-dex-jpn_smi  Eevee GX Starter Sets - Expansions
+ADDED   40  ja:x-dex-jpn_hspl  Beginning Set +
+ADDED   40  en:x-dex-np  Nintendo Promos
+ADDED   40  en:x-dex-mcd18fr  McDonald's Collection 2018 (🇫🇷)
+ADDED   38  ja:x-dex-jpn_smi  Eevee GX Starter Sets
 ADDED   37  ja:gg-hs_jp  Beginning Set
 ADDED   34  en:x-clb  Pokémon TCG Classic - Blastoise
-ADDED   34  ja:gg-M-P  Mega Promos
-ADDED   34  ja:x-dex-jpn_clk  Pokémon Card Game Classic: Blastoise & Suicune ex Deck - Expansions
+ADDED   34  ja:x-dex-jpn_clk  Pokémon Card Game Classic: Blastoise & Suicune ex Deck
 ADDED   34  ja:gg-hsp_jp  Beginning Set Pikachu
-ADDED   32  ja:x-dex-jpn_wcs23  World Championships 2023 Yokohama Deck: Pikachu - Expansions
-ADDED   32  ja:x-dex-jpn_sO2  Charizard VSTAR vs Rayquaza VMAX Special Deck Set - Expansions
-ADDED   32  ja:x-dex-jpn_ep  Entry Pack - Expansions
+ADDED   34  en:x-dex-cclb  Trading Card Game Classic: Blastoise & Suicune ex Deck
+ADDED   31  ja:x-dex-jpn_ips  Intro Pack: Squirtle Deck
 ADDED   30  en:x-tk5b  Black & White Trainer Kit Excadrill
 ADDED   30  en:x-tk4b  HGSS Trainer Kit Raichu
-ADDED   30  en:swsh12  Silver Tempest
-ADDED   30  en:swsh11  Lost Origin
-ADDED   30  en:swsh10  Astral Radiance
-ADDED   30  ja:x-dex-jpn_smd  Ash vs Team Rocket Deck Kit - Expansions
+ADDED   30  ja:x-dex-jpn_smd  Ash vs Team Rocket Deck Kit
+ADDED   30  ja:x-dex-jpn_ipcsd  Intro Pack Neo: Chikorita Side Deck
+ADDED   30  en:x-dex-tk11a  Sun & Moon Trainer Kit: Alolan Ninetales Half Deck
+ADDED   30  en:x-dex-tk10b  Sun & Moon Trainer Kit: Alolan Raichu Half Deck
+ADDED   30  en:x-dex-tk9b  XY Trainer Kit: Suicune Half Deck
+ADDED   30  en:x-dex-tk8a  XY Trainer Kit: Latios Half Deck
+ADDED   30  en:x-dex-tk7b  XY Trainer Kit: Wigglytuff Half Deck
+ADDED   30  en:x-dex-tk6b  XY Trainer Kit: Sylveon Half Deck
+ADDED   30  en:x-dex-tk5b  Black & White Trainer Kit: Excadrill Half Deck
+ADDED   30  en:x-dex-tk4b  HS Trainer Kit: Raichu Half Deck
+ADDED   29  ja:x-dex-jpn_smpunp  Sun & Moon Unnumbered Promos
+ADDED   29  ja:x-dex-jpn_ecard1a  Pokémon-e Starter Deck
 ADDED   28  en:ex10  Unseen Forces
-ADDED   26  ja:gg-xye_jp  Emboar-EX vs Togekiss-EX Battle Starter Set
-ADDED   26  ja:x-dex-jpn_bgs  Battle Gift Set: Thundurus vs Tornadus - Expansions
-ADDED   25  ja:x-dex-jpn_sN  Start Deck 100 CoroCoro Comic Version - Expansions
-ADDED   25  ja:x-dex-jpn_s8aP  Promo Card Pack 25th Anniversary Edition - Expansions
-ADDED   25  ja:x-dex-jpn_svt  V Starter Set: Fighting - Expansions
-ADDED   25  ja:x-dex-jpn_xyc  Super Legend Set: Xerneas EX & Yveltal EX - Expansions
+ADDED   28  en:2018sm  McDonald's Collection 2018
+ADDED   27  ja:gg-M-P  Mega Promos
+ADDED   26  ja:x-dex-jpn_xye  Emboar EX vs Togekiss EX Deck Kit
+ADDED   26  ja:x-dex-jpn_bgs  Battle Gift Set: Thundurus vs Tornadus
+ADDED   25  ja:x-dex-jpn_sN  Start Deck 100 CoroCoro Comic Version
+ADDED   25  ja:x-dex-jpn_s8aP  Promo Card Pack 25th Anniversary Edition
+ADDED   25  ja:x-dex-jpn_svt  V Starter Set: Fighting
+ADDED   25  ja:x-dex-jpn_xyc  Super Legend Set: Xerneas EX & Yveltal EX
+ADDED   25  en:x-dex-hsp  HeartGold & SoulSilver Promos
 ADDED   24  en:x-sve23  Scarlet & Violet: Energy (2023)
-ADDED   24  ja:x-dex-jpn_swshpunp  Sword & Shield Unnumbered Promos - Expansions
-ADDED   24  ja:x-dex-jpn_btv  Battle Theme Deck: Victini - Expansions
+ADDED   24  ja:x-dex-jpn_svpunp  Scarlet & Violet Unnumbered Promos
+ADDED   24  ja:x-dex-jpn_spt  Sword & Shield Premium Trainer Box
+ADDED   24  ja:x-dex-jpn_b05hcg  Hanada City Gym
 ADDED   23  en:mep  MEP Black Star Promos
 ADDED   23  ja:gg-XYA_jp  M Charizard-EX Mega Battle Deck
 ADDED   22  en:cel25cc  Celebrations Classic Collection
-ADDED   22  ja:x-dex-jpn_svls  Stellar Tera Type Starter Set: Ceruledge ex - Expansions
+ADDED   22  ja:x-dex-jpn_svls  Stellar Tera Type Starter Set: Ceruledge ex
 ADDED   21  en:30th-c  30th Classic Collection
-ADDED   21  ja:x-dex-jpn_svjp  Battle Master Deck: Chien-Pao ex - Expansions
-ADDED   21  ja:x-dex-jpn_sLD  Darkrai VSTAR Starter Set - Expansions
-ADDED   20  ja:x-dex-jpn_mem  Starter Set ex Deck Sprigatito & Meowscarada ex - Expansions
-ADDED   20  ja:x-dex-jpn_svel  Skeledirge ex Terastal Starter Set - Expansions
+ADDED   21  ja:x-dex-jpn_svjp  Battle Master Deck: Chien-Pao ex
+ADDED   21  ja:x-dex-jpn_sLD  Darkrai VSTAR Starter Set
+ADDED   20  ja:x-dex-jpn_mem  Starter Set ex Deck Sprigatito & Meowscarada ex
+ADDED   20  ja:x-dex-jpn_mee  Starter Set ex Deck Eevee ex
+ADDED   20  ja:x-dex-jpn_svel  Skeledirge ex Terastal Starter Set
 ADDED   20  ja:gg-smf_jp  Ultra Sun & Ultra Moon Premium Trainer Box
 ADDED   20  ja:gg-xyd_jp  M Rayquaza-EX Mega Battle Deck
-ADDED   20  ja:x-dex-jpn_xyb  Hyper Metal Chain Deck - Expansions
+ADDED   20  ja:gg-xyb_jp  Dialga-EX + Aegislash-EX Hyper Metal Chain Deck
 ADDED   20  ja:gg-bkw_jp  White Kyurem-EX Battle Strength Deck
+ADDED   20  ja:x-dex-jpn_b05tcg  Tamamushi City Gym
 ADDED   19  ja:gg-kk_jp  Blastoise + Kyurem-EX Combo Deck
+ADDED   19  ja:x-dex-jpn_gbrhd  Gift Box Emerald: Rayquaza Half Deck
+ADDED   19  ja:x-dex-jpn_b06gtg  Guren Town Gym
+ADDED   19  ja:x-dex-jpn_mps  Melee! Pokémon Scramble
 ADDED   18  ja:gg-smb_jp  Premium Trainer Box
 ADDED   18  ja:gg-pbg_jp  Team Plasma Battle Gift Set
-ADDED   18  ja:x-dex-jpn_pcsd  Palkia LV.X Constructed Standard Deck - Expansions
+ADDED   18  ja:x-dex-jpn_ptb  Infernape vs Gallade SP Deck: Gallade Half Deck
+ADDED   18  ja:x-dex-jpn_pcsd  Palkia LV.X Constructed Standard Deck
+ADDED   18  ja:x-dex-jpn_gbloxhd  Gift Box: Latios ex Half Deck
 ADDED   17  ja:gg-mgg_jp  Mewtwo vs Genesect Deck Kit (Genesect)
-ADDED   17  ja:x-dex-jpn_ptf  Arceus LV.X Deck: Lightning & Psychic - Expansions
-ADDED   16  ja:x-dex-jpn_s8aB  25th Anniversary Golden Box - Expansions
-ADDED   16  ja:x-dex-jpn_btd  Bastiodon the Defender - Expansions
+ADDED   17  ja:x-dex-jpn_ptf  Arceus LV.X Deck: Lightning & Psychic
+ADDED   17  ja:x-dex-jpn_ptg  Arceus LV.X Deck: Grass & Fire
+ADDED   17  ja:x-dex-jpn_uen3  Energies 2003
+ADDED   17  en:x-dex-tmb  Tropical Mega Battle Half Deck
+ADDED   17  en:x-dex-unp  Unnumbered Promos
+ADDED   16  ja:x-dex-jpn_s8aB  25th Anniversary Golden Box
+ADDED   16  ja:x-dex-jpn_chd  Garchomp vs Charizard SP Deck: Charizard G Half Deck
+ADDED   16  ja:x-dex-jpn_btd  Bastiodon the Defender
+ADDED   16  ja:x-dex-jpn_b06ycg  Yamabuki City Gym
+ADDED   16  ja:x-dex-jpn_uen6  Energies 2006
 ADDED   15  ja:gg-X30_jp  Xerneas Half Deck
-ADDED   15  ja:x-dex-jpn_gbpikhd  Gift Box DPt: Pikachu Half Deck - Expansions
-ADDED   13  ja:x-dex-jpn_legpunp  LEGEND Unnumbered Promos - Expansions
-ADDED   13  ja:x-dex-jpn_epphd  Entry Pack DPt: Palkia Half Deck - Expansions
+ADDED   15  ja:x-dex-jpn_gbpikhd  Gift Box DPt: Pikachu Half Deck
+ADDED   15  ja:x-dex-jpn_gbmiqd  Gift Box Mew • Lucario: Mightyena Quarter Deck
+ADDED   13  ja:x-dex-jpn_legpunp  LEGEND Unnumbered Promos
+ADDED   13  ja:x-dex-jpn_epphd  Entry Pack DPt: Palkia Half Deck
 ADDED   12  en:tk-sm-l  SM trainer Kit (Lycanroc)
 ADDED   12  en:x-mcd17  McDonald's Collection 2017
+ADDED   12  en:x-dex-bt2  Box Toppers (e-Card series)
+ADDED   12  en:x-dex-mcd13  McDonald's Collection 2013 (🇫🇷)
+ADDED   12  en:x-dex-mfbs  My First Battle: Squirtle Deck
+ADDED   12  en:x-dex-tk3b  Diamond & Pearl Trainer Kit: Lucario Half Deck
+ADDED   12  en:x-dex-tk2b  EX Trainer Kit: Minun Half Deck
+ADDED   12  en:x-dex-aac  Pokémon Art Academy Competition
 ADDED   11  en:sm2  Guardians Rising
-ADDED   10  ja:x-dex-jpn_rta  Rampardos the Attacker - Expansions
+ADDED   10  ja:x-dex-jpn_ep08dx  Entry Pack '08 DX: Raichu Half Deck
+ADDED   10  ja:x-dex-jpn_rta  Rampardos the Attacker
+ADDED   10  en:x-dex-tk1b  EX Trainer Kit: Latios Half Deck
+ADDED   10  ja:x-dex-jpn_ss  e-Reader Sample Set
+ADDED   10  ja:x-dex-jpn_pwt  Pikachu World
 ADDED    9  en:x-swshe20  Sword & Shield: Energy (2020)
 ADDED    9  en:x-sme19  Sun & Moon: Energy (2019)
 ADDED    9  en:x-sme17  Sun & Moon: Energy (2017)
 ADDED    9  en:x-xye13  XY: Energy (2013)
-ADDED    9  ja:x-dex-jpn_cs1  Collection Sheet: Journey Partners - Expansions
+ADDED    9  ja:gg-svp_jp  Scarlet & Violet Promos
+ADDED    9  ja:gg-sm12a_jp  TAG TEAM GX: Tag All Stars
+ADDED    9  ja:x-dex-jpn_cs1  Collection Sheet: Journey Partners
+ADDED    9  en:x-dex-uen20  Energies 2020
+ADDED    9  ja:x-dex-jpn_uen20  Energies 2020
+ADDED    9  en:x-dex-uen19  Energies 2019
+ADDED    9  en:x-dex-uen17  Energies 2017
+ADDED    9  ja:x-dex-jpn_uen19  Energies 2019
+ADDED    9  en:x-dex-uen13  Energies 2013
+ADDED    9  ja:x-dex-jpn_uen17  Energies 2017
+ADDED    9  ja:x-dex-jpn_uen13  Energies 2013
+ADDED    9  ja:x-dex-jpn_uen1  Energies 2001: Pokémon-e
+ADDED    9  ja:x-dex-jpn_pkpb  PokéPark Premium File: Blue Sheet
+ADDED    9  en:x-dex-vm1  Battle Road: Victory Medals
+ADDED    9  ja:x-dex-jpn_si2  Southern Islands: Rainbow Island
 ADDED    8  en:mee  Mega Evolution Energy
 ADDED    8  en:x-swshe22  Sword & Shield: Energy (2022)
 ADDED    8  en:sm3  Burning Shadows
 ADDED    8  en:x-bwe13  Black & White: Energy (2011)
 ADDED    8  en:x-hgsse10  HGSS: Energy (2010)
 ADDED    8  ja:gg-si_jp  Start Deck 100
+ADDED    8  ja:x-dex-jpn_uen25  Energies 2025
+ADDED    8  ja:x-dex-jpn_uen24  Energies 2024
+ADDED    8  ja:x-dex-jpn_uen23  Energies 2023
+ADDED    8  en:x-dex-uen22  Energies 2022
+ADDED    8  ja:x-dex-jpn_uen22  Energies 2022
+ADDED    8  en:x-dex-uen11  Energies 2011
+ADDED    8  en:x-dex-uen10  Energies 2010
+ADDED    8  ja:x-dex-jpn_uen10  Energies 2010
+ADDED    8  en:x-dex-uen9  Energies 2009
+ADDED    8  ja:x-dex-jpn_uen9m  Energies 2009: M
+ADDED    8  en:x-dex-uen7  Energies 2007
+ADDED    8  ja:x-dex-jpn_uen9  Energies 2009
+ADDED    8  en:x-dex-eyg02  Energize Your Game 2002
+ADDED    8  en:x-dex-pwt  World Collection
 ADDED    7  ja:gg-sm2l_jp  Alolan Moonlight
 ADDED    6  en:smp  SM Black Star Promos
 ADDED    6  ja:gg-sh_jp  Sword & Shield Family Pokemon Card Game
 ADDED    6  ja:gg-sml_jp  Sun & Moon Family Pokémon Card Game
+ADDED    6  en:x-dex-uen6  Energies 2006
+ADDED    6  en:x-dex-uen5  Energies 2005
+ADDED    6  ja:x-dex-jpn_uen96  Energies 1996
 ADDED    5  en:sm5  Ultra Prism
 ADDED    5  en:x-fut20  Pokémon Futsal Collection
+ADDED    5  ja:x-dex-jpn_uen12  Energies 2012
 ADDED    4  en:sm10  Unbroken Bonds
 ADDED    4  en:sm8  Lost Thunder
 ADDED    4  en:sm7  Celestial Storm
 ADDED    4  en:sm6  Forbidden Light
 ADDED    4  en:ecard2  Aquapolis
-ADDED    4  ja:x-dex-jpn_mpunp  MEGA Unnumbered Promos - Expansions
+ADDED    4  ja:x-dex-jpn_mpunp  MEGA Unnumbered Promos
+ADDED    4  ja:gg-SP4_jp  Eevee Heroes VMAX Special Set
 ADDED    4  ja:gg-SP2_jp  VMAX Special Set
+ADDED    4  en:x-dex-bt1  Box Toppers (Legendary Collection)
 ADDED    3  en:30th  30th Celebration
 ADDED    3  en:sm11  Unified Minds
 ADDED    3  en:sm3.5  Shining Legends
@@ -314,18 +351,23 @@ ADDED    3  ja:gg-m6a_jp  30th Celebration
 ADDED    3  ja:gg-kld_jp  Keldeo Battle Strength Deck
 ADDED    3  ja:gg-gbr_jp  Garchomp Half Deck
 ADDED    3  ja:gg-szd_jp  Hydreigon Half Deck
+ADDED    3  ja:gg-btv_jp  Victini Battle Theme Deck
 ADDED    3  ja:gg-bkt_jp  Terrakion Battle Strength Deck
 ADDED    3  ja:gg-bkv_jp  Virizion Battle Strength Deck
+ADDED    3  ja:gg-pcgmksd_jp  Master Kit (Side Deck)
 ADDED    2  en:sm9  Team Up
 ADDED    2  en:sm7.5  Dragon Majesty
 ADDED    2  en:dpp  DP Black Star Promos
-ADDED    2  en:x-dex-bwp  Black & White Promos - Expansions
+ADDED    2  ja:gg-so_jp  Charizard VSTAR vs Rayquaza VMAX Special Deck Set
+ADDED    2  en:x-dex-bwp  Black & White Promos
 ADDED    2  ja:gg-bkb_jp  Black Kyurem-EX Battle Strength Deck
 ADDED    2  ja:gg-ppd_jp  Team Plasma Powered Half Deck
 ADDED    2  ja:gg-bkz_jp  Zekrom-EX Battle Strength Deck
 ADDED    2  ja:gg-bkr_jp  Reshiram-EX Battle Strength Deck
 ADDED    2  ja:gg-bkc_jp  Cobalion Battle Strength Deck
 ADDED    2  ja:gg-dp5c_jp  Cry from the Mysterious
+ADDED    2  ja:x-dex-jpn_gbps  Gift Box Mew • Lucario: Pokémon ☆
+ADDED    2  en:x-dex-ss  e-Reader Sample Set
 ADDED    1  en:sm12  Cosmic Eclipse
 ADDED    1  en:sm4  Crimson Invasion
 ADDED    1  en:sm1  Sun & Moon
@@ -340,3 +382,8 @@ ADDED    1  ja:gg-xyf_jp  Golduck BREAK + Palkia-EX Combo Deck
 ADDED    1  ja:gg-Y30_jp  Yveltal Half Deck
 ADDED    1  ja:gg-mgm_jp  Mewtwo vs Genesect Deck Kit (Mewtwo)
 ADDED    1  ja:gg-dp5t_jp  Temple of Anger
+ADDED    1  ja:gg-pcg2_jp  Clash of the Blue Sky
+ADDED    1  ja:gg-ecard5_jp  Mysterious Mountains
+ADDED    1  ja:gg-neo2_jp  Crossing the Ruins...
+ADDED    1  ja:gg-moviecvspackssd_jp  Movie Commemoration VS Pack: Sky-Splitting Deoxys
+ADDED    1  ja:x-dex-jpn_uen4  Energies 2004
