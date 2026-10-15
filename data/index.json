@@ -39,5 +39,11 @@
   "count": 25772,
   "sets": 431,
   "file": "ja-pkmngg.json"
+ },
+ "enGG": {
+  "built": "2026-10-15T00:42:20Z",
+  "count": 21529,
+  "sets": 212,
+  "file": "en-pkmngg.json"
  }
 }
