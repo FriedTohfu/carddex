@@ -1,0 +1,55 @@
+name: Build card lists (English and Japanese)
+
+# Crawls pkmn.gg for every English and Japanese set, with card pictures and
+# artists. Runs weekly, and can be started by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 2 * * 1'
+  push:
+    branches: [main, master]
+    paths:
+      - 'build/make_ja_pkmngg.py'
+      - 'build/save-data.sh'
+      - '.github/workflows/card-lists.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: card-lists
+  cancel-in-progress: false
+
+jobs:
+  lists:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: English card list (pkmn.gg)
+        continue-on-error: true
+        run: |
+          mkdir -p data; : > data/card-lists-log.txt
+          python build/make_ja_pkmngg.py en 2>&1 | tee -a data/card-lists-log.txt
+
+      - name: Save English card list
+        if: always()
+        run: bash build/save-data.sh "Update English card list (pkmn.gg)"
+
+      - name: Japanese card list (pkmn.gg)
+        continue-on-error: true
+        run: |
+          python build/make_ja_pkmngg.py jp 2>&1 | tee -a data/card-lists-log.txt
+
+      - name: Save Japanese card list
+        if: always()
+        run: bash build/save-data.sh "Update Japanese card list (pkmn.gg)"

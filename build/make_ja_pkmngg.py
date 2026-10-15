@@ -3,7 +3,8 @@ Builds the Japanese card list from pkmn.gg (every Japanese set back to 1996,
 with Japanese card scans). Reads the same pages a browser does (their robots.txt
 allows it), politely: a couple of pages at a time.
 
-Output: data/ja-pkmngg.json
+Usage: python make_ja_pkmngg.py [jp|en]   (default jp)
+Output: data/ja-pkmngg.json (jp) or data/en-pkmngg.json (en)
   {built, sets: [{id, name, series, releaseDate, total, printed, logo, symbol}],
    cards: [[id, setId, number, numberDisplay, nameJa, nameEn, rarity, artist, type, thumb, large]]}
 """
@@ -12,7 +13,11 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, 'data', 'ja-pkmngg.json')
+LANG = (sys.argv[1] if len(sys.argv) > 1 else 'jp').lower()
+if LANG not in ('jp', 'en'):
+    sys.exit('language must be jp or en')
+OUT = os.path.join(ROOT, 'data', 'ja-pkmngg.json' if LANG == 'jp' else 'en-pkmngg.json')
+KEY = 'jaGG' if LANG == 'jp' else 'enGG'
 BASE = 'https://www.pkmn.gg'
 UA = {'User-Agent': 'Mozilla/5.0 (CardDex personal collection app; github.com/FriedTohfu/carddex)', 'Accept-Encoding': 'gzip'}
 
@@ -37,21 +42,21 @@ def page_data(path, tries=4):
 
 
 def main():
-    idx = page_data('/jp/series')
+    idx = page_data(f'/{LANG}/series')
     series = [s['id'] for s in (idx or {}).get('serieses', [])]
     if not series:
-        print('Could not read the series list — keeping the previous file'); sys.exit(0)
+        print(f'Could not read the {LANG} series list — keeping the previous file'); sys.exit(0)
     print(f'{len(series)} series', flush=True)
     sets = []
     for sid in series:
-        d = page_data(f'/jp/series/{sid}') or {}
+        d = page_data(f'/{LANG}/series/{sid}') or {}
         for s in d.get('sets', []):
             sets.append(s)
         time.sleep(0.5)
     print(f'{len(sets)} sets', flush=True)
 
     def read_set(s):
-        d = page_data(f"/jp/series/{s['series']}/{s['slug']}")
+        d = page_data(f"/{LANG}/series/{s['series']}/{s['slug']}")
         time.sleep(0.5)
         return s, (d or {}).get('cardData')
 
@@ -83,11 +88,11 @@ def main():
         print('Too few cards — keeping the previous file'); sys.exit(0)
     built = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump({'built': built, 'source': 'pkmn.gg', 'sets': out_sets, 'cards': out_cards},
+    json.dump({'built': built, 'source': 'pkmn.gg', 'lang': LANG, 'sets': out_sets, 'cards': out_cards},
               open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     ip = os.path.join(ROOT, 'data', 'index.json')
     index = json.load(open(ip)) if os.path.exists(ip) else {}
-    index['jaGG'] = {'built': built, 'count': len(out_cards), 'sets': len(out_sets), 'file': 'ja-pkmngg.json'}
+    index[KEY] = {'built': built, 'count': len(out_cards), 'sets': len(out_sets), 'file': os.path.basename(OUT)}
     json.dump(index, open(ip, 'w'), indent=1)
     with_img = sum(1 for c in out_cards if c[9])
     print(f'Saved {len(out_sets)} sets, {len(out_cards)} cards ({with_img} with pictures)', flush=True)
