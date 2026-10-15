@@ -24,7 +24,7 @@ concurrency:
 jobs:
   lists:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 340
     env:
       PYTHONUNBUFFERED: '1'
     steps:
@@ -58,7 +58,7 @@ jobs:
       - name: Fill gaps (pkmn.gg English + dextcg.com)
         continue-on-error: true
         env:
-          MAX_PROBES: '9000'
+          MAX_PROBES: '20000'
         run: |
           python build/make_extra.py 2>&1 | tee -a data/card-lists-log.txt
 

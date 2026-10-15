@@ -18,7 +18,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, 'data')
 UA = {'User-Agent': 'Mozilla/5.0 (CardDex personal collection app; github.com/FriedTohfu/carddex)', 'Accept-Encoding': 'gzip'}
 DEX = 'https://dextcg.com'
-MAX_PROBES = int(os.environ.get('MAX_PROBES', '9000'))
+MAX_PROBES = int(os.environ.get('MAX_PROBES', '20000'))
 MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December'
 
 
@@ -59,13 +59,23 @@ def day(s):
         return None
 
 
+STRICT = ('promo', 'energy', 'deck', 'kit', 'starter', 'mcdonald', 'trick or trade', 'futsal', 'box')
+
+
+def flags(name):
+    """Words that make a set a different product (promos, energies, decks...)."""
+    n = str(name or '').lower()
+    return frozenset(w for w in STRICT if w in n)
+
+
 def match_set(name, date, candidates):
     """Best base set for a source set: same name, or similar name released within a few days."""
     nk, d = name_key(name), day(date)
+    fl = flags(name)
     best, score = None, 0
     for c in candidates:
         ck = c['nk']
-        if not ck or not nk:
+        if not ck or not nk or flags(c['name']) != fl:
             continue
         s = 1.0 if ck == nk else difflib.SequenceMatcher(None, nk, ck).ratio()
         if ck != nk and (ck in nk or nk in ck) and min(len(ck), len(nk)) >= 4:
@@ -149,7 +159,9 @@ def dex_expansion(eid):
     count = re.search(r'Number of Cards\s*(\d+)', t) or re.search(r'See all\s*(\d+)\s*cards', t, re.I) or re.search(r'(\d+)\s*Cards', t)
     date = re.search(r'(' + MONTHS + r')\s+(\d{1,2}),\s+(\d{4})', t)
     title = meta(page, 'og:title') or (re.search(r'<title>(.*?)</title>', page, re.S) or [None, ''])[1]
-    title = re.sub(r'\s*[|\-–—]\s*Dex.*$', '', html.unescape(title)).strip()
+    title = html.unescape(title)
+    for _ in range(3):
+        title = re.sub(r'\s*[|\-–—]\s*(Expansions?|Dex|DexTCG|Pok[eé]mon TCG)\s*$', '', title).strip()
     sample = []
     for cid in re.findall(r'/cards/([A-Za-z0-9_.%-]+)', page):
         cid = urllib.parse.unquote(cid)

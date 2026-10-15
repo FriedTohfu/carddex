@@ -328,6 +328,12 @@ export async function applyExtra(force = false) {
   // extra cards that are no longer in the file
   for (const c of state.cards.values()) if (c.src === 'x' && !fresh.has(c.key) && !keep.has(c.key) && langs.has(c.lang)) drop.push(c.key);
   for (const k of drop) { const c = state.cards.get(k); if (c) touched.add(c.setKey); state.cards.delete(k); }
+  // extra sets that are no longer in the file and have nothing left in them
+  const fileSets = new Set((d.sets || []).map((st) => st.key));
+  const usedSets = new Set([...state.cards.values()].map((c) => c.setKey));
+  const goneSets = [...state.sets.values()].filter((st) => st.extra && st.src !== 'pcj' && /:x-/.test(st.key) && !fileSets.has(st.key) && !usedSets.has(st.key));
+  for (const st of goneSets) { state.sets.delete(st.key); state.cardsBySet.delete(st.key); touched.delete(st.key); }
+  if (goneSets.length) await db.delMany('sets', goneSets.map((st) => st.key));
   // Put each changed set's cards in number order
   const queued = new Set(put);
   const lists = new Map([...touched].map((k) => [k, []]));

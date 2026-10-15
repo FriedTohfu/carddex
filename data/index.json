@@ -45,11 +45,5 @@
   "count": 21529,
   "sets": 212,
   "file": "en-pkmngg.json"
- },
- "extra": {
-  "built": "2026-10-15T02:38:06Z",
-  "count": 8501,
-  "sets": 161,
-  "file": "extra.json"
  }
 }
