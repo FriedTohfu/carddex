@@ -1,23 +1,11 @@
 19 series
 424 sets
-  50/424 sets, 4566 cards
-  100/424 sets, 8844 cards
-  150/424 sets, 12754 cards
-  200/424 sets, 16150 cards
-  250/424 sets, 18501 cards
-  300/424 sets, 20233 cards
-  350/424 sets, 22264 cards
-  400/424 sets, 24899 cards
-Saved 424 sets, 25773 cards (25773 with pictures)
-== en: reading card list
-   21987 cards with images, 8 new
-   en: 8/8
-   en: 21979 fingerprints saved
-== ja: reading card list
-   25773 cards with images, 1 new
-   ja: 1/1
-   ja: 25773 fingerprints saved
-== zh-tw: reading card list
-   2146 cards with images, 0 new
-== zh-cn: reading card list
-   22882 cards with images, 0 new
+  50/424 sets, 4575 cards
+  100/424 sets, 8853 cards
+  150/424 sets, 12763 cards
+  200/424 sets, 16159 cards
+  250/424 sets, 18510 cards
+  300/424 sets, 20242 cards
+  350/424 sets, 22273 cards
+  400/424 sets, 24908 cards
+Saved 424 sets, 25782 cards (25782 with pictures)
