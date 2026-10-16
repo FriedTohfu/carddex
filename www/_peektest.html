@@ -1,7 +1,0 @@
-<!doctype html><meta name=viewport content="width=400"><link rel=stylesheet href="css/app.css"><body>
-<script type=module>
-import { enablePeek, h } from './js/ui.js';
-const card = { key: 'en:x', name: 'Test', image: '' };
-const b = h('button', { class: 'tile', style: 'width:120px;height:160px', onclick: () => { window.clicks = (window.clicks||0)+1; } }, 'card');
-document.body.append(b); enablePeek(b, card); window.ready = true;
-</script>
