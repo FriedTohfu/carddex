@@ -186,7 +186,7 @@ export function openPokemon(id, tab = 'pokedex') {
         res.innerHTML = '';
         res.append(h('div', { class: 'muted small count' }, `${groups.length} cards`, combine && merged > 0 ? ` (${merged} other-language versions combined — tap a card to pick the language)` : ''),
           cardGrid(reps, {
-            dimMissing: state.settings.dexDimMissing !== false, showSet: true,
+            dimMissing: state.settings.dexDimMissing !== false, showSet: true, peek: true,
             versionsOf: combine ? (c) => byRep.get(c.key) : null,
             onClick: (c) => openCard(c.key, keys, { versionsOf: (k) => byRep.get(k) || [k] }),
             empty: empty('No cards', state.sets.size ? 'No cards match these filters.' : 'Download card data in Settings first.'),

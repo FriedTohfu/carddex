@@ -446,3 +446,10 @@ textarea.input { resize: vertical; }
 /* What's new */
 .whatsnew { margin: 4px 0 18px; padding-left: 20px; line-height: 1.45; }
 .whatsnew li { margin: 6px 0; }
+
+/* Hold-to-peek: a card pops up big while you hold it */
+.peek { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: rgba(0,0,0,0); pointer-events: none; transition: background .16s ease; }
+.peek img { width: min(86vw, 62vh * 0.716); aspect-ratio: 63 / 88; object-fit: contain; border-radius: 4.5% / 3.2%; box-shadow: 0 18px 50px rgba(0,0,0,.55); transform: scale(.6); opacity: 0; transition: transform .16s ease, opacity .16s ease; }
+.peek.show { background: rgba(0,0,0,.6); }
+.peek.show img { transform: scale(1); opacity: 1; }
+.tile { -webkit-touch-callout: none; user-select: none; }

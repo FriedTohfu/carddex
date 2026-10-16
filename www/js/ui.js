@@ -357,7 +357,36 @@ export function langBadge(lang) {
   return h('span', { class: `lang lang-${lang}` }, LANGS[lang]?.short || lang);
 }
 
-export function cardTile(card, { onClick, dimMissing = true, showLang = true, showSet = false, versionsOf } = {}) {
+/** Hold a card to see it big; let go to close. A hold doesn't count as a tap. */
+export function enablePeek(el, card) {
+  let timer = null, sx = 0, sy = 0, overlay = null;
+  const close = () => {
+    clearTimeout(timer); timer = null;
+    if (overlay) { overlay.classList.remove('show'); const o = overlay; setTimeout(() => o.remove(), 160); overlay = null; }
+  };
+  const open = () => {
+    timer = null;
+    el._peeked = true;
+    overlay = h('div', { class: 'peek' }, h('img', { alt: card.name || '', draggable: 'false' }));
+    const img = overlay.firstChild;
+    cardSrc(card, 'low').then((u) => { if (u && !img.src) img.src = u; });
+    cardSrc(card, 'high').then((u) => { if (u) { const hi = new Image(); hi.onload = () => { img.src = u; }; hi.src = u; } });
+    document.body.append(overlay);
+    requestAnimationFrame(() => overlay?.classList.add('show'));
+    navigator.vibrate?.(15);
+  };
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return;
+    el._peeked = false; sx = e.clientX; sy = e.clientY;
+    clearTimeout(timer); timer = setTimeout(open, 350);
+  });
+  el.addEventListener('pointermove', (e) => { if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) { clearTimeout(timer); timer = null; } });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(ev, close);
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+  el.addEventListener('click', (e) => { if (el._peeked) { e.stopImmediatePropagation(); e.preventDefault(); el._peeked = false; } }, true);
+}
+
+export function cardTile(card, { onClick, dimMissing = true, showLang = true, showSet = false, versionsOf, peek = false } = {}) {
   // versionsOf(card) → keys of the same card in other languages (shown as one tile)
   const keys = versionsOf?.(card) || [card.key];
   const q = keys.reduce((n, k) => n + qty(k), 0);
@@ -369,6 +398,7 @@ export function cardTile(card, { onClick, dimMissing = true, showLang = true, sh
       h('span', { class: 'num' }, showSet ? (state.sets.get(card.setKey)?.name || '') : `#${card.localId}`),
       showLang ? h('span', { class: 'langs' }, langs.map((l) => langBadge(l))) : null));
   tile._dim = dimMissing;
+  if (peek) enablePeek(tile, card);
   return tile;
 }
 
