@@ -401,7 +401,8 @@ async function syncJaGG({ force = false, lang = 'ja', indexKey = 'jaGG' } = {}) 
     const i = order.get(setKey) || 0; order.set(setKey, i + 1);
     cards.push({
       key: `${lang}:gg-${id}`, lang, id: `gg-${id}`, src: 'gg', localId: number, number: numDisp,
-      name: nameJa || nameEn, nameEn: nameEn || undefined, image: thumb, imageHi: large, setKey, order: i,
+      name: d.source === 'dextcg' ? (nameEn || nameJa) : (nameJa || nameEn), nameEn: nameEn || undefined, nameJa: nameJa || undefined,
+      image: thumb, imageHi: large, setKey, order: i,
       det: { rarity: rarity || undefined, illustrator: artist || undefined, category: type === 'Pokémon' ? 'Pokemon' : (type || undefined), number: numDisp },
     });
   }

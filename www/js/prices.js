@@ -95,9 +95,21 @@ function englishName(card) {
   return [names.join(' & '), extra].filter(Boolean).join(' ');
 }
 
+/** The card's Japanese name for Mercari: from the card list, or with the Pokémon's name swapped into Japanese. */
+export function japaneseName(card) {
+  if (card.nameJa) return card.nameJa;
+  if (/[\u3040-\u30ff\u4e00-\u9fff]/.test(card.name)) return card.name;
+  let name = card.nameEn || card.name;
+  for (const id of state.cardDex.get(card.key) || []) {
+    const s = state.species.find((x) => x.id === id);
+    if (s?.en && s.ja) name = name.replace(new RegExp(s.en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), s.ja);
+  }
+  return name.replace(/\s+(ex|EX|GX|V|VMAX|VSTAR|V-UNION|BREAK)\b/g, '$1');
+}
+
 export function searchQuery(card, site = 'ebay') {
   const num = cardNumber(card);
-  if (site === 'mercari') return `${card.name} ${num}`.trim();
+  if (site === 'mercari') return `${japaneseName(card)} ${num}`.trim();
   const lang = card.lang === 'ja' ? 'Japanese' : card.lang.startsWith('zh') ? 'Chinese' : '';
   return [englishName(card) || card.name, num, lang].filter(Boolean).join(' ');
 }

@@ -4,6 +4,7 @@ import { state, allSetsSorted, qty } from '../store.js';
 import { LANGS } from '../api.js';
 import { normalizeName } from '../dex.js';
 import { openCard } from './card.js';
+import { rarityRank } from '../rarity.js';
 import { setRow, openSet } from './sets.js';
 
 /** Core search used by the Search tab and the card picker. */
@@ -38,7 +39,7 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
         return totals.some((t) => t != null && t !== '' && stripZ(t) === stripZ(of));
       });
     }
-    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '')); return words.every((w) => n.includes(w)); });
+    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '') + (c.nameJa ? ' ' + c.nameJa : '')); return words.every((w) => n.includes(w)); });
   }
   if (owned === 'owned') cards = cards.filter((c) => qty(c.key));
   if (owned === 'missing') cards = cards.filter((c) => !qty(c.key));
@@ -48,6 +49,7 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
     oldest: (a, b) => rd(a).localeCompare(rd(b)) || a.order - b.order,
     name: (a, b) => a.name.localeCompare(b.name) || rd(b).localeCompare(rd(a)),
     number: (a, b) => (parseInt(a.localId, 10) || 0) - (parseInt(b.localId, 10) || 0),
+    rarity: (a, b) => rarityRank(b) - rarityRank(a) || rd(b).localeCompare(rd(a)) || a.order - b.order,
   };
   if (!setKey || sort !== 'newest') cards.sort(sorts[sort] || sorts.newest);
   return cards;
@@ -80,7 +82,7 @@ export function searchRoot() {
         h('div', { class: 'toolbar' }, setBtn,
           chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], S.owned, (v) => { S.owned = v; draw(); }),
           h('select', { class: 'input mini', 'aria-label': 'Sort', onchange: (e) => { S.sort = e.target.value; draw(); } },
-            [['newest', 'Newest sets'], ['oldest', 'Oldest sets'], ['name', 'Name'], ['number', 'Number']].map(([v, l]) => h('option', { value: v, selected: S.sort === v }, l)))),
+            [['newest', 'Newest sets'], ['oldest', 'Oldest sets'], ['rarity', 'Rarity'], ['name', 'Name'], ['number', 'Number']].map(([v, l]) => h('option', { value: v, selected: S.sort === v }, l)))),
         results);
       draw();
 

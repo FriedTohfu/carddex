@@ -219,6 +219,15 @@ def main():
             if nid:
                 remap[c[0]] = nid
         print(f'{len(setmap)}/{len(old["sets"])} old sets matched, {len(remap)} old cards mapped', flush=True)
+        # Japanese names (dextcg only has English ones) from the matching pkmn.gg card
+        jn = {c[0]: c[4] for c in old['cards'] if c[4]}
+        by_new = {}
+        for o, nid in remap.items():
+            if jn.get(o):
+                by_new.setdefault(nid, jn[o])
+        for c in cards:
+            if not c[4] and by_new.get(c[0]):
+                c[4] = by_new[c[0]]
 
     used = {c[1] for c in cards}
     sets = [s for s in sets if s['id'] in used]

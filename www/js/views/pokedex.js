@@ -5,6 +5,7 @@ import { LANGS, online } from '../api.js';
 import { speciesName } from '../dex.js';
 import { openCard } from './card.js';
 import { groupVersions } from '../versions.js';
+import { rarityRank } from '../rarity.js';
 import { syncSpecies } from '../sync.js';
 
 const GENS = [[1, 151], [152, 251], [252, 386], [387, 493], [494, 649], [650, 721], [722, 809], [810, 905], [906, 1025]];
@@ -86,7 +87,7 @@ export function pokedexRoot() {
 
 export function openPokemon(id, tab = 'pokedex') {
   const s = state.speciesById.get(id);
-  const F = { lang: 'all', setKey: null, owned: 'all' };
+  const F = { lang: 'all', setKey: null, owned: 'all', sort: 'newest' };
   nav.push(tab, {
     title: s ? speciesName(s, 'en') : `#${id}`,
     subtitle: `#${String(id).padStart(4, '0')}`,
@@ -136,7 +137,9 @@ export function openPokemon(id, tab = 'pokedex') {
           chips([{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))], F.lang, (v) => { F.lang = v; F.setKey = null; draw(); })),
         h('div', { class: 'toolbar' }, setBtn,
           chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], F.owned, (v) => { F.owned = v; draw(); }),
-          dimBtn, combineBtn),
+          dimBtn, combineBtn,
+          h('select', { class: 'input mini', 'aria-label': 'Sort', onchange: (e) => { F.sort = e.target.value; draw(); } },
+            [['newest', 'Newest'], ['oldest', 'Oldest'], ['rarity', 'Rarity']].map(([v, l]) => h('option', { value: v, selected: F.sort === v }, l)))),
         res);
       draw();
       // HP + illustrator for each card (used to match languages when a card has no picture)
@@ -171,7 +174,9 @@ export function openPokemon(id, tab = 'pokedex') {
         let cards = all;
         if (F.lang !== 'all') cards = cards.filter((c) => c.lang === F.lang);
         if (F.setKey) cards = cards.filter((c) => c.setKey === F.setKey);
-        cards = [...cards].sort((a, b) => (state.sets.get(b.setKey)?.releaseDate || '').localeCompare(state.sets.get(a.setKey)?.releaseDate || ''));
+        const rd = (c) => state.sets.get(c.setKey)?.releaseDate || '';
+        cards = [...cards].sort(F.sort === 'rarity' ? (a, b) => rarityRank(b) - rarityRank(a) || rd(b).localeCompare(rd(a))
+          : F.sort === 'oldest' ? (a, b) => rd(a).localeCompare(rd(b)) : (a, b) => rd(b).localeCompare(rd(a)));
         // One tile per card, with its English/Japanese/Chinese versions inside
         const combine = state.settings.dexCombine !== false && F.lang === 'all';
         let groups = cards.map((c) => ({ rep: c, keys: [c.key] }));

@@ -1,5 +1,15 @@
 [
  {
+  "id": "2026-10-16e",
+  "date": "2026-10-16",
+  "title": "Sort by rarity, Japanese names on Mercari",
+  "items": [
+   "Search and the Pokédex can now sort cards by rarity (rarest first).",
+   "Mercari price checks for Japanese cards search with the card's Japanese name (e.g. バンギラスV instead of Tyranitar V).",
+   "You can also search Japanese cards by their Japanese name."
+  ]
+ },
+ {
   "id": "2026-10-16d",
   "date": "2026-10-16",
   "title": "No more TCG Pocket cards, English list moving to dextcg",
