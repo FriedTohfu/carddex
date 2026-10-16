@@ -46,6 +46,11 @@ def num_key(x):
     return f'{m.group(1)}{int(m.group(2))}{m.group(3)}' if m else x
 
 
+def digits(x):
+    m = re.search(r'\d+', str(x or '').split('/')[0])
+    return int(m.group(0)) if m else str(x or '').upper()
+
+
 def name_key(x):
     x = html.unescape(str(x or '')).lower().replace('&', 'and')
     x = re.sub(r'^(scarlet and violet|sword and shield|sun and moon|black and white|diamond and pearl|heartgold and soulsilver|mega evolution|xy|ex)\s*[:\-—–]\s*', '', x)
@@ -107,6 +112,7 @@ def tcgdex_en():
             out.append({
                 'key': f"en:{full['id']}", 'name': full.get('name') or full['id'], 'nk': name_key(full.get('name')),
                 'day': day(full.get('releaseDate')), 'nums': {num_key(c.get('localId')) for c in full['cards']},
+                'cards': [(name_key(c.get('name')), digits(c.get('localId'))) for c in full['cards']],
                 'total': (full.get('cardCount') or {}).get('total') or len(full['cards']),
             })
     print(f'TCGdex English: {len(out)} sets with cards', flush=True)
@@ -181,7 +187,7 @@ def dex_card(eid, num):
         return None
     title = meta(page, 'og:title')
     desc = meta(page, 'description') or meta(page, 'og:description')
-    name = re.sub(r'\s+-\s+[^-]+$', '', title).strip() if ' - ' in title else title
+    name = title.split(' - ')[0].strip()  # og:title is "<card> - <set name>"; set names can contain '-'
     if not name:
         return None
     rarity = (re.search(r'card [^,]+,\s*([^,]+?),\s*illustrated', desc) or [None, ''])[1]
@@ -222,9 +228,25 @@ def main():
         have[s['key']] = set(s['nums'])
     added = {}
 
+    # same card already in TCGdex (maybe in a set with another name, or numbered SWSH075 vs 75)
+    known = {}
+    for b in en_base:
+        for ck in b.get('cards', []):
+            known.setdefault(ck, []).append(b['day'])
+    set_day = {b['key']: b['day'] for b in en_base}
+
+    def dup(setKey, name, local):
+        if not setKey.startswith('en:'):
+            return False
+        d = set_day.get(setKey)
+        for kd in known.get((name_key(name), digits(local)), []):
+            if not d or not kd or abs((d - kd).days) <= 400:
+                return True
+        return False
+
     def add(setKey, local, number, name, rarity, artist, thumb, large):
         k = num_key(local)
-        if k in have.setdefault(setKey, set()):
+        if k in have.setdefault(setKey, set()) or dup(setKey, name, local):
             return False
         have[setKey].add(k)
         out_cards.append([setKey, str(local), number or str(local), name, rarity or '', artist or '', thumb or '', large or ''])
@@ -244,6 +266,7 @@ def main():
             key = f"en:x-{s['id']}"
             out_sets.append({'key': key, 'lang': 'en', 'name': s['name'], 'serie': s['serie'], 'releaseDate': s['release'], 'total': len(cards)})
             en_base.append({'key': key, 'name': s['name'], 'nk': name_key(s['name']), 'day': s['day'], 'nums': set(), 'total': len(cards)})
+            set_day[key] = s['day']
             report.append(f'NEW SET en  {s["name"]} ({s["release"]}) from pkmn.gg: {len(cards)} cards')
         for c in cards:
             add(key, c[2], c[3], c[5] or c[4], c[6], c[7] if c[7] and c[7].lower() != 'n/a' else '', c[9], c[10])
@@ -300,6 +323,8 @@ def main():
     names = {s['key']: s['name'] for s in en_base + ja_base}
     for k, n in sorted(added.items(), key=lambda x: -x[1]):
         report.append(f'ADDED {n:4d}  {k}  {names.get(k, "")}')
+    used = {c[0] for c in out_cards}
+    out_sets = [st for st in out_sets if st['key'] in used]
     built = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     json.dump({'built': built, 'sets': out_sets, 'cards': out_cards},
               open(os.path.join(DATA, 'extra.json'), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))

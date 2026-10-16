@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-16c",
+  "date": "2026-10-16",
+  "title": "Pokédex and duplicate fixes",
+  "items": [
+   "Japanese cards no longer show up under the wrong Pokémon because of their set's name (e.g. Ho-Oh ex under Charizard).",
+   "English cards that appeared twice (once in a second copy of a promo set) are removed."
+  ]
+ },
+ {
   "id": "2026-10-16b",
   "date": "2026-10-16",
   "title": "Japanese cards rebuilt from scratch",

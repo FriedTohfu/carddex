@@ -77,7 +77,7 @@ def card(eid, num):
     if not page:
         return None
     title, desc = meta(page, 'og:title'), meta(page, 'description') or meta(page, 'og:description')
-    name = re.sub(r'\s+-\s+[^-]+$', '', title).strip() if ' - ' in title else title
+    name = title.split(' - ')[0].strip()  # og:title is "<card> - <set name>"; set names can contain '-'
     if not name:
         return None
     rarity = (re.search(r'card [^,]+,\s*([^,]+?),\s*illustrated', desc) or [None, ''])[1]
