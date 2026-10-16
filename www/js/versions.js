@@ -15,6 +15,7 @@ function artDistance(a, b) {
 }
 
 export const SAME_ART = 16;
+const LOOSE_ART = 26;
 
 /** Language order for picking which version represents a group. */
 export function langOrder() {
@@ -36,6 +37,11 @@ function sameFacts(a, b, da, db, namesAgree) {
   // Old Japanese sets often came out up to ~3 years before their English versions
   if (ra && rb && Math.abs(new Date(ra) - new Date(rb)) > 4 * 365 * 864e5) return false;
   return true;
+}
+
+function sameArtist(da, db) {
+  const ia = norm(da?.illustrator), ib = norm(db?.illustrator);
+  return !!ia && ia === ib;
 }
 
 /** The card's English name, if we know it (English cards, and Japanese cards that carry one). */
@@ -64,6 +70,8 @@ export async function groupVersions(cards, details = new Map()) {
     if (fp[i] && fp[j]) {
       const d = artDistance(fp[i], fp[j]);
       if (d <= SAME_ART) pairs.push([d, i, j]);
+      // Same name and artist: allow a looser picture match (rainbow/gold versions shift the colours)
+      else if (named && d <= LOOSE_ART && sameArtist(details.get(cards[i].key), details.get(cards[j].key))) pairs.push([d, i, j]);
     } else if (sameFacts(cards[i], cards[j], details.get(cards[i].key), details.get(cards[j].key), named)) {
       pairs.push([SAME_ART - 0.5, i, j]);
     }
