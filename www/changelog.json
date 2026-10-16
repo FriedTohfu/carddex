@@ -1,5 +1,15 @@
 [
  {
+  "id": "2026-10-16g",
+  "date": "2026-10-16",
+  "title": "Search by artist",
+  "items": [
+   "Type an illustrator's name in Search to see every card they drew.",
+   "On a card, tap the illustrator's name to see all their cards.",
+   "Combining in the Pokédex now also pairs cards with the same name and artist even when the colours differ (rainbow and gold versions)."
+  ]
+ },
+ {
   "id": "2026-10-16f",
   "date": "2026-10-16",
   "title": "Better language combining in the Pokédex",

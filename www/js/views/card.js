@@ -82,7 +82,9 @@ export function openCard(key, list = null, opts = {}) {
       const rows = [
         ['Rarity', d.rarity], ['Type', d.category], ['HP', d.hp], ['Illustrator', d.illustrator], ['Regulation', d.regulationMark],
       ].filter((r) => r[1]);
-      extra.append(h('dl', { class: 'facts' }, rows.map(([k, v]) => [h('dt', {}, k), h('dd', {}, String(v))])));
+      extra.append(h('dl', { class: 'facts' }, rows.map(([k, v]) => [h('dt', {}, k), k === 'Illustrator'
+        ? h('dd', {}, h('button', { class: 'link', title: 'All cards by this artist', onclick: () => { s.close(); import('./search.js').then((m) => m.searchFor(String(v))); } }, String(v), ' ›'))
+        : h('dd', {}, String(v))])));
       pricesBox.dataset.market = JSON.stringify(priceOf(d) || null);
       drawPrices(card, pricesBox);
     });

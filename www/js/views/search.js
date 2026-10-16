@@ -39,7 +39,7 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
         return totals.some((t) => t != null && t !== '' && stripZ(t) === stripZ(of));
       });
     }
-    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '') + (c.nameJa ? ' ' + c.nameJa : '')); return words.every((w) => n.includes(w)); });
+    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '') + (c.nameJa ? ' ' + c.nameJa : '') + (c.det?.illustrator ? ' ' + c.det.illustrator : '')); return words.every((w) => n.includes(w)); });
   }
   if (owned === 'owned') cards = cards.filter((c) => qty(c.key));
   if (owned === 'missing') cards = cards.filter((c) => !qty(c.key));
@@ -69,7 +69,7 @@ export function searchRoot() {
         return;
       }
       const results = h('div');
-      const input = h('input', { class: 'input search', type: 'search', placeholder: 'Name and/or number, e.g. Mewtwo 164/162', value: S.q, enterkeyhint: 'search' });
+      const input = h('input', { class: 'input search', type: 'search', placeholder: 'Name, number or artist, e.g. Mewtwo 164/162', value: S.q, enterkeyhint: 'search' });
       input.addEventListener('input', debounce(() => { S.q = input.value; draw(); }, 220));
       const setBtn = h('button', { class: 'chip' + (S.setKey ? ' on' : ''), onclick: pickSet });
       const langOpts = [{ value: 'all', label: 'All languages' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))];
@@ -177,3 +177,10 @@ export function openPicker({ title = 'Choose a card', onPick, multi = false, own
 }
 
 export function initSearch() { nav.setRoot('search', searchRoot()); }
+
+/** Opens Search with a query, e.g. every card by an artist. */
+export function searchFor(q) {
+  Object.assign(S, { q, lang: 'all', setKey: null, owned: 'all' });
+  nav.setRoot('search', searchRoot());
+  nav.switchTab('search');
+}

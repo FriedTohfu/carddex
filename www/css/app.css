@@ -453,3 +453,5 @@ textarea.input { resize: vertical; }
 .peek.show { background: rgba(0,0,0,.6); }
 .peek.show img { transform: scale(1); opacity: 1; }
 .tile { -webkit-touch-callout: none; user-select: none; }
+
+button.link { background: none; border: 0; padding: 0; color: var(--accent, #e85d5d); font: inherit; text-align: left; cursor: pointer; }
