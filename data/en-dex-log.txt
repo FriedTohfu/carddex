@@ -1,12 +1,29 @@
 236 en expansions
 236 sets, 0 cards kept from last run, 22279 card pages to read
 sample set: [{'id': 'me55cc', 'name': '30th Celebration: Classic Collection', 'series': 'Mega Evolution', 'releaseDate': '2026-09-16', 'total': 30, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me55cc.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me55cc.png'}, {'id': 'me55', 'name': '30th Celebration', 'series': '30th Celebration: Classic Collection', 'releaseDate': '2026-09-16', 'total': 161, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me55.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me55.png'}]
-  card: ['me55cc-1', 'me55cc', '1', '1', '', 'Pikachu', 'Common', 'Mitsuhiro Arita', 'Pokémon', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me55cc%2F1.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/me55cc%2F1.png']
-  card: ['me3-121', 'me3', '121', '121', '', 'Meowth ex', 'Special Illustration Rare', 'Natsumi Yoshida', 'Pokémon', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me3%2F121.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/me3%2F121.png']
-  card: ['me1-128', 'me1', '128', '128', '', 'Strange Timepiece', 'Uncommon', 'Toyste Beach', 'Trainer', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me1%2F128.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/me1%2F128.png']
-  card: ['sv10-34', 'sv10', '34', '34', '', "Ethan's Typhlosion", 'Rare', 'danciao', 'Pokémon', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/sv10%2F34.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/sv10%2F34.png']
-  card: ['sv85-156', 'sv85', '156', '156', '', 'Sylveon ex', 'Special Illustration Rare', 'Cona Nitanda', 'Pokémon', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/sv85%2F156.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/sv85%2F156.png']
-  card: ['sv6-6', 'sv6', '6', '6', '', 'Sunkern', 'Common', 'Naoyo Kimura', 'Pokémon', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/sv6%2F6.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/sv6%2F6.png']
-  card: ['sv45-118', 'sv45', '118', '118', '', 'Staryu', 'Shiny Rare', 'Nisota Niso', 'Pokémon', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/sv45%2F118.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/sv45%2F118.png']
-  card: ['sv35-163', 'sv35', '163', '163', '', 'Leftovers', 'Uncommon', 'Studio Bora Inc.', 'Trainer', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/sv35%2F163.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/sv35%2F163.png']
-QUICK: 39/40 card pages read, 39 with pictures
+  1000/22279 pages, 997 cards
+  2000/22279 pages, 1994 cards
+  3000/22279 pages, 2994 cards
+  4000/22279 pages, 3994 cards
+  5000/22279 pages, 4994 cards
+  6000/22279 pages, 5994 cards
+  7000/22279 pages, 6969 cards
+  8000/22279 pages, 7969 cards
+  9000/22279 pages, 8968 cards
+  10000/22279 pages, 9959 cards
+  11000/22279 pages, 10927 cards
+  12000/22279 pages, 11809 cards
+  13000/22279 pages, 12766 cards
+  14000/22279 pages, 13635 cards
+  15000/22279 pages, 14548 cards
+  16000/22279 pages, 15502 cards
+  17000/22279 pages, 16496 cards
+  18000/22279 pages, 17468 cards
+  19000/22279 pages, 18436 cards
+  20000/22279 pages, 19400 cards
+  21000/22279 pages, 20400 cards
+  22000/22279 pages, 21400 cards
+TCGdex English: 220 sets
+TCGdex English: 216 sets with cards
+162/231 old sets matched, 18847 old cards mapped
+Saved 236 sets, 21669 cards (21669 with pictures)
