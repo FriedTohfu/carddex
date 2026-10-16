@@ -23,42 +23,58 @@ export function langOrder() {
 }
 
 // Without pictures we can still match on facts that don't change between
-// languages: HP and illustrator (and the releases being close together).
+// languages: illustrator and HP (and the releases being close together).
 const norm = (x) => String(x || '').toLowerCase().normalize('NFKC').replace(/[^a-z0-9\u3040-\u30ff\u4e00-\u9fff]/g, '');
-function sameFacts(a, b, da, db) {
+function sameFacts(a, b, da, db, namesAgree) {
   if (!da || !db) return false;
   const ia = norm(da.illustrator), ib = norm(db.illustrator);
   if (!ia || ia !== ib) return false;
-  // HP must match when both sides have it (some card lists don't include HP)
   if (da.hp && db.hp && +da.hp !== +db.hp) return false;
+  // Without English names on both sides, HP has to be there to tell e.g. V from VMAX
+  if (!namesAgree && !(da.hp && db.hp)) return false;
   const ra = state.sets.get(a.setKey)?.releaseDate, rb = state.sets.get(b.setKey)?.releaseDate;
   // Old Japanese sets often came out up to ~3 years before their English versions
   if (ra && rb && Math.abs(new Date(ra) - new Date(rb)) > 4 * 365 * 864e5) return false;
   return true;
 }
 
+/** The card's English name, if we know it (English cards, and Japanese cards that carry one). */
+const englishName = (c) => norm(c.lang === 'en' ? c.name : c.nameEn);
+
 /**
  * Groups cards that are the same card in different languages.
  * details: optional Map(cardKey -> {hp, illustrator}) used when a card has no picture.
+ * Each group holds at most one card per language; the closest matches are linked first,
+ * and cards whose English names differ (e.g. "Metagross V" / "Metagross VMAX") are never linked.
  * Returns [{ rep: card, keys: [cardKey…] }] keeping the input order of representatives.
  */
 export async function groupVersions(cards, details = new Map()) {
   const fps = await loadFingerprints();
   const n = cards.length;
   const parent = cards.map((_, i) => i);
+  const langs = cards.map((c) => new Set([c.lang]));
   const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   const fp = cards.map((c) => fps.get(c.key) || null);
-  for (let i = 0; i < n; i++) {
-    if (!fp[i]) continue;
-    for (let j = i + 1; j < n; j++) {
-      if (!fp[j] || cards[i].lang === cards[j].lang) continue; // only link across languages
-      if (artDistance(fp[i], fp[j]) <= SAME_ART) parent[find(j)] = find(i);
+  const en = cards.map(englishName);
+  const pairs = [];
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    if (cards[i].lang === cards[j].lang) continue; // only link across languages
+    const named = !!(en[i] && en[j]);
+    if (named && en[i] !== en[j]) continue;
+    if (fp[i] && fp[j]) {
+      const d = artDistance(fp[i], fp[j]);
+      if (d <= SAME_ART) pairs.push([d, i, j]);
+    } else if (sameFacts(cards[i], cards[j], details.get(cards[i].key), details.get(cards[j].key), named)) {
+      pairs.push([SAME_ART - 0.5, i, j]);
     }
   }
-  // Cards missing a picture on either side: fall back to HP + illustrator
-  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
-    if (cards[i].lang === cards[j].lang || (fp[i] && fp[j])) continue;
-    if (sameFacts(cards[i], cards[j], details.get(cards[i].key), details.get(cards[j].key))) parent[find(j)] = find(i);
+  pairs.sort((a, b) => a[0] - b[0]);
+  for (const [, i, j] of pairs) {
+    const a = find(i), b = find(j);
+    if (a === b) continue;
+    if ([...langs[b]].some((l) => langs[a].has(l))) continue; // one card per language in a group
+    parent[b] = a;
+    for (const l of langs[b]) langs[a].add(l);
   }
   const groups = new Map();
   cards.forEach((c, i) => {

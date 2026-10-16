@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-16f",
+  "date": "2026-10-16",
+  "title": "Better language combining in the Pokédex",
+  "items": [
+   "Cards like Metagross V no longer disappear into Metagross VMAX — each combined card now holds one version per language, and cards with different names are never combined.",
+   "The closest matching English and Japanese versions are paired first, so more cards combine correctly."
+  ]
+ },
+ {
   "id": "2026-10-16e",
   "date": "2026-10-16",
   "title": "Sort by rarity, Japanese names on Mercari",
