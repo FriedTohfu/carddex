@@ -1,5 +1,13 @@
 [
  {
+  "id": "2026-10-16h",
+  "date": "2026-10-16",
+  "title": "Hold-to-view fix",
+  "items": [
+   "Holding a card in the Pokédex now keeps it popped up for as long as you hold it, and it closes when you let go."
+  ]
+ },
+ {
   "id": "2026-10-16g",
   "date": "2026-10-16",
   "title": "Search by artist, better combining",

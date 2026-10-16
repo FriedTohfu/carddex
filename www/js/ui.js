@@ -360,9 +360,14 @@ export function langBadge(lang) {
 /** Hold a card to see it big; let go to close. A hold doesn't count as a tap. */
 export function enablePeek(el, card) {
   let timer = null, sx = 0, sy = 0, overlay = null;
+  const ends = ['pointerup', 'touchend', 'touchcancel', 'mouseup'];
+  const noScroll = (e) => e.preventDefault();
   const close = () => {
     clearTimeout(timer); timer = null;
-    if (overlay) { overlay.classList.remove('show'); const o = overlay; setTimeout(() => o.remove(), 160); overlay = null; }
+    if (!overlay) return;
+    for (const ev of ends) window.removeEventListener(ev, close, true);
+    window.removeEventListener('touchmove', noScroll, { capture: true });
+    overlay.classList.remove('show'); const o = overlay; setTimeout(() => o.remove(), 160); overlay = null;
   };
   const open = () => {
     timer = null;
@@ -374,14 +379,20 @@ export function enablePeek(el, card) {
     document.body.append(overlay);
     requestAnimationFrame(() => overlay?.classList.add('show'));
     navigator.vibrate?.(15);
+    // Stay open until the finger actually lifts (the phone may cancel the touch as a long-press/scroll)
+    for (const ev of ends) window.addEventListener(ev, close, true);
+    window.addEventListener('touchmove', noScroll, { capture: true, passive: false });
   };
+  // Before it opens: moving or a cancelled touch means scrolling, so don't open
+  const cancel = () => { clearTimeout(timer); timer = null; };
   el.addEventListener('pointerdown', (e) => {
     if (e.button > 0) return;
     el._peeked = false; sx = e.clientX; sy = e.clientY;
     clearTimeout(timer); timer = setTimeout(open, 350);
   });
-  el.addEventListener('pointermove', (e) => { if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) { clearTimeout(timer); timer = null; } });
-  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(ev, close);
+  el.addEventListener('pointermove', (e) => { if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) cancel(); });
+  el.addEventListener('pointerup', cancel);
+  el.addEventListener('pointercancel', () => { if (!overlay) cancel(); });
   el.addEventListener('contextmenu', (e) => e.preventDefault());
   el.addEventListener('click', (e) => { if (el._peeked) { e.stopImmediatePropagation(); e.preventDefault(); el._peeked = false; } }, true);
 }
