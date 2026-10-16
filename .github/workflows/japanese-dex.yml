@@ -45,7 +45,7 @@ jobs:
           python build/make_ja_dex.py 2>&1 | tee data/ja-dex-log.txt
 
       - name: Save Japanese card list
-        if: ${{ always() && !inputs.quick }}
+        if: always()
         run: bash build/save-data.sh "Rebuild Japanese card list (dextcg)"
 
       - name: Next step
