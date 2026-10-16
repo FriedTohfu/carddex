@@ -9,3 +9,15 @@
   350/424 sets, 22273 cards
   400/424 sets, 24908 cards
 Saved 424 sets, 25782 cards (25782 with pictures)
+== en: reading card list
+   21987 cards with images, 8 new
+   en: 8/8
+   en: 21979 fingerprints saved
+== ja: reading card list
+   27533 cards with images, 20 new
+   ja: 20/20
+   ja: 53295 fingerprints saved
+== zh-tw: reading card list
+   2146 cards with images, 0 new
+== zh-cn: reading card list
+   22882 cards with images, 0 new
