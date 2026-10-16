@@ -1,12 +1,32 @@
 470 Japanese expansions
 465 sets, 0 cards kept from last run, 27709 card pages to read
 sample set: [{'id': 'jpn_mf', 'name': '30th Celebration Premium Deck Set Espeon & Umbreon', 'series': '', 'releaseDate': '2026-09-16', 'total': 49, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_mf.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_mf.png'}, {'id': 'jpn_m6a', 'name': '30th Celebration', 'series': '', 'releaseDate': '2026-09-16', 'total': 176, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_m6a.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_m6a.png'}]
-  card: ['jpn_mf-1', 'jpn_mf', '1', '1', '', 'Tropius', 'No Rarity', 'Minahamu. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_mf%2F1.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_mf%2F1.png']
-  card: ['jpn_m3-59', 'jpn_m3', '59', '59', '', 'Rattata', 'Common', 'Shinya Komatsu. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_m3%2F59.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_m3%2F59.png']
-  card: ['jpn_mc-611', 'jpn_mc', '611', '611', '', 'Furfrou', 'No Rarity', 'Shinya Komatsu. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_mc%2F611.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_mc%2F611.png']
-  card: ['jpn_m1s-76', 'jpn_m1s', '76', '76', '', 'Mega Abomasnow ex', 'Ultra Rare', '5ban Graphics. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_m1s%2F76.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_m1s%2F76.png']
-  card: ['jpn_sv10-79', 'jpn_sv10', '79', '79', '', "Team Rocket's Persian ex", 'Double Rare', '5ban Graphics. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_sv10%2F79.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_sv10%2F79.png']
-  card: ['jpn_svm-94', 'jpn_svm', '94', '94', '', 'Snorlax ex', 'No Rarity', 'N-DESIGN Inc.. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_svm%2F94.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_svm%2F94.png']
-  card: ['jpn_sv6-22', 'jpn_sv6', '22', '22', '', 'Hearthflame Mask Ogerpon ex', 'Double Rare', '5ban Graphics. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_sv6%2F22.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_sv6%2F22.png']
-  card: ['jpn_sv4a-105', 'jpn_sv4a', '105', '105', '', 'Lucario', 'No Rarity', 'Nurikabe. Check its current market value across TCGplayer, Cardmarket, CardTrader and eBay, see every variant, and track it in Dex', 'Energy', 'https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_sv4a%2F105.png', 'https://dextcg.com/cdn-cgi/image/w=800,q=85,f=auto/https://static.dextcg.com/cards/jpn_sv4a%2F105.png']
-QUICK: 40/40 card pages read, 40 with pictures
+  1000/27709 pages, 997 cards
+  2000/27709 pages, 1997 cards
+  3000/27709 pages, 2986 cards
+  4000/27709 pages, 3986 cards
+  5000/27709 pages, 4972 cards
+  6000/27709 pages, 5972 cards
+  7000/27709 pages, 6972 cards
+  8000/27709 pages, 7972 cards
+  9000/27709 pages, 8972 cards
+  10000/27709 pages, 9972 cards
+  11000/27709 pages, 10972 cards
+  12000/27709 pages, 11971 cards
+  13000/27709 pages, 12955 cards
+  14000/27709 pages, 13955 cards
+  15000/27709 pages, 14955 cards
+  16000/27709 pages, 15955 cards
+  17000/27709 pages, 16954 cards
+  18000/27709 pages, 17954 cards
+  19000/27709 pages, 18941 cards
+  20000/27709 pages, 19925 cards
+  21000/27709 pages, 20909 cards
+  22000/27709 pages, 21907 cards
+  23000/27709 pages, 22905 cards
+  24000/27709 pages, 23905 cards
+  25000/27709 pages, 24905 cards
+  26000/27709 pages, 25905 cards
+  27000/27709 pages, 26874 cards
+351/424 old sets matched, 22719 old cards mapped
+Saved 465 sets, 27533 cards (27533 with pictures)
