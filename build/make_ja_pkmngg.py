@@ -17,7 +17,7 @@ LANG = (sys.argv[1] if len(sys.argv) > 1 else 'jp').lower()
 if LANG not in ('jp', 'en'):
     sys.exit('language must be jp or en')
 OUT = os.path.join(ROOT, 'data', 'ja-pkmngg.json' if LANG == 'jp' else 'en-pkmngg.json')
-KEY = 'jaGG' if LANG == 'jp' else 'enGG'
+KEY = 'jaPkmngg' if LANG == 'jp' else 'enGG'  # the app's Japanese list (jaGG) now comes from dextcg
 BASE = 'https://www.pkmn.gg'
 UA = {'User-Agent': 'Mozilla/5.0 (CardDex personal collection app; github.com/FriedTohfu/carddex)', 'Accept-Encoding': 'gzip'}
 
