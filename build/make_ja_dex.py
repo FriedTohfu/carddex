@@ -81,9 +81,11 @@ def card(eid, num):
     if not name:
         return None
     rarity = (re.search(r'card [^,]+,\s*([^,]+?),\s*illustrated', desc) or [None, ''])[1]
-    artist = (re.search(r'illustrated by (.+?)\.?$', desc) or [None, ''])[1]
+    artist = (re.search(r'illustrated by (.+?)(?:\.\s+Check\b.*)?\.?$', desc) or [None, ''])[1].strip()
+    if rarity.lower() == 'no rarity':
+        rarity = ''
     t = text_of(page)
-    kind = 'Trainer' if re.search(r'Trainer Type', t) else 'Energy' if re.search(r'\bEnergy Type\b|Basic Energy|Special Energy', t) else 'Pokémon'
+    kind = 'Trainer' if re.search(r'Trainer Type', t) else 'Energy' if re.search(r'\bEnergy$', name) else 'Pokémon'
     img = re.search(r'https://static\.dextcg\.com/cards/[^"\'\s)]+?\.(?:png|jpg|webp)', page)
     img = html.unescape(img.group(0)) if img else ''
     thumb = f'{DEX}/cdn-cgi/image/w=300,q=80,f=auto/{img}' if img else ''
@@ -172,6 +174,9 @@ def main():
             m = match_set(s['name'], s.get('releaseDate'), base)
             if m:
                 setmap[s['id']] = m['key']
+                mine = next((x for x in sets if x['id'] == m['key']), None)
+                if mine and not mine['series']:
+                    mine['series'] = s.get('series') or ''
         for c in old['cards']:
             new_set = setmap.get(c[1])
             nid = by_set_num.get((new_set, num_key(c[2]))) if new_set else None
