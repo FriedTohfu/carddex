@@ -80,98 +80,49 @@ NEW SET en Battle Road: Victory Medals (2007-05-26) from dextcg: 9 cards
 NEW SET en World Championships: Trainer Cards (2004-08-20) from dextcg: 75 cards
 NEW SET en Tropical Mega Battle Half Deck (2001-08-26) from dextcg: 17 cards
 NEW SET en Unnumbered Promos (2001-07-21) from dextcg: 18 cards
-ADDED  307  en:x-dex-swshp  Sword & Shield Promos
-ADDED  226  en:x-svp  Scarlet & Violet Black Star Promos
-ADDED  225  en:x-dex-svp  Scarlet & Violet Promos
-ADDED  149  en:x-dex-smp  Sun & Moon Promos
-ADDED  114  en:x-dex-mep  Mega Evolution Promos
-ADDED  112  en:x-dex-xyp  XY Promos
-ADDED  111  en:x-dex-ex7  EX Team Rocket Returns
-ADDED  109  en:x-dex-ex1  EX Ruby & Sapphire
-ADDED  108  en:x-dex-ex8  EX Deoxys
-ADDED  102  en:x-dex-ex5  EX Hidden Legends
 ADDED   75  en:x-dex-tcgwc  World Championships: Trainer Cards
 ADDED   60  en:x-dex-ba22e  Battle Academy 2022: Eevee Deck
-ADDED   60  en:x-dex-ba20m  Battle Academy 2020: Mewtwo Deck
-ADDED   56  en:x-dex-dpp  Diamond & Pearl Promos
-ADDED   53  en:x-dex-basep  Wizards Promos
-ADDED   40  en:x-dex-np  Nintendo Promos
-ADDED   40  en:x-dex-mcd18fr  McDonald's Collection 2018 (🇫🇷)
+ADDED   58  en:x-dex-ba20m  Battle Academy 2020: Mewtwo Deck
 ADDED   34  en:x-clb  Pokémon TCG Classic - Blastoise
-ADDED   34  en:x-dex-cclb  Trading Card Game Classic: Blastoise & Suicune ex Deck
-ADDED   30  en:x-tk5b  Black & White Trainer Kit Excadrill
-ADDED   30  en:x-tk4b  HGSS Trainer Kit Raichu
-ADDED   30  en:x-dex-tk11a  Sun & Moon Trainer Kit: Alolan Ninetales Half Deck
-ADDED   30  en:x-dex-tk10b  Sun & Moon Trainer Kit: Alolan Raichu Half Deck
-ADDED   30  en:x-dex-tk9b  XY Trainer Kit: Suicune Half Deck
-ADDED   30  en:x-dex-tk8a  XY Trainer Kit: Latios Half Deck
-ADDED   30  en:x-dex-tk7b  XY Trainer Kit: Wigglytuff Half Deck
-ADDED   30  en:x-dex-tk6b  XY Trainer Kit: Sylveon Half Deck
-ADDED   30  en:x-dex-tk5b  Black & White Trainer Kit: Excadrill Half Deck
-ADDED   30  en:x-dex-tk4b  HS Trainer Kit: Raichu Half Deck
-ADDED   28  en:ex10  Unseen Forces
-ADDED   28  en:2018sm  McDonald's Collection 2018
-ADDED   25  en:x-dex-hsp  HeartGold & SoulSilver Promos
+ADDED   34  en:x-dex-mcd18fr  McDonald's Collection 2018 (🇫🇷)
+ADDED   32  en:x-dex-cclb  Trading Card Game Classic: Blastoise & Suicune ex Deck
+ADDED   25  en:2018sm  McDonald's Collection 2018
 ADDED   24  en:x-sve23  Scarlet & Violet: Energy (2023)
+ADDED   24  en:x-dex-mep  Mega Evolution Promos
 ADDED   23  en:mep  MEP Black Star Promos
 ADDED   22  en:cel25cc  Celebrations Classic Collection
 ADDED   21  en:30th-c  30th Classic Collection
+ADDED   20  en:x-dex-tk11a  Sun & Moon Trainer Kit: Alolan Ninetales Half Deck
+ADDED   19  en:x-dex-dpp  Diamond & Pearl Promos
 ADDED   17  en:x-dex-tmb  Tropical Mega Battle Half Deck
 ADDED   17  en:x-dex-unp  Unnumbered Promos
 ADDED   12  en:tk-sm-l  SM trainer Kit (Lycanroc)
-ADDED   12  en:x-mcd17  McDonald's Collection 2017
-ADDED   12  en:x-dex-bt2  Box Toppers (e-Card series)
-ADDED   12  en:x-dex-mcd13  McDonald's Collection 2013 (🇫🇷)
-ADDED   12  en:x-dex-mfbs  My First Battle: Squirtle Deck
-ADDED   12  en:x-dex-tk3b  Diamond & Pearl Trainer Kit: Lucario Half Deck
-ADDED   12  en:x-dex-tk2b  EX Trainer Kit: Minun Half Deck
-ADDED   12  en:x-dex-aac  Pokémon Art Academy Competition
-ADDED   11  en:sm2  Guardians Rising
-ADDED   10  en:x-dex-tk1b  EX Trainer Kit: Latios Half Deck
+ADDED   11  en:x-dex-mfbs  My First Battle: Squirtle Deck
 ADDED    9  en:x-swshe20  Sword & Shield: Energy (2020)
 ADDED    9  en:x-sme19  Sun & Moon: Energy (2019)
 ADDED    9  en:x-sme17  Sun & Moon: Energy (2017)
 ADDED    9  en:x-xye13  XY: Energy (2013)
-ADDED    9  en:x-dex-uen20  Energies 2020
-ADDED    9  en:x-dex-uen19  Energies 2019
-ADDED    9  en:x-dex-uen17  Energies 2017
-ADDED    9  en:x-dex-uen13  Energies 2013
+ADDED    9  en:x-dex-bt2  Box Toppers (e-Card series)
 ADDED    9  en:x-dex-vm1  Battle Road: Victory Medals
 ADDED    8  en:mee  Mega Evolution Energy
 ADDED    8  en:x-swshe22  Sword & Shield: Energy (2022)
-ADDED    8  en:sm3  Burning Shadows
 ADDED    8  en:x-bwe13  Black & White: Energy (2011)
 ADDED    8  en:x-hgsse10  HGSS: Energy (2010)
-ADDED    8  en:x-dex-uen22  Energies 2022
-ADDED    8  en:x-dex-uen11  Energies 2011
-ADDED    8  en:x-dex-uen10  Energies 2010
-ADDED    8  en:x-dex-uen9  Energies 2009
-ADDED    8  en:x-dex-uen7  Energies 2007
-ADDED    8  en:x-dex-eyg02  Energize Your Game 2002
-ADDED    8  en:x-dex-pwt  World Collection
-ADDED    6  en:smp  SM Black Star Promos
-ADDED    6  en:x-dex-uen6  Energies 2006
-ADDED    6  en:x-dex-uen5  Energies 2005
-ADDED    5  en:sm5  Ultra Prism
-ADDED    5  en:x-fut20  Pokémon Futsal Collection
-ADDED    4  en:sm10  Unbroken Bonds
-ADDED    4  en:sm8  Lost Thunder
-ADDED    4  en:sm7  Celestial Storm
-ADDED    4  en:sm6  Forbidden Light
-ADDED    4  en:ecard2  Aquapolis
-ADDED    4  en:x-dex-bt1  Box Toppers (Legendary Collection)
+ADDED    6  en:x-dex-mcd13  McDonald's Collection 2013 (🇫🇷)
+ADDED    4  en:x-dex-swshp  Sword & Shield Promos
 ADDED    3  en:30th  30th Celebration
-ADDED    3  en:sm11  Unified Minds
-ADDED    3  en:sm3.5  Shining Legends
+ADDED    3  en:smp  SM Black Star Promos
 ADDED    3  en:bwp  BW Black Star Promos
-ADDED    2  en:sm9  Team Up
-ADDED    2  en:sm7.5  Dragon Majesty
+ADDED    3  en:x-dex-svp  Scarlet & Violet Promos
+ADDED    3  en:x-dex-bt1  Box Toppers (Legendary Collection)
+ADDED    3  en:x-dex-aac  Pokémon Art Academy Competition
 ADDED    2  en:dpp  DP Black Star Promos
-ADDED    2  en:x-dex-bwp  Black & White Promos
-ADDED    2  en:x-dex-ss  e-Reader Sample Set
-ADDED    1  en:sm12  Cosmic Eclipse
-ADDED    1  en:sm4  Crimson Invasion
-ADDED    1  en:sm1  Sun & Moon
+ADDED    2  en:x-dex-eyg02  Energize Your Game 2002
+ADDED    1  en:x-svp  Scarlet & Violet Black Star Promos
 ADDED    1  en:np  Nintendo Black Star Promos
+ADDED    1  en:ex10  Unseen Forces
 ADDED    1  en:basep  Wizards Black Star Promos
 ADDED    1  en:x-misc  Miscellaneous
+ADDED    1  en:x-dex-tk10b  Sun & Moon Trainer Kit: Alolan Raichu Half Deck
+ADDED    1  en:x-dex-ss  e-Reader Sample Set
+ADDED    1  en:x-dex-pwt  World Collection
