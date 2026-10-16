@@ -1,16 +1,16 @@
 {
  "en": {
   "v": 1,
-  "src": "tcgdex",
-  "built": "2026-10-16T05:00:58Z",
-  "count": 21979,
+  "src": "gg",
+  "built": "2026-10-16T07:29:54Z",
+  "count": 21657,
   "file": "fp-en.json",
-  "bytes": 2283414
+  "bytes": 2310499
  },
  "ja": {
   "v": 1,
   "src": "gg",
-  "built": "2026-10-16T05:01:03Z",
+  "built": "2026-10-16T07:29:58Z",
   "count": 53295,
   "file": "fp-ja.json",
   "bytes": 5868653

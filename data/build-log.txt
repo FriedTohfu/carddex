@@ -9,3 +9,37 @@
   350/424 sets, 22273 cards
   400/424 sets, 24908 cards
 Saved 424 sets, 25782 cards (25782 with pictures)
+== en: reading card list
+   21669 cards with images, 21669 new
+   en: 960/21669
+   en: 1920/21669
+   en: 2880/21669
+   en: 3840/21669
+   en: 4800/21669
+   en: 5760/21669
+   en: 6720/21669
+   en: 7680/21669
+   en: 8640/21669
+   en: 9600/21669
+   en: 10560/21669
+   en: 11520/21669
+   en: 12480/21669
+   en: 13440/21669
+   en: 14400/21669
+   en: 15360/21669
+   en: 16320/21669
+   en: 17280/21669
+   en: 18240/21669
+   en: 19200/21669
+   en: 20160/21669
+   en: 21120/21669
+   en: 21669/21669
+   en: 21657 fingerprints saved
+== ja: reading card list
+   27533 cards with images, 20 new
+   ja: 20/20
+   ja: 53295 fingerprints saved
+== zh-tw: reading card list
+   2146 cards with images, 0 new
+== zh-cn: reading card list
+   22882 cards with images, 0 new
