@@ -259,8 +259,8 @@ def main():
     jobs = []
     for info in infos:
         eid = info['id']
-        if eid.startswith('scn_'):
-            continue
+        if eid.startswith('scn_') or eid.startswith('jpn_'):
+            continue  # Japanese now comes whole from dextcg (make_ja_dex.py)
         lang = 'ja' if eid.startswith('jpn_') else 'en'
         base = ja_base if lang == 'ja' else en_base
         m = match_set(info['name'], info['release'], base)

@@ -308,6 +308,7 @@ export async function applyExtra(force = false) {
   const put = [], drop = [], touched = new Set(), fresh = new Set();
   for (const [setKey, local, number, name, rarity, artist, thumb, large] of d.cards) {
     const lang = setKey.slice(0, setKey.indexOf(':'));
+    if (lang === 'ja' && state.syncInfo.ja?.from === 'dextcg') continue; // Japanese list is complete on its own
     if (!langs.has(lang) || !state.sets.has(setKey)) continue;
     const id = `x-${setKey.slice(lang.length + 1)}-${local}`;
     const key = `${lang}:${id}`;
@@ -383,11 +384,27 @@ async function syncJaGG({ force = false } = {}) {
   const norm = (x) => String(x || '').normalize('NFKC').replace(/\s+/g, '').toLowerCase();
   const sig = (name, num, date) => `${norm(name)}|${parseInt(num, 10)}|${String(date || '').slice(0, 7)}`;
   const bySig = new Map(cards.map((c) => [sig(c.name, c.localId, released.get(c.setKey)), c.key]));
+  const newKeys0 = new Set(cards.map((c) => c.key));
   const remap = new Map();
   for (const c of state.cards.values()) {
     if (c.lang !== lang || c.src === 'gg' || c.custom) continue;
     const k = bySig.get(sig(c.name, c.localId, state.sets.get(c.setKey)?.releaseDate));
     if (k) remap.set(c.key, k);
+  }
+  // Lists built from a new source say which old card is which
+  if (d.remap) {
+    const newByNum = new Map(cards.map((c) => [`${c.setKey}|${numKey(c.localId)}`, c.key]));
+    for (const c of state.cards.values()) {
+      if (c.lang !== lang || c.custom || newKeys0.has(c.key)) continue;
+      let to = c.src === 'gg' ? d.remap[c.id.replace(/^gg-/, '')] : null;
+      if (to) { remap.set(c.key, `${lang}:gg-${to}`); continue; }
+      const m = c.src === 'x' && c.id.match(/^x-(?:gg-(.+)|x-dex-(.+))-([^-]+)$/);
+      if (m) {
+        const set = m[1] ? d.setmap?.[m[1]] : m[2];
+        to = set && newByNum.get(`${lang}:gg-${set}|${numKey(m[3])}`);
+        if (to) remap.set(c.key, to);
+      }
+    }
   }
   await remapKeys(remap);
   // Replace all older Japanese data (keeping anything still in your collection, lists or binders)
@@ -411,7 +428,7 @@ async function syncJaGG({ force = false } = {}) {
   for (const c of cards) bySet.get(c.setKey)?.push(c);
   for (const [k, list] of bySet) state.cardsBySet.set(k, [...list, ...(state.cardsBySet.get(k) || []).filter((c) => c.custom)]);
   for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
-  state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, built: info.built, source: 'pkmn.gg' };
+  state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, built: info.built, source: 'pkmn.gg', from: info.source || 'pkmn.gg' };
   await db.put('meta', state.syncInfo, 'syncInfo');
   return true;
 }
