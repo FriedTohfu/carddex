@@ -95,16 +95,32 @@ function englishName(card) {
   return [names.join(' & '), extra].filter(Boolean).join(' ');
 }
 
-/** The card's Japanese name for Mercari: from the card list, or with the Pokémon's name swapped into Japanese. */
+// English name parts → how they're written on Japanese cards
+const JA_PARTS = [
+  [/\bTeam Rocket's\s*/i, 'ロケット団の'], [/\bTeam Aqua's\s*/i, 'アクア団の'], [/\bTeam Magma's\s*/i, 'マグマ団の'],
+  [/\bTeam Galactic's\s*/i, 'ギンガ団の'], [/\bTeam Plasma's\s*/i, 'プラズマ団の'], [/\bTeam Flare's\s*/i, 'フレア団の'],
+  [/\bRocket's\s*/i, 'ロケット団の'], [/\bEthan's\s*/i, 'ヒビキの'], [/\bMisty's\s*/i, 'カスミの'], [/\bBrock's\s*/i, 'タケシの'],
+  [/\bErika's\s*/i, 'エリカの'], [/\bSabrina's\s*/i, 'ナツメの'], [/\bBlaine's\s*/i, 'カツラの'], [/\bGiovanni's\s*/i, 'サカキの'],
+  [/\bLt\. Surge's\s*/i, 'マチスの'], [/\bKoga's\s*/i, 'キョウの'], [/\bLance's\s*/i, 'ワタルの'], [/\bCynthia's\s*/i, 'シロナの'],
+  [/\bLillie's\s*/i, 'リーリエの'], [/\bHop's\s*/i, 'ホップの'], [/\bMarnie's\s*/i, 'マリィの'], [/\bN's\s*/i, 'Nの'],
+  [/\bIono's\s*/i, 'ナンジャモの'], [/\bArven's\s*/i, 'ペパーの'], [/\bSteven's\s*/i, 'ダイゴの'], [/\bLarry's\s*/i, 'アオキの'],
+  [/\bHop's\s*/i, 'ホップの'], [/\bLeon's\s*/i, 'ダンデの'], [/\bRed's\s*/i, 'レッドの'], [/\bBlue's\s*/i, 'グリーンの'],
+  [/\bAlolan\s+/i, 'アローラ'], [/\bGalarian\s+/i, 'ガラル'], [/\bHisuian\s+/i, 'ヒスイ'], [/\bPaldean\s+/i, 'パルデア'],
+  [/\bMega\s+/i, 'メガ'], [/\bRadiant\s+/i, 'かがやく'], [/\bDark\s+/i, 'わるい'], [/\bLight\s+/i, 'やさしい'],
+  [/\bShining\s+/i, 'ひかる'], [/\bTera\s+/i, 'テラスタル'],
+];
+
+/** The card's Japanese name for Mercari: from the card list, or translated from the English name. */
 export function japaneseName(card) {
   if (card.nameJa) return card.nameJa;
-  if (/[\u3040-\u30ff\u4e00-\u9fff]/.test(card.name)) return card.name;
+  if (/[぀-ヿ一-鿿]/.test(card.name)) return card.name;
   let name = card.nameEn || card.name;
   for (const id of state.cardDex.get(card.key) || []) {
     const s = state.species.find((x) => x.id === id);
     if (s?.en && s.ja) name = name.replace(new RegExp(s.en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), s.ja);
   }
-  return name.replace(/\s+(ex|EX|GX|V|VMAX|VSTAR|V-UNION|BREAK)\b/g, '$1');
+  for (const [re, ja] of JA_PARTS) name = name.replace(re, ja);
+  return name.replace(/\s+(ex|EX|GX|V|VMAX|VSTAR|V-UNION|BREAK)\b/g, '$1').trim();
 }
 
 export function searchQuery(card, site = 'ebay') {

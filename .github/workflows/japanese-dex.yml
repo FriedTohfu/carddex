@@ -44,6 +44,11 @@ jobs:
           mkdir -p data
           python build/make_ja_dex.py 2>&1 | tee data/ja-dex-log.txt
 
+      - name: Japanese names (TCGdex)
+        if: ${{ !inputs.quick }}
+        continue-on-error: true
+        run: python build/add_ja_names.py 2>&1 | tee -a data/ja-dex-log.txt
+
       - name: Save Japanese card list
         if: always()
         run: bash build/save-data.sh "Rebuild Japanese card list (dextcg)"
