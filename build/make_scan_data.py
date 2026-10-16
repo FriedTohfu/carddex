@@ -87,6 +87,12 @@ JA_GG = os.path.join(ROOT, 'data', 'ja-pkmngg.json')
 def card_list(lang):
     if lang == 'zh-cn':
         return chs_list()
+    en_dex = os.path.join(os.path.dirname(JA_GG), 'en-dex.json')
+    if lang == 'en' and os.path.exists(en_dex) and json.load(open(en_dex, encoding='utf-8')).get('complete'):
+        # English: the dextcg list (build/make_ja_dex.py en)
+        SOURCE['en'] = 'gg'
+        d = json.load(open(en_dex, encoding='utf-8'))
+        return [(f'gg-{c[0]}', c[9]) for c in d.get('cards', []) if c[9]]
     ja_dex = os.path.join(os.path.dirname(JA_GG), 'ja-dex.json')
     if lang == 'ja' and os.path.exists(ja_dex) and json.load(open(ja_dex, encoding='utf-8')).get('complete'):
         # Japanese: the dextcg list (build/make_ja_dex.py)

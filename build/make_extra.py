@@ -113,6 +113,7 @@ def tcgdex_en():
                 'key': f"en:{full['id']}", 'name': full.get('name') or full['id'], 'nk': name_key(full.get('name')),
                 'day': day(full.get('releaseDate')), 'nums': {num_key(c.get('localId')) for c in full['cards']},
                 'cards': [(name_key(c.get('name')), digits(c.get('localId'))) for c in full['cards']],
+                'ids': [(c['id'], str(c.get('localId') or '')) for c in full['cards']],
                 'total': (full.get('cardCount') or {}).get('total') or len(full['cards']),
             })
     print(f'TCGdex English: {len(out)} sets with cards', flush=True)

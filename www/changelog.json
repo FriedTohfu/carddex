@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-16d",
+  "date": "2026-10-16",
+  "title": "No more TCG Pocket cards, English list moving to dextcg",
+  "items": [
+   "TCG Pocket (the phone game) cards are removed — only real cards are listed. Any you've added to your collection stay.",
+   "The English card list is being rebuilt from dextcg.com like the Japanese one. Your app switches over by itself when it's ready, moving your cards across."
+  ]
+ },
+ {
   "id": "2026-10-16c",
   "date": "2026-10-16",
   "title": "Pokédex and duplicate fixes",

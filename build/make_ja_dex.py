@@ -1,5 +1,7 @@
 """
-Japanese card list rebuilt from scratch from dextcg.com's public pages
+Japanese (default) or English card list rebuilt from scratch from dextcg.com's public pages.
+Usage: python make_ja_dex.py [ja|en]
+TCG Pocket (digital-only) sets are left out.
 (robots.txt allows crawling; read politely, 2 pages at a time).
 
 Every Japanese expansion (ids starting jpn_) and every card page in it.
@@ -17,13 +19,18 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from make_extra import (DEX, MONTHS, candidates, day, get, match_set, meta, name_key,  # noqa: E402
-                        num_key, text_of)
+from make_extra import (DEX, MONTHS, candidates, day, digits, get, match_set, meta, name_key,  # noqa: E402
+                        num_key, tcgdex_en, text_of)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, 'data')
-OUT = os.path.join(DATA, 'ja-dex.json')
+LANG = (sys.argv[1] if len(sys.argv) > 1 else 'ja').lower()
+if LANG not in ('ja', 'en'):
+    sys.exit('language must be ja or en')
+OUT = os.path.join(DATA, f'{LANG}-dex.json')
 OLD = os.path.join(DATA, 'ja-pkmngg.json')
+INDEX_KEY = 'jaGG' if LANG == 'ja' else 'enDex'
+POCKET = re.compile(r'pocket|genetic apex|mythical island|space-time smackdown|triumphant light|shining revelry|celestial guardians|extradimensional crisis|eevee grove|wisdom of sea and sky|secluded springs|deluxe pack|mega rising|crimson blaze|promo-a\b|promo-b\b', re.I)
 MAX_MINUTES = float(os.environ.get('MAX_MINUTES', '300'))
 START = time.time()
 
@@ -43,7 +50,9 @@ def expansion_index():
     for e in re.findall(r'dextcg\.com/expansions/([A-Za-z0-9_.-]+)', get(f'{DEX}/sitemap.xml') or ''):
         if e not in seen:
             seen.add(e); out.append((e, ''))
-    return [(e, s) for e, s in out if e.startswith('jpn_')]
+    if LANG == 'ja':
+        return [(e, s) for e, s in out if e.startswith('jpn_')]
+    return [(e, s) for e, s in out if not re.match(r'(jpn|scn|chn|kor|tcgp)_', e) and 'pocket' not in s.lower()]
 
 
 def expansion(eid):
@@ -101,7 +110,7 @@ def save(sets, cards, remap, final=False, setmap=None):
     if final:
         ip = os.path.join(DATA, 'index.json')
         index = json.load(open(ip)) if os.path.exists(ip) else {}
-        index['jaGG'] = {'built': built, 'count': len(cards), 'sets': len(sets), 'file': 'ja-dex.json', 'source': 'dextcg'}
+        index[INDEX_KEY] = {'built': built, 'count': len(cards), 'sets': len(sets), 'file': os.path.basename(OUT), 'source': 'dextcg'}
         json.dump(index, open(ip, 'w'), indent=1)
 
 
@@ -111,7 +120,7 @@ def main():
     recent = (datetime.now() - timedelta(days=120)).strftime('%Y-%m-%d')
 
     idx = expansion_index()
-    print(f'{len(idx)} Japanese expansions', flush=True)
+    print(f'{len(idx)} {LANG} expansions', flush=True)
     if len(idx) < 50:
         print('Too few expansions found — stopping'); sys.exit(1)
     with ThreadPoolExecutor(2) as ex:
@@ -119,6 +128,9 @@ def main():
     sets, jobs, cards = [], [], []
     for info, series in infos:
         if not info:
+            continue
+        if POCKET.search(info['name']) or POCKET.search(series):
+            print('  skipping TCG Pocket set', info['id'], info['name'], flush=True)
             continue
         sets.append({'id': info['id'], 'name': info['name'], 'series': series, 'releaseDate': info['release'],
                      'total': info['count'], 'printed': 0, 'logo': info['logo'], 'symbol': info['symbol']})
@@ -165,8 +177,32 @@ def main():
                 print(f'  {i}/{len(jobs)} pages, {len(cards)} cards', flush=True)
                 save(sets, cards, remap)
 
-    # Move your cards from the old pkmn.gg list: same set (name + date) and number
-    if os.path.exists(OLD):
+    # English: move your cards from TCGdex (and the gap-fill sets) to the new list
+    if LANG == 'en':
+        base = [{'key': s['id'], 'name': s['name'], 'nk': name_key(s['name']), 'day': day(s['releaseDate'])} for s in sets]
+        by_set_num = {(c[1], num_key(c[2])): c[0] for c in cards}
+        by_set_dig = {}
+        for c in cards:
+            by_set_dig.setdefault((c[1], digits(c[2])), c[0])
+        olds = [(t['key'][3:], t['name'], t['day'].strftime('%Y-%m-%d') if t['day'] else '', t.get('ids', [])) for t in tcgdex_en()]
+        xp = os.path.join(DATA, 'extra.json')
+        if os.path.exists(xp):
+            for st in json.load(open(xp, encoding='utf-8')).get('sets', []):
+                if st['key'].startswith('en:x-') and not st['key'].startswith('en:x-dex-'):
+                    olds.append((st['key'][3:], st['name'], st.get('releaseDate', ''), []))
+        for sid, name, rel, ids in olds:
+            m = match_set(name, rel, base)
+            if not m:
+                continue
+            setmap[sid] = m['key']
+            for cid, local in ids:
+                nid = by_set_num.get((m['key'], num_key(local))) or by_set_dig.get((m['key'], digits(local)))
+                if nid:
+                    remap[cid] = nid
+        print(f'{len(setmap)}/{len(olds)} old sets matched, {len(remap)} old cards mapped', flush=True)
+
+    # Japanese: move your cards from the old pkmn.gg list: same set (name + date) and number
+    if LANG == 'ja' and os.path.exists(OLD):
         old = json.load(open(OLD, encoding='utf-8'))
         base = [{'key': s['id'], 'name': s['name'], 'nk': name_key(s['name']), 'day': day(s['releaseDate'])} for s in sets]
         by_set_num = {(c[1], num_key(c[2])): c[0] for c in cards}

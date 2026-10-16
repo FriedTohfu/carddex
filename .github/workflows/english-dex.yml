@@ -1,0 +1,60 @@
+name: Build English cards (dextcg)
+
+# Rebuilds the whole English card list from dextcg.com's public pages.
+# Carries on where it stopped if a run runs out of time. Weekly + by hand.
+on:
+  workflow_dispatch:
+    inputs:
+      quick:
+        description: 'Quick check only (reads a few cards, saves nothing)'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '23 1 * * 3'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: english-dex
+  cancel-in-progress: false
+
+jobs:
+  english:
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    env:
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: English card list (dextcg)
+        continue-on-error: true
+        env:
+          MAX_MINUTES: '300'
+          QUICK: ${{ inputs.quick && '1' || '' }}
+        run: |
+          mkdir -p data
+          python build/make_ja_dex.py en 2>&1 | tee data/en-dex-log.txt
+
+      - name: Save English card list
+        if: always()
+        run: bash build/save-data.sh "Rebuild English card list (dextcg)"
+
+      - name: Next step
+        if: ${{ always() && !inputs.quick }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if python -c "import json,sys; sys.exit(0 if json.load(open('data/en-dex.json')).get('complete') else 1)"; then
+            echo "Finished: rebuilding scan data"; gh workflow run scan-data.yml --ref main
+          else
+            echo "Not finished: carrying on in a new run"; gh workflow run english-dex.yml --ref main
+          fi

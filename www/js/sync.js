@@ -23,8 +23,12 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
         continue;
       }
       if (lang === 'ja') {
-        // Japanese: the pkmn.gg list built on GitHub (falls back to TCGdex if it isn't there)
+        // Japanese: the dextcg list built on GitHub (falls back to TCGdex if it isn't there)
         try { if (await syncJaGG({ force })) continue; } catch (e) { errors.push(`ja: ${e.message}`); }
+      }
+      if (lang === 'en') {
+        // English: the dextcg list built on GitHub, once it's finished (TCGdex until then)
+        try { if (await syncJaGG({ force, lang: 'en', indexKey: 'enDex' })) continue; } catch (e) { errors.push(`en: ${e.message}`); }
       }
       report(`Checking ${lang.toUpperCase()} sets…`, 0, 0);
       let list;
@@ -168,6 +172,24 @@ async function healMissingSets(lang) {
   return n;
 }
 
+/** TCG Pocket is a phone game, not real cards: leave its sets out (keeping any you own). */
+const isPocket = (st) => st && (st.serieId === 'tcgp' || /\bpocket\b/i.test(st.serie || ''));
+async function dropPocket() {
+  const sets = [...state.sets.values()].filter(isPocket);
+  if (!sets.length) return false;
+  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
+  for (const st of sets) {
+    const cards = (state.cardsBySet.get(st.key) || []).filter((c) => !keep.has(c.key) && !c.custom);
+    await db.delMany('cards', cards.map((c) => c.key));
+    for (const c of cards) state.cards.delete(c.key);
+    const left = (state.cardsBySet.get(st.key) || []).filter((c) => state.cards.has(c.key));
+    if (left.length) { state.cardsBySet.set(st.key, left); continue; }
+    await db.del('sets', st.key); state.sets.delete(st.key); state.cardsBySet.delete(st.key);
+  }
+  rebuildDex();
+  return true;
+}
+
 async function dropEmptySet(key) {
   const st = state.sets.get(key);
   if (!st || st.custom || (state.cardsBySet.get(key) || []).length) return false;
@@ -178,13 +200,16 @@ async function dropEmptySet(key) {
 
 /** At start-up: tidy up empty placeholder sets, and phones that still have the old official-site Japanese list switch back to TCGdex. */
 export async function autoUpdateCardData() {
-  let tidied = false;
+  let tidied = await dropPocket();
   for (const key of [...state.sets.keys()]) if (await dropEmptySet(key)) tidied = true;
   if (tidied) emit('catalog');
-  if (state.settings.langs.includes('ja') && online() && !job.running) {
+  if (online() && !job.running) {
     const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
-    if (index?.jaGG && state.syncInfo.ja?.built !== index.jaGG.built) {
-      const errors = await syncCatalog(['ja']);
+    const todo = [];
+    if (index?.jaGG && state.settings.langs.includes('ja') && state.syncInfo.ja?.built !== index.jaGG.built) todo.push('ja');
+    if (index?.enDex && state.settings.langs.includes('en') && state.syncInfo.en?.built !== index.enDex.built) todo.push('en');
+    if (todo.length) {
+      const errors = await syncCatalog(todo);
       return !errors?.length;
     }
   }
@@ -308,7 +333,7 @@ export async function applyExtra(force = false) {
   const put = [], drop = [], touched = new Set(), fresh = new Set();
   for (const [setKey, local, number, name, rarity, artist, thumb, large] of d.cards) {
     const lang = setKey.slice(0, setKey.indexOf(':'));
-    if (lang === 'ja' && state.syncInfo.ja?.from === 'dextcg') continue; // Japanese list is complete on its own
+    if (state.syncInfo[lang]?.from === 'dextcg') continue; // this language's list is complete on its own
     if (!langs.has(lang) || !state.sets.has(setKey)) continue;
     const id = `x-${setKey.slice(lang.length + 1)}-${local}`;
     const key = `${lang}:${id}`;
@@ -353,15 +378,15 @@ export async function applyExtra(force = false) {
   return fresh.size;
 }
 
-/** Japanese cards from pkmn.gg (data/ja-pkmngg.json): every set back to 1996, with Japanese scans. */
-async function syncJaGG({ force = false } = {}) {
-  const lang = 'ja';
-  report('Checking Japanese cards…', 0, 0);
+/** A whole card list built on GitHub (dextcg / pkmn.gg): Japanese (index key jaGG) or English (enDex). */
+async function syncJaGG({ force = false, lang = 'ja', indexKey = 'jaGG' } = {}) {
+  const label = lang === 'ja' ? 'Japanese' : 'English';
+  report(`Checking ${label} cards…`, 0, 0);
   const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 1 }).catch(() => null);
-  const info = index?.jaGG;
+  const info = index?.[indexKey];
   if (!info) return false;
-  if (!force && state.syncInfo.ja?.built === info.built && [...state.sets.values()].some((st) => st.src === 'gg')) return true;
-  report('Downloading Japanese card list…', 0, 0);
+  if (!force && state.syncInfo[lang]?.built === info.built && [...state.sets.values()].some((st) => st.src === 'gg' && st.lang === lang)) return true;
+  report(`Downloading ${label} card list…`, 0, 0);
   const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-pkmngg.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 240000, retries: 1 });
   if (!d?.cards?.length) return false;
   const sets = d.sets.map((st) => ({
@@ -394,14 +419,18 @@ async function syncJaGG({ force = false } = {}) {
   // Lists built from a new source say which old card is which
   if (d.remap) {
     const newByNum = new Map(cards.map((c) => [`${c.setKey}|${numKey(c.localId)}`, c.key]));
+    const dig = (x) => (String(x ?? '').split('/')[0].match(/\d+/) || [''])[0].replace(/^0+(?=\d)/, '');
+    const newByDig = new Map();
+    for (const c of cards) { const k = `${c.setKey}|${dig(c.localId)}`; if (!newByDig.has(k)) newByDig.set(k, c.key); }
     for (const c of state.cards.values()) {
       if (c.lang !== lang || c.custom || newKeys0.has(c.key)) continue;
-      let to = c.src === 'gg' ? d.remap[c.id.replace(/^gg-/, '')] : null;
+      let to = c.src === 'x' ? null : d.remap[c.src === 'gg' ? c.id.replace(/^gg-/, '') : c.id];
       if (to) { remap.set(c.key, `${lang}:gg-${to}`); continue; }
-      const m = c.src === 'x' && c.id.match(/^x-(?:gg-(.+)|x-dex-(.+))-([^-]+)$/);
+      const m = c.src === 'x' && c.id.match(/^x-(.+)-([^-]+)$/);
       if (m) {
-        const set = m[1] ? d.setmap?.[m[1]] : m[2];
-        to = set && newByNum.get(`${lang}:gg-${set}|${numKey(m[3])}`);
+        const part = m[1];
+        const set = d.setmap?.[part] || d.setmap?.[part.replace(/^gg-/, '')] || (part.startsWith('x-dex-') ? part.slice(6) : null);
+        to = set && (newByNum.get(`${lang}:gg-${set}|${numKey(m[2])}`) || newByDig.get(`${lang}:gg-${set}|${dig(m[2])}`));
         if (to) remap.set(c.key, to);
       }
     }
@@ -420,7 +449,7 @@ async function syncJaGG({ force = false } = {}) {
   await db.putMany('sets', sets);
   for (let i = 0; i < cards.length; i += 2000) {
     await db.putMany('cards', cards.slice(i, i + 2000));
-    report('Saving Japanese cards', Math.min(cards.length, i + 2000), cards.length);
+    report(`Saving ${label} cards`, Math.min(cards.length, i + 2000), cards.length);
   }
   for (const st of sets) state.sets.set(st.key, st);
   for (const c of cards) state.cards.set(c.key, c);
@@ -428,7 +457,7 @@ async function syncJaGG({ force = false } = {}) {
   for (const c of cards) bySet.get(c.setKey)?.push(c);
   for (const [k, list] of bySet) state.cardsBySet.set(k, [...list, ...(state.cardsBySet.get(k) || []).filter((c) => c.custom)]);
   for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
-  state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, built: info.built, source: 'pkmn.gg', from: info.source || 'pkmn.gg' };
+  state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, built: info.built, source: lang === 'ja' ? 'pkmn.gg' : 'dextcg', from: info.source || 'pkmn.gg' };
   await db.put('meta', state.syncInfo, 'syncInfo');
   return true;
 }
@@ -584,6 +613,7 @@ async function remapKeys(remap) {
 async function saveSet(lang, brief, full) {
   const key = `${lang}:${full.id}`;
   // TCGdex lists some placeholder sets with no cards yet (e.g. Chinese codes under Japanese): skip them
+  if (full.serie?.id === 'tcgp') return; // TCG Pocket: not real cards
   if (!(full.cards || []).length) {
     (state.syncInfo.emptySets ||= {})[key] = Date.now();
     await dropEmptySet(key);
