@@ -8,7 +8,7 @@ import { rarityRank } from '../rarity.js';
 import { setRow, openSet } from './sets.js';
 
 /** Core search used by the Search tab and the card picker. */
-export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all', sort = 'newest' }) {
+export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all', sort = 'newest', by = 'card' }) {
   let cards;
   if (setKey) cards = [...(state.cardsBySet.get(setKey) || [])];
   else {
@@ -17,7 +17,11 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
   }
   if (lang !== 'all') cards = cards.filter((c) => c.lang === lang);
   q = q.trim();
-  if (q) {
+  if (q && by === 'artist') {
+    // Artist search: every card whose illustrator matches all the words typed
+    const words = normalizeName(q).split(' ').filter(Boolean);
+    cards = cards.filter((c) => { const a = c.det?.illustrator; if (!a) return false; const n = normalizeName(a); return words.every((w) => n.includes(w)); });
+  } else if (q) {
     // Understands a card number anywhere in the search, with or without a name:
     // "Mewtwo 164/162", "164/162 mewtwo", "mewtwo 164", "#25", "TG05/TG30", "001/SV-P"
     const stripZ = (x) => String(x ?? '').trim().toLowerCase().replace(/^0+(?=[0-9])/, '');
@@ -39,7 +43,7 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
         return totals.some((t) => t != null && t !== '' && stripZ(t) === stripZ(of));
       });
     }
-    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '') + (c.nameJa ? ' ' + c.nameJa : '') + (c.det?.illustrator ? ' ' + c.det.illustrator : '')); return words.every((w) => n.includes(w)); });
+    if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '') + (c.nameJa ? ' ' + c.nameJa : '')); return words.every((w) => n.includes(w)); });
   }
   if (owned === 'owned') cards = cards.filter((c) => qty(c.key));
   if (owned === 'missing') cards = cards.filter((c) => !qty(c.key));
@@ -55,7 +59,7 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
   return cards;
 }
 
-const S = { q: '', lang: 'all', setKey: null, owned: 'all', sort: 'newest' };
+const S = { q: '', lang: 'all', setKey: null, owned: 'all', sort: 'newest', by: 'card' };
 
 export function searchRoot() {
   return {
@@ -69,11 +73,15 @@ export function searchRoot() {
         return;
       }
       const results = h('div');
-      const input = h('input', { class: 'input search', type: 'search', placeholder: 'Name, number or artist, e.g. Mewtwo 164/162', value: S.q, enterkeyhint: 'search' });
+      const hint = () => (S.by === 'artist' ? 'Artist, e.g. Mitsuhiro Arita' : 'Name or number, e.g. Mewtwo 164/162');
+      const input = h('input', { class: 'input search', type: 'search', placeholder: hint(), value: S.q, enterkeyhint: 'search' });
       input.addEventListener('input', debounce(() => { S.q = input.value; draw(); }, 220));
       const setBtn = h('button', { class: 'chip' + (S.setKey ? ' on' : ''), onclick: pickSet });
       const langOpts = [{ value: 'all', label: 'All languages' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))];
       body.append(input,
+        h('div', { class: 'toolbar' }, chips([{ value: 'card', label: '🃏 Cards' }, { value: 'artist', label: '🎨 Artist' }], S.by, (v) => {
+          S.by = v; input.placeholder = hint(); draw();
+        })),
         h('div', { class: 'toolbar' }, chips(langOpts, S.lang, (v) => {
           S.lang = v;
           if (S.setKey && v !== 'all' && state.sets.get(S.setKey)?.lang !== v) S.setKey = null;
@@ -179,8 +187,8 @@ export function openPicker({ title = 'Choose a card', onPick, multi = false, own
 export function initSearch() { nav.setRoot('search', searchRoot()); }
 
 /** Opens Search with a query, e.g. every card by an artist. */
-export function searchFor(q) {
-  Object.assign(S, { q, lang: 'all', setKey: null, owned: 'all' });
+export function searchFor(q, by = 'card') {
+  Object.assign(S, { q, by, lang: 'all', setKey: null, owned: 'all' });
   nav.setRoot('search', searchRoot());
   nav.switchTab('search');
 }

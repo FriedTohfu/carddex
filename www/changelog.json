@@ -2,6 +2,16 @@
  {
   "id": "2026-10-16g",
   "date": "2026-10-16",
+  "title": "Search by artist, better combining",
+  "items": [
+   "Search has a new 🎨 Artist option: type an artist's name to see every card they drew. Tapping the illustrator on a card opens it too.",
+   "When English and Japanese cards share the same name and artist, their pictures can differ a bit more and still combine (rainbow and gold versions).",
+   "More Japanese cards now show their artist."
+  ]
+ },
+ {
+  "id": "2026-10-16g",
+  "date": "2026-10-16",
   "title": "Search by artist",
   "items": [
    "Type an illustrator's name in Search to see every card they drew.",
