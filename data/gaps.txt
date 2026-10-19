@@ -13,8 +13,8 @@ NEW SET en  Pokémon TCG Classic - Blastoise (2023-11-17) from pkmn.gg: 34 cards
 NEW SET en  Pokémon Futsal Collection (2020-09-11) from pkmn.gg: 5 cards
 NEW SET en  McDonald's Collection 2017 (2017-11-07) from pkmn.gg: 12 cards
 NEW SET en  Miscellaneous (1999-01-09) from pkmn.gg: 1 cards
-SKIP en 30th Celebration [me55]: unknown numbering (161 cards, sample ['R', 'B', 'G'])
-NEW SET en Mega Evolution Promos (2025-09-13) from dextcg: 117 cards
+SKIP en 30th Celebration [me55]: unknown numbering (161 cards, sample ['B', 'R', 'G'])
+NEW SET en Mega Evolution Promos (2025-09-13) from dextcg: 116 cards
 NEW SET en Scarlet & Violet Promos (2023-01-06) from dextcg: 225 cards
 SKIP en Celebrations: Classic Collection [cel25c]: unknown numbering (25 cards, sample ['4_A', '17_A', '76_A'])
 NEW SET en Sword & Shield Promos (2020-02-07) from dextcg: 307 cards
@@ -31,7 +31,7 @@ SKIP en Legendary Treasures [bw11]: unknown numbering (140 cards, sample ['115',
 NEW SET en Black & White Promos (2011-03-09) from dextcg: 99 cards
 SKIP en Call of Legends [col1]: unknown numbering (106 cards, sample ['33', '20', 'SL10'])
 NEW SET en HeartGold & SoulSilver Promos (2010-02-10) from dextcg: 25 cards
-SKIP en Arceus [pl4]: unknown numbering (111 cards, sample ['97', '16', 'SH11'])
+SKIP en Arceus [pl4]: unknown numbering (111 cards, sample ['97', 'SH11', '16'])
 SKIP en Platinum [pl1]: unknown numbering (133 cards, sample ['53', '122', 'SH6'])
 NEW SET en Diamond & Pearl Promos (2007-04-30) from dextcg: 56 cards
 NEW SET en EX Deoxys (2005-02-14) from dextcg: 108 cards
