@@ -1,5 +1,17 @@
 [
  {
+  "id": "2026-10-19b",
+  "date": "2026-10-19",
+  "title": "Update fixes, search tweaks",
+  "items": [
+   "Settings now shows which update you're running (e.g. \"Update 2026-10-19b\"). The Android app number only changes when you install a new APK.",
+   "Updates are more reliable: the app switches to the newest download, and card-data refreshes on GitHub no longer count as app updates.",
+   "Pokédex generations are back to buttons.",
+   "The Search bar stays at the top while you scroll.",
+   "Choosing a set again opens the list at the set you had, instead of the top."
+  ]
+ },
+ {
   "id": "2026-10-19a",
   "date": "2026-10-19",
   "title": "Reprints combine correctly, wishlist and Pokédex tweaks",

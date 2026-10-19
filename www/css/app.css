@@ -455,3 +455,6 @@ textarea.input { resize: vertical; }
 .tile { -webkit-touch-callout: none; user-select: none; }
 
 button.link { background: none; border: 0; padding: 0; color: var(--accent, #e85d5d); font: inherit; text-align: left; cursor: pointer; }
+
+/* Set picker: the set you had open */
+.current-set { outline: 2px solid var(--accent, #e5484d); outline-offset: -2px; border-radius: 12px; }

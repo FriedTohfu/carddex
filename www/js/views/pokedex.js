@@ -51,9 +51,7 @@ export function pokedexRoot() {
       // Search bar stays pinned at the top while you scroll
       const searchWrap = h('div', { class: 'dex-search' + (state.settings.dexStickySearch !== false ? ' pinned' : '') }, input);
       body.append(searchWrap,
-        h('div', { class: 'toolbar' },
-          h('select', { class: 'input mini gen-select', 'aria-label': 'Generation', onchange: (e) => { D.gen = +e.target.value; draw(); } },
-            gens.map((g) => h('option', { value: g.value, selected: D.gen === g.value }, g.value ? `${g.label} (#${GENS[g.value - 1][0]}–${GENS[g.value - 1][1]})` : 'All generations')))),
+        h('div', { class: 'toolbar' }, chips(gens, D.gen, (v) => { D.gen = v; draw(); })),
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: 'All' }, { value: 'caught', label: 'Have cards' }, { value: 'missing', label: 'No cards yet' }], D.caught, (v) => { D.caught = v; draw(); }),
           chips(['en', 'ja', 'zh-tw', 'zh-cn'].map((l) => ({ value: l, label: LANGS[l].short })), D.nameLang, (v) => { D.nameLang = v; draw(); })),

@@ -78,7 +78,8 @@ export function searchRoot() {
       input.addEventListener('input', debounce(() => { S.q = input.value; draw(); }, 220));
       const setBtn = h('button', { class: 'chip' + (S.setKey ? ' on' : ''), onclick: pickSet });
       const langOpts = [{ value: 'all', label: 'All languages' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))];
-      body.append(input,
+      const pinned = h('div', { class: 'dex-search pinned' }, input);
+      body.append(pinned,
         h('div', { class: 'toolbar' }, chips([{ value: 'card', label: '🃏 Cards' }, { value: 'artist', label: '🎨 Artist' }], S.by, (v) => {
           S.by = v; input.placeholder = hint(); draw();
         })),
@@ -115,16 +116,16 @@ export function searchRoot() {
       }
 
       async function pickSet() {
-        if (S.setKey) { S.setKey = null; draw(); return; }
-        const key = await pickSetDialog(S.lang);
-        if (key) { S.setKey = key; draw(); }
+        if (S.setKey) { S.lastSet = S.setKey; S.setKey = null; draw(); return; }
+        const key = await pickSetDialog(S.lang, S.lastSet);
+        if (key) { S.setKey = key; S.lastSet = key; draw(); }
       }
     },
   };
 }
 
 /** Searchable list of sets. Resolves with a set key. */
-export function pickSetDialog(lang = 'all') {
+export function pickSetDialog(lang = 'all', current = null) {
   return new Promise((resolve) => {
     let result = null;
     sheet({
@@ -136,10 +137,17 @@ export function pickSetDialog(lang = 'all') {
           const q = input.value.trim().toLowerCase();
           const sets = allSetsSorted().filter((s) => (lang === 'all' || s.lang === lang) && (!q || s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)));
           list.innerHTML = '';
-          progressiveList(list, sets, (s) => setRow(s, () => { result = s.key; close(); }));
+          const at = !q && current ? sets.findIndex((s) => s.key === current) : -1;
+          // Render far enough to include the set you had open, then scroll to it
+          progressiveList(list, sets, (s) => {
+            const row = setRow(s, () => { result = s.key; close(); });
+            if (s.key === current) row.classList.add('current-set');
+            return row;
+          }, Math.max(150, at + 30));
+          if (at >= 0) requestAnimationFrame(() => list.querySelector('.current-set')?.scrollIntoView({ block: 'center' }));
         };
         input.addEventListener('input', debounce(draw, 150));
-        b.append(input, list);
+        b.append(h('div', { class: 'dex-search pinned' }, input), list);
         draw();
       },
     });

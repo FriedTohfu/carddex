@@ -153,9 +153,11 @@ function updatesSection() {
   const info = h('p', { class: 'muted small' }, 'Checking version…');
   import('../ota.js').then(async (ota) => {
     const n = await ota.nativeInfo();
+    const u = await ota.updateVersion();
+    const upd = u ? `Update ${u.id}${u.title ? ` — ${u.title}` : ''}` : 'Update unknown';
     info.textContent = ota.supported()
-      ? `App ${n.version} · running ${ota.currentVersion()}. Updates download automatically when you’re online and apply the next time you open the app.`
-      : 'Automatic updates work in the installed Android app.';
+      ? `${upd}. Android app ${n.version} (this number only changes when you install a new APK). Updates download automatically when you’re online and apply the next time you open the app.`
+      : `${upd}. Automatic updates work in the installed Android app.`;
   });
   return section('App updates', '', info,
     toggle('Download updates automatically', (() => { try { return localStorage.getItem('ota.disabled') !== '1'; } catch { return true; } })(), async (on) => { (await import('../ota.js')).setAutoUpdates(on); }),

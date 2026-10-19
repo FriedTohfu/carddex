@@ -49,6 +49,14 @@ export function currentVersion() {
   return runningSha ? runningSha.slice(0, 7) : 'installed version';
 }
 
+/** The newest update in the running version's "What's new" list, e.g. { id: '2026-10-19b', title: '…' }. */
+export async function updateVersion() {
+  try {
+    const list = await (await fetch(new URL('../changelog.json', import.meta.url))).json();
+    return list?.[0] || null;
+  } catch { return null; }
+}
+
 const fails = (sha) => +ls.get(`ota.fails.${sha}`) || 0;
 
 /**
@@ -59,9 +67,9 @@ const fails = (sha) => +ls.get(`ota.fails.${sha}`) || 0;
 export async function boot() {
   if (!supported()) return false;
   await detectRunning();
-  if (runningSha) return false;
   const want = ls.get('ota.want'), path = ls.get('ota.wantPath');
   if (!want || !path || ls.get('ota.disabled') === '1') return false;
+  if (runningSha === want) return false; // already on the newest download
   if (fails(want) >= 2) return false; // this version didn't start properly — skip it
   ls.set(`ota.fails.${want}`, String(fails(want) + 1)); // cleared by markGood()
   try {
@@ -114,19 +122,23 @@ export async function checkForUpdate({ force = false, quiet = true } = {}) {
     ls.set('ota.lastCheck', String(Date.now()));
     const sha = (await json(`${API}/commits/main`))?.sha;
     if (!sha) return 'none';
-    if (sha === runningSha || sha === ls.get('ota.want')) return 'none';
+    // The app's version is its www folder: data-only changes on GitHub don't count as an update
+    const root = await json(`${API}/git/trees/${sha}`);
+    const wwwSha = (root?.tree || []).find((t) => t.path === 'www' && t.type === 'tree')?.sha;
+    if (!wwwSha) return 'none';
+    if (wwwSha === runningSha || wwwSha === ls.get('ota.want')) return 'none';
 
     // Does this version need a newer APK?
     let need = 0;
     try { need = parseInt(await (await fetch(RAW(sha, 'build/native-api.txt'))).text(), 10) || 0; } catch { /* assume fine */ }
     if (need > (await nativeInfo()).api) { showApkBanner(); return 'needs-apk'; }
 
-    const tree = await json(`${API}/git/trees/${sha}?recursive=1`);
-    const files = (tree?.tree || []).filter((t) => t.type === 'blob' && t.path.startsWith('www/')).map((t) => t.path.slice(4));
+    const tree = await json(`${API}/git/trees/${wwwSha}?recursive=1`);
+    const files = (tree?.tree || []).filter((t) => t.type === 'blob').map((t) => t.path);
     if (!files.includes('index.html')) return 'none';
 
     if (!quiet) toast('Downloading update…');
-    const dir = `ota/${sha}`;
+    const dir = `ota/${wwwSha}`;
     const queue = files.slice();
     const worker = async () => {
       while (queue.length) {
@@ -138,9 +150,9 @@ export async function checkForUpdate({ force = false, quiet = true } = {}) {
     };
     await Promise.all([worker(), worker(), worker(), worker()]);
 
-    ls.set('ota.want', sha);
+    ls.set('ota.want', wwwSha);
     ls.set('ota.wantPath', await dataPath(dir));
-    cleanup([sha, runningSha]);
+    cleanup([wwwSha, runningSha]);
     showRestart();
     return 'downloaded';
   } catch (e) {
