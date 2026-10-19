@@ -3,6 +3,7 @@
 // card's scan fingerprint. Card numbers and sets can differ between languages.
 import { loadFingerprints } from './sync.js';
 import { state } from './store.js';
+import { rarityRank } from './rarity.js';
 
 const POP = new Uint8Array(256).map((_, i) => { let c = 0, n = i; while (n) { c += n & 1; n >>= 1; } return c; });
 
@@ -62,18 +63,29 @@ export async function groupVersions(cards, details = new Map()) {
   const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   const fp = cards.map((c) => fps.get(c.key) || null);
   const en = cards.map(englishName);
+  // Same artwork is often reprinted (Base Set Charizard → Celebrations, Classic, 30th…):
+  // prefer the version released closest in time, so reprints pair with reprints.
+  const day = cards.map((c) => { const r = state.sets.get(c.setKey)?.releaseDate; return r ? new Date(r).getTime() / 864e5 : null; });
+  const gap = (i, j) => (day[i] == null || day[j] == null ? 365 : Math.abs(day[i] - day[j]));
+  const when = (i, j) => Math.min(gap(i, j), 4 * 365) / 30; // months apart, capped
+  const rank = cards.map((c) => rarityRank(c));
   const pairs = [];
   for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
     if (cards[i].lang === cards[j].lang) continue; // only link across languages
     const named = !!(en[i] && en[j]);
     if (named && en[i] !== en[j]) continue;
+    if (gap(i, j) > 4 * 365) continue; // never pair cards released years apart
+    const artist = sameArtist(details.get(cards[i].key) || cards[i].det, details.get(cards[j].key) || cards[j].det);
+    const sameRank = rank[i] && rank[j] && Math.abs(rank[i] - rank[j]) <= 5;
     if (fp[i] && fp[j]) {
       const d = artDistance(fp[i], fp[j]);
-      if (d <= SAME_ART) pairs.push([d, i, j]);
+      if (d <= SAME_ART) pairs.push([d + when(i, j), i, j]);
       // Same name and artist: allow a looser picture match (rainbow/gold versions shift the colours)
-      else if (named && d <= LOOSE_ART && sameArtist(details.get(cards[i].key), details.get(cards[j].key))) pairs.push([d, i, j]);
+      else if (named && artist && d <= LOOSE_ART) pairs.push([d + when(i, j), i, j]);
+      // Gold / etched cards scan very differently: same name, artist, rarity and release window
+      else if (named && artist && sameRank && gap(i, j) <= 180) pairs.push([LOOSE_ART + when(i, j), i, j]);
     } else if (sameFacts(cards[i], cards[j], details.get(cards[i].key), details.get(cards[j].key), named)) {
-      pairs.push([SAME_ART - 0.5, i, j]);
+      pairs.push([SAME_ART - 0.5 + when(i, j) + (sameRank ? 0 : 3), i, j]);
     }
   }
   pairs.sort((a, b) => a[0] - b[0]);

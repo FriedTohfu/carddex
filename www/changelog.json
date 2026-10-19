@@ -1,5 +1,17 @@
 [
  {
+  "id": "2026-10-19a",
+  "date": "2026-10-19",
+  "title": "Reprints combine correctly, wishlist and Pokédex tweaks",
+  "items": [
+   "Reprinted artwork (e.g. Base Set Charizard and Blastoise in Celebrations, Classic, 25th and 30th sets) now pairs each English card with the Japanese version from the same release.",
+   "Gold cards like Mega Charizard Y ex now combine with their Japanese version (same name, artist, rarity and release window).",
+   "Pokédex generations are now a dropdown.",
+   "Wishlists have a new option to turn grey-out of cards you don't own on or off.",
+   "Adding a card to wishlists keeps the menu open — tap as many lists as you like to add or remove, then Done."
+  ]
+ },
+ {
   "id": "2026-10-16i",
   "date": "2026-10-16",
   "title": "Real Japanese names on Mercari",

@@ -159,21 +159,39 @@ export function openCard(key, list = null, opts = {}) {
 }
 
 export async function toggleWishlist(card) {
-  const lists = wishlistsSorted();
-  const opts = lists.map((w) => ({ value: w.id, label: `${w.emoji || '⭐'} ${w.name}`, sub: w.cards.includes(card.key) ? 'Tap to remove' : `${w.cards.length} cards`, selected: w.cards.includes(card.key) }));
-  opts.push({ value: '__new', label: '＋ New wishlist' });
-  const pick = await chooseDialog('Wishlist', opts);
-  if (!pick) return;
-  let w;
-  if (pick === '__new') {
-    const { promptDialog } = await import('../ui.js');
-    const name = await promptDialog('New wishlist name', '', { placeholder: 'e.g. Pikachu chase cards' });
-    if (!name) return;
-    w = await createWishlist(name);
-  } else w = state.wishlists.get(pick);
-  if (w.cards.includes(card.key)) { w.cards = w.cards.filter((k) => k !== card.key); toast(`Removed from ${w.name}`); }
-  else { w.cards = [...w.cards, card.key]; toast(`Added to ${w.name}`); }
-  await saveWishlist(w);
+  const { sheet, promptDialog } = await import('../ui.js');
+  sheet({
+    title: 'Wishlists',
+    content: (b, { close }) => {
+      const list = h('div', { class: 'choice-list' });
+      const draw = () => {
+        list.innerHTML = '';
+        for (const w of wishlistsSorted()) {
+          const on = w.cards.includes(card.key);
+          list.append(h('button', { class: 'choice' + (on ? ' selected' : ''), onclick: async () => {
+            if (w.cards.includes(card.key)) { w.cards = w.cards.filter((k) => k !== card.key); toast(`Removed from ${w.name}`, 1200); }
+            else { w.cards = [...w.cards, card.key]; toast(`Added to ${w.name}`, 1200); }
+            await saveWishlist(w);
+            draw();
+          } },
+          h('span', { class: 'choice-icon' }, w.emoji || '⭐'),
+          h('span', { class: 'choice-text' }, h('b', {}, w.name), h('small', {}, on ? 'On this list — tap to remove' : `${w.cards.length} cards — tap to add`)),
+          on ? icon('check', 18) : null));
+        }
+        list.append(h('button', { class: 'choice', onclick: async () => {
+          const name = await promptDialog('New wishlist name', '', { placeholder: 'e.g. Pikachu chase cards' });
+          if (!name) return;
+          const w = await createWishlist(name);
+          w.cards = [...w.cards, card.key];
+          await saveWishlist(w);
+          toast(`Added to ${w.name}`, 1200);
+          draw();
+        } }, h('span', { class: 'choice-icon' }, '＋'), h('span', { class: 'choice-text' }, h('b', {}, 'New wishlist'))));
+      };
+      draw();
+      b.append(list, h('button', { class: 'btn primary wide', style: { marginTop: '12px' }, onclick: () => close() }, 'Done'));
+    },
+  });
 }
 
 export async function addToBinder(card) {
