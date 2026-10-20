@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-20a",
+  "date": "2026-10-20",
+  "title": "Wishlist settings and hold-to-view",
+  "items": [
+   "Hold a card in a wishlist to see it big, like in the Pokédex.",
+   "Wishlist options are now in Settings → Wishlists and apply to every list: grey out cards you don't own, hide cards you own, and remove cards from wishlists automatically when you add them to your collection."
+  ]
+ },
+ {
   "id": "2026-10-19b",
   "date": "2026-10-19",
   "title": "Update fixes, search tweaks",

@@ -59,6 +59,11 @@ export function openSettings() {
           h('div', { class: 'field' }, h('span', {}, 'Theme'),
             chips([{ value: 'auto', label: 'Auto' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }], state.settings.theme, (v) => saveSettings({ theme: v })))),
 
+        section('Wishlists', '',
+          toggle('Grey out cards I don’t own', state.settings.wishDimMissing !== false, (on) => saveSettings({ wishDimMissing: on })),
+          toggle('Hide cards I own', !!state.settings.wishHideOwned, (on) => saveSettings({ wishHideOwned: on })),
+          toggle('Remove cards from wishlists when I add them to my collection', !!state.settings.wishAutoRemove, (on) => saveSettings({ wishAutoRemove: on }))),
+
         section('Backup', 'Your collection, wishlists and binders live only on this phone. Make a backup now and then (and before uninstalling!).',
           h('div', { class: 'btn-row' },
             h('button', { class: 'btn', onclick: doExport }, icon('share', 18), ' Back up'),

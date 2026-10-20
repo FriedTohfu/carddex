@@ -43,7 +43,7 @@ export function openWishlist(id) {
   let filter = 'all';
   nav.push('wishlists', {
     title: `${state.wishlists.get(id)?.emoji || '⭐'} ${state.wishlists.get(id)?.name || 'Wishlist'}`,
-    watch: ['wishlists', 'catalog'],
+    watch: ['wishlists', 'catalog', 'settings', 'owned'],
     actions: [
       { icon: 'plus', label: 'Add cards', onClick: () => addCards() },
       { icon: 'more', label: 'Wishlist options', onClick: () => options() },
@@ -54,12 +54,12 @@ export function openWishlist(id) {
       if (pg?.head) setTitle(pg, `${w.emoji || '⭐'} ${w.name}`);
       const cards = w.cards.map((k) => state.cards.get(k)).filter(Boolean);
       const got = cards.filter((c) => qty(c.key)).length;
-      const shown = cards.filter((c) => filter === 'all' || (filter === 'owned' ? qty(c.key) : !qty(c.key)));
+      const shown = cards.filter((c) => filter === 'all' ? !(state.settings.wishHideOwned && qty(c.key)) : (filter === 'owned' ? qty(c.key) : !qty(c.key)));
       const keys = shown.map((c) => c.key);
       body.append(
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: `All ${cards.length}` }, { value: 'need', label: `Still need ${cards.length - got}` }, { value: 'owned', label: `Got ${got}` }], filter, (v) => { filter = v; redraw(); })),
-        cardGrid(shown, { showSet: true, dimMissing: w.dim !== false, onClick: (c) => openCard(c.key, keys),
+        cardGrid(shown, { showSet: true, peek: true, dimMissing: state.settings.wishDimMissing !== false, onClick: (c) => openCard(c.key, keys),
           empty: empty('This list is empty', 'Add cards with the + button, or from any card’s page.',
             h('button', { class: 'btn primary', onclick: () => addCards() }, icon('plus', 18), ' Add cards')) }));
       function redraw() { body.innerHTML = ''; pg.render(body, pg); }
@@ -86,7 +86,6 @@ export function openWishlist(id) {
       { value: 'rename', label: 'Rename', icon: '✏️' },
       { value: 'emoji', label: 'Change icon', icon: w.emoji || '⭐' },
       { value: 'clean', label: 'Remove cards I now own', icon: '🧹' },
-      { value: 'dim', label: 'Grey out cards I don’t own', icon: '◐', sub: w.dim !== false ? 'On — tap to turn off' : 'Off — tap to turn on' },
       { value: 'sort', label: 'Sort by set', icon: '↕️' },
       { value: 'dup', label: 'Duplicate list', icon: '📄' },
       { value: 'share', label: 'Share as text', icon: '📤' },
@@ -104,9 +103,6 @@ export function openWishlist(id) {
       w.cards = w.cards.filter((k) => !qty(k));
       await saveWishlist(w);
       toast(`Removed ${before - w.cards.length} cards`);
-    } else if (pick === 'dim') {
-      w.dim = w.dim === false;
-      await saveWishlist(w);
     } else if (pick === 'sort') {
       const rd = (k) => state.sets.get(state.cards.get(k)?.setKey)?.releaseDate || '';
       w.cards = [...w.cards].sort((a, b) => rd(a).localeCompare(rd(b)) || (state.cards.get(a)?.order || 0) - (state.cards.get(b)?.order || 0));

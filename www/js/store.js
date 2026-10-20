@@ -155,6 +155,12 @@ export async function changeOwned(key, variant = 'normal', delta = 1) {
     state.owned.set(key, o);
     await db.put('owned', o);
   }
+  // Optional: a card you now own comes off your wishlists
+  if (delta > 0 && state.settings.wishAutoRemove) {
+    for (const w of state.wishlists.values()) {
+      if (w.cards.includes(key)) { w.cards = w.cards.filter((k) => k !== key); await saveWishlist(w); }
+    }
+  }
   emit('owned');
   return o;
 }
