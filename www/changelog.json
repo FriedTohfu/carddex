@@ -5,7 +5,8 @@
   "title": "Swipe between Pokémon, random Pokémon",
   "items": [
    "On a Pokémon's page, swipe left or right on the top panel to go to the next or previous Pokémon.",
-   "New shuffle button at the top right of the Pokédex opens a random Pokémon each time you tap it."
+   "New shuffle button at the top right of the Pokédex opens a random Pokémon each time you tap it.",
+   "The shuffle button is also on every Pokémon's page, so you can keep jumping to random Pokémon."
   ]
  },
  {

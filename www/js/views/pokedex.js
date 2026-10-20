@@ -32,11 +32,7 @@ function dexPicture(s, o) {
 export function pokedexRoot() {
   return {
     title: 'Pokédex', large: true,
-    actions: [{ icon: 'shuffle', label: 'Random Pokémon', onClick: () => {
-      if (!state.species.length) return;
-      const s = state.species[Math.floor(Math.random() * state.species.length)];
-      openPokemon(s.id);
-    } }],
+    actions: [{ icon: 'shuffle', label: 'Random Pokémon', onClick: () => { if (state.species.length) openPokemon(randomId()); } }],
     watch: ['species', 'catalog', 'owned', 'settings', 'sprites'],
     render(body) {
       if (!state.species.length) {
@@ -94,6 +90,7 @@ export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
   const s = state.speciesById.get(id);
   const F = { lang: 'all', setKey: null, owned: 'all', sort: 'newest' };
   const page = {
+    actions: [{ icon: 'shuffle', label: 'Random Pokémon', onClick: () => openPokemon(randomId(id), tab, { replace: 1 }) }],
     title: s ? speciesName(s, 'en') : `#${id}`,
     subtitle: `#${String(id).padStart(4, '0')}`,
     watch: ['catalog', 'settings'],
@@ -208,6 +205,12 @@ export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
     },
   };
   return replace ? nav.replace(tab, page, replace) : nav.push(tab, page);
+}
+
+/** A random Pokémon (not the one you're on). */
+function randomId(not) {
+  const list = state.species.filter((x) => x.id !== not);
+  return list[Math.floor(Math.random() * list.length)]?.id ?? not;
 }
 
 /** Swipe left/right on an element to move to the next/previous Pokémon. */
