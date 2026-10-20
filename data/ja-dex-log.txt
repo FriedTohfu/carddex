@@ -1,32 +1,8 @@
-470 Japanese expansions
-465 sets, 0 cards kept from last run, 27709 card pages to read
+470 ja expansions
+465 sets, 27140 cards kept from last run, 577 card pages to read
 sample set: [{'id': 'jpn_mf', 'name': '30th Celebration Premium Deck Set Espeon & Umbreon', 'series': '', 'releaseDate': '2026-09-16', 'total': 49, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_mf.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_mf.png'}, {'id': 'jpn_m6a', 'name': '30th Celebration', 'series': '', 'releaseDate': '2026-09-16', 'total': 176, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_m6a.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_m6a.png'}]
-  1000/27709 pages, 997 cards
-  2000/27709 pages, 1997 cards
-  3000/27709 pages, 2986 cards
-  4000/27709 pages, 3986 cards
-  5000/27709 pages, 4972 cards
-  6000/27709 pages, 5972 cards
-  7000/27709 pages, 6972 cards
-  8000/27709 pages, 7972 cards
-  9000/27709 pages, 8972 cards
-  10000/27709 pages, 9972 cards
-  11000/27709 pages, 10972 cards
-  12000/27709 pages, 11971 cards
-  13000/27709 pages, 12955 cards
-  14000/27709 pages, 13955 cards
-  15000/27709 pages, 14955 cards
-  16000/27709 pages, 15955 cards
-  17000/27709 pages, 16954 cards
-  18000/27709 pages, 17954 cards
-  19000/27709 pages, 18941 cards
-  20000/27709 pages, 19925 cards
-  21000/27709 pages, 20909 cards
-  22000/27709 pages, 21907 cards
-  23000/27709 pages, 22905 cards
-  24000/27709 pages, 23905 cards
-  25000/27709 pages, 24905 cards
-  26000/27709 pages, 25905 cards
-  27000/27709 pages, 26874 cards
-351/424 old sets matched, 22719 old cards mapped
-Saved 465 sets, 27533 cards (27533 with pictures)
+351/424 old sets matched, 22754 old cards mapped
+Saved 465 sets, 27541 cards (27541 with pictures)
+TCGdex Japanese: 184 sets
+276 sets need names, 51 found on TCGdex
+Japanese names added: 0; now 19270 of 27541
