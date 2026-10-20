@@ -458,3 +458,8 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent, #e85
 
 /* Set picker: the set you had open */
 .current-set { outline: 2px solid var(--accent, #e5484d); outline-offset: -2px; border-radius: 12px; }
+
+/* Swiping to the next / previous Pokémon */
+.page.swap-in { transform: translateX(40%); opacity: 0; }
+.page.swap-in.from-left { transform: translateX(-40%); }
+.mon-hero { touch-action: pan-y; }

@@ -32,6 +32,11 @@ function dexPicture(s, o) {
 export function pokedexRoot() {
   return {
     title: 'Pokédex', large: true,
+    actions: [{ icon: 'shuffle', label: 'Random Pokémon', onClick: () => {
+      if (!state.species.length) return;
+      const s = state.species[Math.floor(Math.random() * state.species.length)];
+      openPokemon(s.id);
+    } }],
     watch: ['species', 'catalog', 'owned', 'settings', 'sprites'],
     render(body) {
       if (!state.species.length) {
@@ -85,10 +90,10 @@ export function pokedexRoot() {
   };
 }
 
-export function openPokemon(id, tab = 'pokedex') {
+export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
   const s = state.speciesById.get(id);
   const F = { lang: 'all', setKey: null, owned: 'all', sort: 'newest' };
-  nav.push(tab, {
+  const page = {
     title: s ? speciesName(s, 'en') : `#${id}`,
     subtitle: `#${String(id).padStart(4, '0')}`,
     watch: ['catalog', 'settings'],
@@ -122,8 +127,8 @@ export function openPokemon(id, tab = 'pokedex') {
         saveSettings({ dexDimMissing: on });
       } }, '◐ Grey out missing');
       const latestKey = ownedFor(id).latest;
-      body.append(
-        h('div', { class: 'mon-hero' },
+      // Swipe the top card left/right for the next/previous Pokémon
+      const hero = h('div', { class: 'mon-hero' },
           state.settings.dexShowCards && latestKey
             ? h('button', { class: 'sprite big dex-card', onclick: () => openCard(latestKey) }, lazyImg(() => cardSrc(state.cards.get(latestKey)), ''))
             : h('div', { class: 'sprite big' }, lazyImg(() => spriteSrc(id), '')),
@@ -132,7 +137,10 @@ export function openPokemon(id, tab = 'pokedex') {
               s?.ja ? h('span', {}, '🇯🇵 ', s.ja) : null,
               s?.zhHant ? h('span', {}, '🇹🇼 ', s.zhHant) : null,
               s?.zhHans && s.zhHans !== s.zhHant ? h('span', {}, '🇨🇳 ', s.zhHans) : null),
-            h('div', { class: 'big' }, h('b', {}, ownedN), ` / ${all.length} cards owned`))),
+            h('div', { class: 'big' }, h('b', {}, ownedN), ` / ${all.length} cards owned`)));
+      swipeNav(hero, id, tab);
+      body.append(
+        hero,
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))], F.lang, (v) => { F.lang = v; F.setKey = null; draw(); })),
         h('div', { class: 'toolbar' }, setBtn,
@@ -198,7 +206,23 @@ export function openPokemon(id, tab = 'pokedex') {
           }));
       }
     },
-  });
+  };
+  return replace ? nav.replace(tab, page, replace) : nav.push(tab, page);
+}
+
+/** Swipe left/right on an element to move to the next/previous Pokémon. */
+function swipeNav(el, id, tab) {
+  let x0 = 0, y0 = 0, t0 = 0;
+  el.addEventListener('touchstart', (e) => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); }, { passive: true });
+  el.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - x0, dy = t.clientY - y0;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5 || Date.now() - t0 > 800) return;
+    const ids = state.species.map((x) => x.id);
+    const i = ids.indexOf(id);
+    const next = ids[i + (dx < 0 ? 1 : -1)];
+    if (next) openPokemon(next, tab, { replace: dx < 0 ? 1 : -1 });
+  }, { passive: true });
 }
 
 export function initPokedex() { nav.setRoot('pokedex', pokedexRoot()); }

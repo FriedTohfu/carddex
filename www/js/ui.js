@@ -58,6 +58,7 @@ const P = {
   list: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
   sort: '<path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3"/>',
   share: '<path d="M12 3v12M8 7l4-4 4 4M5 13v7h14v-7"/>',
+  shuffle: '<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
   wifi_off: '<path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5-2.7M19 13a10 10 0 0 0-2-1.5M2 9a15 15 0 0 1 4.5-2.8M22 9a15 15 0 0 0-10-4"/><circle cx="12" cy="20" r="1"/>',
 };
 export function icon(name, size = 22) {
@@ -104,6 +105,19 @@ export const nav = {
     t.el.append(page.el);
     if (!instant) requestAnimationFrame(() => requestAnimationFrame(() => page.el.classList.remove('enter')));
     if (this.current !== tab) this.switchTab(tab);
+    return page;
+  },
+  /** Swap the top page for another (e.g. next Pokémon) without stacking pages. */
+  replace(tab, page, dir = 1) {
+    const t = this.tabs[tab];
+    const old = t.stack.pop();
+    if (old) { old.destroy?.(); old.el.remove(); }
+    page.tab = tab;
+    page.el = h('div', { class: 'page swap-in' + (dir < 0 ? ' from-left' : '') });
+    buildPage(page, t.stack.length > 0);
+    t.stack.push(page);
+    t.el.append(page.el);
+    requestAnimationFrame(() => requestAnimationFrame(() => page.el.classList.remove('swap-in', 'from-left')));
     return page;
   },
   pop(tab = this.current) {
