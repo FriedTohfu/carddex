@@ -1,29 +1,7 @@
 236 en expansions
-236 sets, 0 cards kept from last run, 22279 card pages to read
+236 sets, 21358 cards kept from last run, 920 card pages to read
 sample set: [{'id': 'me55cc', 'name': '30th Celebration: Classic Collection', 'series': 'Mega Evolution', 'releaseDate': '2026-09-16', 'total': 30, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me55cc.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me55cc.png'}, {'id': 'me55', 'name': '30th Celebration', 'series': '30th Celebration: Classic Collection', 'releaseDate': '2026-09-16', 'total': 161, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me55.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me55.png'}]
-  1000/22279 pages, 997 cards
-  2000/22279 pages, 1994 cards
-  3000/22279 pages, 2994 cards
-  4000/22279 pages, 3994 cards
-  5000/22279 pages, 4994 cards
-  6000/22279 pages, 5994 cards
-  7000/22279 pages, 6969 cards
-  8000/22279 pages, 7969 cards
-  9000/22279 pages, 8968 cards
-  10000/22279 pages, 9959 cards
-  11000/22279 pages, 10927 cards
-  12000/22279 pages, 11809 cards
-  13000/22279 pages, 12766 cards
-  14000/22279 pages, 13635 cards
-  15000/22279 pages, 14548 cards
-  16000/22279 pages, 15502 cards
-  17000/22279 pages, 16496 cards
-  18000/22279 pages, 17468 cards
-  19000/22279 pages, 18436 cards
-  20000/22279 pages, 19400 cards
-  21000/22279 pages, 20400 cards
-  22000/22279 pages, 21400 cards
 TCGdex English: 220 sets
 TCGdex English: 216 sets with cards
-162/231 old sets matched, 18847 old cards mapped
+160/227 old sets matched, 18847 old cards mapped
 Saved 236 sets, 21669 cards (21669 with pictures)
