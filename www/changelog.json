@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-21b",
+  "date": "2026-10-21",
+  "title": "Hold any card to see it big",
+  "items": [
+   "Press and hold any card anywhere in the app — Search, sets, your collection, wishlists, the card picker and the Pokédex — to pop it up full size. Let go to close.",
+   "In binders, hold a card still to see it big; start moving your finger to drag it to another pocket as before."
+  ]
+ },
+ {
   "id": "2026-10-21a",
   "date": "2026-10-21",
   "title": "Grey-out options moved to Settings",

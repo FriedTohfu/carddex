@@ -371,6 +371,18 @@ export function langBadge(lang) {
   return h('span', { class: `lang lang-${lang}` }, LANGS[lang]?.short || lang);
 }
 
+/** Shows a card big on top of everything. Returns a function that closes it. */
+export function showPeek(card) {
+  const overlay = h('div', { class: 'peek' }, h('img', { alt: card.name || '', draggable: 'false' }));
+  const img = overlay.firstChild;
+  cardSrc(card, 'low').then((u) => { if (u && !img.src) img.src = u; });
+  cardSrc(card, 'high').then((u) => { if (u) { const hi = new Image(); hi.onload = () => { img.src = u; }; hi.src = u; } });
+  document.body.append(overlay);
+  requestAnimationFrame(() => overlay.classList.add('show'));
+  navigator.vibrate?.(15);
+  return () => { overlay.classList.remove('show'); setTimeout(() => overlay.remove(), 160); };
+}
+
 /** Hold a card to see it big; let go to close. A hold doesn't count as a tap. */
 export function enablePeek(el, card) {
   let timer = null, sx = 0, sy = 0, overlay = null;
@@ -381,18 +393,12 @@ export function enablePeek(el, card) {
     if (!overlay) return;
     for (const ev of ends) window.removeEventListener(ev, close, true);
     window.removeEventListener('touchmove', noScroll, { capture: true });
-    overlay.classList.remove('show'); const o = overlay; setTimeout(() => o.remove(), 160); overlay = null;
+    overlay(); overlay = null;
   };
   const open = () => {
     timer = null;
     el._peeked = true;
-    overlay = h('div', { class: 'peek' }, h('img', { alt: card.name || '', draggable: 'false' }));
-    const img = overlay.firstChild;
-    cardSrc(card, 'low').then((u) => { if (u && !img.src) img.src = u; });
-    cardSrc(card, 'high').then((u) => { if (u) { const hi = new Image(); hi.onload = () => { img.src = u; }; hi.src = u; } });
-    document.body.append(overlay);
-    requestAnimationFrame(() => overlay?.classList.add('show'));
-    navigator.vibrate?.(15);
+    overlay = showPeek(card);
     // Stay open until the finger actually lifts (the phone may cancel the touch as a long-press/scroll)
     for (const ev of ends) window.addEventListener(ev, close, true);
     window.addEventListener('touchmove', noScroll, { capture: true, passive: false });
@@ -411,7 +417,7 @@ export function enablePeek(el, card) {
   el.addEventListener('click', (e) => { if (el._peeked) { e.stopImmediatePropagation(); e.preventDefault(); el._peeked = false; } }, true);
 }
 
-export function cardTile(card, { onClick, dimMissing = true, showLang = true, showSet = false, versionsOf, peek = false } = {}) {
+export function cardTile(card, { onClick, dimMissing = true, showLang = true, showSet = false, versionsOf, peek = true } = {}) {
   // versionsOf(card) → keys of the same card in other languages (shown as one tile)
   const keys = versionsOf?.(card) || [card.key];
   const q = keys.reduce((n, k) => n + qty(k), 0);

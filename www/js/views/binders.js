@@ -1,5 +1,5 @@
 // Binders tab: 4, 9 or 12-pocket binder layouts you fill with cards.
-import { h, nav, empty, sheet, promptDialog, confirmDialog, chooseDialog, toast, icon, setTitle, cardArt, lazyImg, cardSrc, chips } from '../ui.js';
+import { h, nav, empty, sheet, promptDialog, confirmDialog, chooseDialog, toast, icon, setTitle, cardArt, lazyImg, cardSrc, chips, showPeek } from '../ui.js';
 import { state, bindersSorted, createBinder, saveBinder, deleteBinder, LAYOUTS, qty, changeOwned } from '../store.js';
 import { openCard } from './card.js';
 import { openPicker, pickSetDialog } from './search.js';
@@ -201,10 +201,25 @@ export function openBinder(id) {
       };
       place(x, y);
       let ended = false;
-      const move = (e) => { if (e.cancelable) e.preventDefault(); const p = e.touches ? e.touches[0] : e; if (p) place(p.clientX, p.clientY); };
+      // Holding still shows the card big; moving drags it (and closes the big view)
+      let closePeek = null, moved = false;
+      const peekCard = state.cards.get(state.binders.get(id)?.pages[pageNo]?.[from]);
+      const peekTimer = setTimeout(() => { if (!moved && !ended && peekCard) { closePeek = showPeek(peekCard); ghost.style.visibility = 'hidden'; } }, 250);
+      const move = (e) => {
+        if (e.cancelable) e.preventDefault();
+        const p = e.touches ? e.touches[0] : e;
+        if (!p) return;
+        if (!moved && Math.hypot(p.clientX - x, p.clientY - y) > 12) {
+          moved = true; clearTimeout(peekTimer);
+          if (closePeek) { closePeek(); closePeek = null; ghost.style.visibility = ''; }
+        }
+        place(p.clientX, p.clientY);
+      };
       const end = async () => {
         if (ended) return;
         ended = true;
+        clearTimeout(peekTimer);
+        if (closePeek) { closePeek(); closePeek = null; }
         document.removeEventListener('pointermove', move);
         document.removeEventListener('pointerup', end);
         document.removeEventListener('touchmove', move);
