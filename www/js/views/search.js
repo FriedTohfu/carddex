@@ -110,7 +110,7 @@ export function searchRoot() {
         const cards = searchCards(S);
         const keys = cards.map((c) => c.key);
         results.append(h('div', { class: 'muted small count' }, `${cards.length.toLocaleString()} cards`),
-          cardGrid(cards, { dimMissing: false, showSet: !S.setKey, onClick: (c) => openCard(c.key, keys),
+          cardGrid(cards, { dimMissing: !!state.settings.searchDimMissing, showSet: !S.setKey, onClick: (c) => openCard(c.key, keys),
             empty: empty('No cards found', 'Try another spelling, language or set. If the card isn’t in the database (some Chinese exclusives aren’t), you can add it yourself.',
               h('button', { class: 'btn primary', onclick: () => import('./addcard.js').then((m) => m.openAddCard({ name: S.q.trim(), lang: S.lang !== 'all' ? S.lang : undefined, setKey: S.setKey })) }, '＋ Add it yourself')) }));
       }

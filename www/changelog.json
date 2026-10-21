@@ -1,5 +1,13 @@
 [
  {
+  "id": "2026-10-21a",
+  "date": "2026-10-21",
+  "title": "Grey-out options moved to Settings",
+  "items": [
+   "The ◐ Grey out button is gone from the Pokédex. Settings → \"Grey out cards I don't own\" now has one switch each for the Pokédex, Search, sets and wishlists."
+  ]
+ },
+ {
   "id": "2026-10-20b",
   "date": "2026-10-20",
   "title": "Swipe between Pokémon, random Pokémon",

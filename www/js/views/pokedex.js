@@ -115,14 +115,6 @@ export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
         const { saveSettings } = await import('../store.js');
         saveSettings({ dexCombine: state.settings.dexCombine === false });
       } }, '🔗 Combine languages');
-      // Toggle: grey out cards you don't own (remembered)
-      const dimBtn = h('button', { class: 'chip' + (state.settings.dexDimMissing !== false ? ' on' : ''), onclick: async () => {
-        const on = state.settings.dexDimMissing === false;
-        dimBtn.classList.toggle('on', on);
-        const { saveSettings } = await import('../store.js');
-        state.settings.dexDimMissing = on;
-        saveSettings({ dexDimMissing: on });
-      } }, '◐ Grey out missing');
       const latestKey = ownedFor(id).latest;
       // Swipe the top card left/right for the next/previous Pokémon
       const hero = h('div', { class: 'mon-hero' },
@@ -142,7 +134,7 @@ export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
           chips([{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))], F.lang, (v) => { F.lang = v; F.setKey = null; draw(); })),
         h('div', { class: 'toolbar' }, setBtn,
           chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], F.owned, (v) => { F.owned = v; draw(); }),
-          dimBtn, combineBtn,
+          combineBtn,
           h('select', { class: 'input mini', 'aria-label': 'Sort', onchange: (e) => { F.sort = e.target.value; draw(); } },
             [['newest', 'Newest'], ['oldest', 'Oldest'], ['rarity', 'Rarity']].map(([v, l]) => h('option', { value: v, selected: F.sort === v }, l)))),
         res);

@@ -42,7 +42,7 @@ export function openSet(setKey, tab = nav.current) {
           chips([{ value: 'all', label: `All ${all.length}` }, { value: 'owned', label: `Owned ${p.owned}` }, { value: 'missing', label: 'Missing' }], filter, (v) => { filter = v; refresh(); }),
           quickBtn),
         cardGrid(cards, {
-          showLang: false,
+          showLang: false, dimMissing: state.settings.setDimMissing !== false,
           onClick: (c) => {
             if (quick) {
               changeOwned(c.key, 'normal', 1);

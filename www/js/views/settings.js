@@ -59,8 +59,13 @@ export function openSettings() {
           h('div', { class: 'field' }, h('span', {}, 'Theme'),
             chips([{ value: 'auto', label: 'Auto' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }], state.settings.theme, (v) => saveSettings({ theme: v })))),
 
+        section('Grey out cards I don’t own', 'Cards you don’t have yet are shown faded.',
+          toggle('In the Pokédex', state.settings.dexDimMissing !== false, (on) => saveSettings({ dexDimMissing: on })),
+          toggle('In Search', !!state.settings.searchDimMissing, (on) => saveSettings({ searchDimMissing: on })),
+          toggle('In sets', state.settings.setDimMissing !== false, (on) => saveSettings({ setDimMissing: on })),
+          toggle('In wishlists', state.settings.wishDimMissing !== false, (on) => saveSettings({ wishDimMissing: on }))),
+
         section('Wishlists', '',
-          toggle('Grey out cards I don’t own', state.settings.wishDimMissing !== false, (on) => saveSettings({ wishDimMissing: on })),
           toggle('Hide cards I own', !!state.settings.wishHideOwned, (on) => saveSettings({ wishHideOwned: on })),
           toggle('Remove cards from wishlists when I add them to my collection', !!state.settings.wishAutoRemove, (on) => saveSettings({ wishAutoRemove: on }))),
 
