@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-23c",
+  "date": "2026-10-23",
+  "title": "Faster start-up",
+  "items": [
+   "The app no longer re-downloads card lists or scan data when you open it — only when there's actually a newer version on GitHub.",
+   "Recently added in your Collection can be folded away: tap its title to hide or show it."
+  ]
+ },
+ {
   "id": "2026-10-23b",
   "date": "2026-10-23",
   "title": "Series fixed, search by number fixed",

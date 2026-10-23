@@ -206,8 +206,10 @@ export async function autoUpdateCardData() {
   if (online() && !job.running) {
     const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
     const todo = [];
-    if (index?.jaGG && state.settings.langs.includes('ja') && state.syncInfo.ja?.built !== index.jaGG.built) todo.push('ja');
-    if (index?.enDex && state.settings.langs.includes('en') && state.syncInfo.en?.built !== index.enDex.built) todo.push('en');
+    // Only when GitHub has a newer list (its servers sometimes hand out an older copy for a few minutes)
+    const newer = (remote, have) => !!remote && (!have || remote > have);
+    if (index?.jaGG && state.settings.langs.includes('ja') && newer(index.jaGG.built, state.syncInfo.ja?.built)) todo.push('ja');
+    if (index?.enDex && state.settings.langs.includes('en') && newer(index.enDex.built, state.syncInfo.en?.built)) todo.push('en');
     if (todo.length) {
       const errors = await syncCatalog(todo);
       return !errors?.length;
@@ -385,7 +387,7 @@ async function syncJaGG({ force = false, lang = 'ja', indexKey = 'jaGG' } = {}) 
   const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 1 }).catch(() => null);
   const info = index?.[indexKey];
   if (!info) return false;
-  if (!force && state.syncInfo[lang]?.built === info.built && [...state.sets.values()].some((st) => st.src === 'gg' && st.lang === lang)) return true;
+  if (!force && (state.syncInfo[lang]?.built || '') >= info.built && [...state.sets.values()].some((st) => st.src === 'gg' && st.lang === lang)) return true;
   report(`Downloading ${label} card list…`, 0, 0);
   const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-pkmngg.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 240000, retries: 1 });
   if (!d?.cards?.length) return false;
@@ -872,7 +874,7 @@ export async function updateScanData({ force = false } = {}) {
     const e = index[lang];
     if (!e || e.v !== FP_VERSION) { missing.push(lang); continue; }
     const cur = await db.get('meta', `scan:${lang}`);
-    if (!force && cur && cur.v === e.v && cur.built === e.built) continue;
+    if (!force && cur && cur.v === e.v && (cur.built || '') >= (e.built || '')) continue; // have this one (or newer)
     report(`Getting scan data (${lang.toUpperCase()}, ~${Math.max(1, Math.round((e.bytes || 0) / 1048576))} MB)`, 0, 0);
     try {
       const d = await fetchJSON(`${SCAN_DATA}/${e.file}?b=${encodeURIComponent(e.built)}`, { timeout: 120000, retries: 1 });

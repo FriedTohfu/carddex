@@ -185,8 +185,11 @@ function recentBox() {
   const seen = new Set(), cards = [];
   for (const x of r) if (!seen.has(x.key) && seen.add(x.key)) cards.push(state.cards.get(x.key));
   const keys = cards.map((c) => c.key);
+  const open = state.settings.recentOpen !== false;
   return h('div', { class: 'recent-box' },
-    h('div', { class: 'row-between' }, h('b', { class: 'small' }, 'Recently added'),
+    h('div', { class: 'row-between' },
+      h('button', { class: 'link small recent-toggle', 'aria-expanded': String(open), onclick: () => import('../store.js').then((m) => m.saveSettings({ recentOpen: !open })) },
+        h('span', { class: 'chev' }, open ? '▾ ' : '▸ '), h('b', {}, `Recently added`), open ? null : h('span', { class: 'muted' }, ` (${cards.length})`)),
       h('button', { class: 'link small', onclick: async () => {
         const last = state.recent.shift();
         if (!last) return;
@@ -194,7 +197,7 @@ function recentBox() {
         db.put('meta', state.recent, 'recent').catch(() => {});
         toast(`Removed ${state.cards.get(last.key)?.name || 'card'}`);
       } }, '↶ Undo last add')),
-    h('div', { class: 'recent-strip' }, cards.slice(0, 12).map((c) => cardTile(c, { dimMissing: false, onClick: () => openCard(c.key, keys) }))));
+    open ? h('div', { class: 'recent-strip' }, cards.slice(0, 12).map((c) => cardTile(c, { dimMissing: false, onClick: () => openCard(c.key, keys) }))) : null);
 }
 
 async function shareDupes(cards) {
