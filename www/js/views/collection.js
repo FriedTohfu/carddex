@@ -1,6 +1,6 @@
 // "My Collection" tab: stats, set progress, all owned cards.
-import { h, nav, chips, cardGrid, empty, debounce, icon } from '../ui.js';
-import { state, collectionStats, setProgress, allSetsSorted, qty } from '../store.js';
+import { h, nav, chips, cardGrid, cardTile, empty, debounce, icon, toast } from '../ui.js';
+import { state, collectionStats, setProgress, allSetsSorted, qty, changeOwned } from '../store.js';
 import { setRow, openSet } from './sets.js';
 import { openCard } from './card.js';
 import { LANGS } from '../api.js';
@@ -15,6 +15,7 @@ let sort = 'recent';
 let query = '';
 let serie = 'all';      // series filter (e.g. XY, Black & White)
 let group = 'serie';    // My cards grouping: none | serie | set | lang | pokemon
+let only = 'all';       // My cards: all | dupes
 const collapsed = new Set();
 
 const serieOf = (setKey) => state.sets.get(setKey)?.serie || 'Other';
@@ -38,6 +39,8 @@ export function collectionRoot() {
         h('div', { class: 'stat' }, h('b', {}, st.sets), h('small', {}, 'Sets started')),
         value));
       estimateValue().then((v) => { value.querySelector('b').textContent = v || '—'; });
+      const recent = recentBox();
+      if (recent) body.append(recent);
 
       const langs = [{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: LANGS[l].short }))];
       const search = h('input', { class: 'input search', type: 'search', placeholder: mode === 'sets' ? 'Find a set…' : 'Find a card…', value: query });
@@ -90,7 +93,7 @@ export function collectionRoot() {
           if (!query) list.append(h('button', { class: 'btn ghost wide', onclick: () => { showAll = !showAll; drawSeries(); drawList(); } },
             showAll ? 'Show only sets I’ve started' : `Show all ${sets.length} sets`));
         } else {
-          let cards = [...state.owned.keys()].filter((k) => qty(k)).map((k) => state.cards.get(k)).filter(Boolean);
+          let cards = [...state.owned.keys()].filter((k) => (only === 'dupes' ? qty(k) > 1 : qty(k))).map((k) => state.cards.get(k)).filter(Boolean);
           if (lang !== 'all') cards = cards.filter((c) => c.lang === lang);
           if (serie !== 'all') cards = cards.filter((c) => serieOf(c.setKey) === serie);
           if (query) cards = cards.filter((c) => c.name.toLowerCase().includes(query) || (state.sets.get(c.setKey)?.name || '').toLowerCase().includes(query));
@@ -104,13 +107,16 @@ export function collectionRoot() {
           };
           cards.sort(by[sort]);
           list.append(h('div', { class: 'toolbar' },
-            h('span', { class: 'muted small' }, `${cards.length} cards`),
+            chips([{ value: 'all', label: 'All my cards' }, { value: 'dupes', label: 'Duplicates' }], only, (v) => { only = v; drawList(); }),
+            only === 'dupes' && cards.length ? h('button', { class: 'chip', onclick: () => shareDupes(cards) }, '📤 Share list') : null),
+            h('div', { class: 'toolbar' },
+            h('span', { class: 'muted small' }, only === 'dupes' ? `${cards.length} cards with spares` : `${cards.length} cards`),
             h('select', { class: 'input mini', 'aria-label': 'Group by', onchange: (e) => { group = e.target.value; drawList(); } },
               [['none', 'No groups'], ['serie', 'Group: series'], ['set', 'Group: set'], ['lang', 'Group: language'], ['pokemon', 'Group: Pokémon']].map(([v, l]) => h('option', { value: v, selected: group === v }, l))),
             h('select', { class: 'input mini', 'aria-label': 'Sort', style: { marginLeft: '0' }, onchange: (e) => { sort = e.target.value; drawList(); } },
               [['recent', 'Recently added'], ['set', 'By set'], ['number', 'By number'], ['name', 'By name'], ['qty', 'Most copies']].map(([v, l]) => h('option', { value: v, selected: sort === v }, l)))));
           const keys = cards.map((c) => c.key);
-          if (!cards.length) { list.append(empty('Nothing here yet', 'Cards you add will show up here.')); return; }
+          if (!cards.length) { list.append(only === 'dupes' ? empty('No duplicates', 'Cards you have more than one copy of show up here.') : empty('Nothing here yet', 'Cards you add will show up here.')); return; }
           if (group === 'none') {
             list.append(cardGrid(cards, { dimMissing: false, showSet: true, onClick: (c) => openCard(c.key, keys) }));
             return;
@@ -170,6 +176,31 @@ async function estimateValue() {
     n++; total += v * q;
   }
   return n ? fmt(total) : null;
+}
+
+/** The last cards you added, with an undo for mistakes. */
+function recentBox() {
+  const r = (state.recent || []).filter((x) => state.cards.has(x.key));
+  if (!r.length) return null;
+  const seen = new Set(), cards = [];
+  for (const x of r) if (!seen.has(x.key) && seen.add(x.key)) cards.push(state.cards.get(x.key));
+  const keys = cards.map((c) => c.key);
+  return h('div', { class: 'recent-box' },
+    h('div', { class: 'row-between' }, h('b', { class: 'small' }, 'Recently added'),
+      h('button', { class: 'link small', onclick: async () => {
+        const last = state.recent.shift();
+        if (!last) return;
+        await changeOwned(last.key, last.variant, -1);
+        db.put('meta', state.recent, 'recent').catch(() => {});
+        toast(`Removed ${state.cards.get(last.key)?.name || 'card'}`);
+      } }, '↶ Undo last add')),
+    h('div', { class: 'recent-strip' }, cards.slice(0, 12).map((c) => cardTile(c, { dimMissing: false, onClick: () => openCard(c.key, keys) }))));
+}
+
+async function shareDupes(cards) {
+  const lines = cards.map((c) => `• ${c.name} — ${state.sets.get(c.setKey)?.name || ''} #${c.localId} ×${qty(c.key) - 1} spare`);
+  const { shareText } = await import('./settings.js');
+  shareText('My spare cards', `My spare cards (${cards.length})\n${lines.join('\n')}`);
 }
 
 export function initCollection() {

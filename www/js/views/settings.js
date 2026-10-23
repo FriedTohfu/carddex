@@ -50,6 +50,10 @@ export function openSettings() {
 
         section('Collection', '',
           toggle('Count secret rares in set progress', state.settings.includeSecrets, (on) => saveSettings({ includeSecrets: on })),
+          toggle('Master set mode (English sets from 2002): Commons, Uncommons and Rares count only once you also have the reverse holo', !!state.settings.masterSet, (on) => saveSettings({ masterSet: on })),
+          h('label', { class: 'field' }, h('span', {}, 'Combined cards show the picture in'),
+            h('select', { class: 'input', onchange: (e) => saveSettings({ preferLang: e.target.value }) },
+              [['en', 'English'], ['ja', 'Japanese'], ['zh-cn', 'Simplified Chinese']].map(([v, l]) => h('option', { value: v, selected: (state.settings.preferLang || 'en') === v }, l)))),
           toggle('Pokédex: keep the search bar pinned at the top', state.settings.dexStickySearch !== false, (on) => saveSettings({ dexStickySearch: on })),
           toggle('Pokédex shows my latest card of each Pokémon', state.settings.dexShowCards, (on) => saveSettings({ dexShowCards: on })),
           h('label', { class: 'field' }, h('span', {}, 'Currency for prices'),
@@ -177,7 +181,10 @@ function updatesSection() {
         const r = await ota.checkForUpdate({ force: true, quiet: false });
         toast({ none: 'You’re up to date ✓', downloaded: 'Update downloaded — tap Restart now', 'needs-apk': 'A new APK is needed — see the banner', unsupported: 'Only works in the installed app', offline: 'You’re offline', error: 'Couldn’t check right now' }[r] || r);
       } }, 'Check now'),
-      h('button', { class: 'btn', onclick: async () => (await import('../whatsnew.js')).showAllWhatsNew() }, 'What’s new'),
+      h('button', { class: 'btn', onclick: async () => (await import('../whatsnew.js')).showAllWhatsNew() }, 'What’s new')),
+    // Troubleshooting only — tucked away so it isn't tapped by accident
+    h('details', { class: 'advanced' }, h('summary', { class: 'muted small' }, 'Advanced'),
+      h('p', { class: 'muted small' }, 'If an update ever stops the app working properly, go back to the version that came with the APK until the next update.'),
       h('button', { class: 'btn', onclick: async () => (await import('../ota.js')).useInstalledVersion() }, 'Use installed version')));
 }
 
@@ -253,7 +260,7 @@ export async function shareText(title, text) {
   } catch { /* cancelled */ }
 }
 
-async function doExport() {
+export async function doExport() {
   const data = JSON.stringify({ ...(await exportBackup()), custom: await exportCustom() });
   const name = `carddex-backup-${new Date().toISOString().slice(0, 10)}.json`;
   const { Filesystem, Share } = plugins();

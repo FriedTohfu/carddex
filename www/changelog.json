@@ -1,5 +1,23 @@
 [
  {
+  "id": "2026-10-23a",
+  "date": "2026-10-23",
+  "title": "Lots of collecting and quality-of-life upgrades",
+  "items": [
+   "Card tiles show small badges for the foil versions you own: R (reverse holo), H (holo), 1st (1st edition).",
+   "Collection → My cards has a Duplicates view with a Share list button for trading.",
+   "Collection shows your recently added cards, with Undo last add for mistakes.",
+   "Sets: tap ☑ Select to pick several cards, then add them all to your collection or a wishlist at once.",
+   "Master set mode (Settings → Collection): for English sets from 2002, Commons, Uncommons and Rares only count once you also have the reverse holo.",
+   "Search remembers your recent searches.",
+   "Swipe left or right anywhere on a card's page to go to the next card.",
+   "Settings: choose whether combined cards show the English, Japanese or Chinese picture.",
+   "Monthly reminder to back up, with a Back up now button.",
+   "Scanner: ✕ Not this card shows the next best match, plus buttons to add the scanned card to a wishlist or binder.",
+   "Tidied up: Use installed version moved under Settings → Advanced, and the 繁 button is gone from the Pokédex."
+  ]
+ },
+ {
   "id": "2026-10-21b",
   "date": "2026-10-21",
   "title": "Hold any card to see it big",

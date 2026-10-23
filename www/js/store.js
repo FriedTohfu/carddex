@@ -50,6 +50,7 @@ export async function loadAll() {
     await db.put('meta', state.settings, 'settings');
   }
   state.syncInfo = syncInfo || {};
+  state.recent = (await db.get('meta', 'recent').catch(() => null)) || [];
   setCatalog(sets, cards);
   for (const o of owned) state.owned.set(o.key, o);
   for (const w of wls) state.wishlists.set(w.id, w);
@@ -120,10 +121,29 @@ export function setCardsForProgress(setKey) {
   return cards.filter((c) => !isSecret(c, set));
 }
 
+/**
+ * Master set: English sets from Legendary Collection (2002) on have a reverse holo of every
+ * Common, Uncommon, Rare and Holo — in master set mode those need both copies to count.
+ */
+export function needsReverse(card, set = state.sets.get(card.setKey)) {
+  if (!state.settings.masterSet || card.lang !== 'en' || !set) return false;
+  if ((set.releaseDate || '') < '2002-05-24' || /promo|energ/i.test(set.name || '')) return false;
+  const r = String(card.det?.rarity || '').toLowerCase();
+  return /^(common|uncommon|rare|rare holo|holo rare)$/.test(r);
+}
+export function ownedForProgress(card, set) {
+  const o = state.owned.get(card.key);
+  if (!o || !qty(card.key)) return false;
+  if (!needsReverse(card, set)) return true;
+  const c = o.counts || {};
+  return (c.reverse || 0) > 0 && ((c.normal || 0) + (c.holo || 0) + (c.firstEdition || 0)) > 0;
+}
+
 export function setProgress(setKey) {
   const cards = setCardsForProgress(setKey);
+  const st = state.sets.get(setKey);
   let owned = 0;
-  for (const c of cards) if (isOwned(c.key)) owned++;
+  for (const c of cards) if (ownedForProgress(c, st)) owned++;
   const set = state.sets.get(setKey);
   const total = cards.length || (state.settings.includeSecrets ? set?.total : set?.official) || 0;
   return { owned, total, pct: total ? owned / total : 0 };
@@ -154,6 +174,13 @@ export async function changeOwned(key, variant = 'normal', delta = 1) {
   } else {
     state.owned.set(key, o);
     await db.put('owned', o);
+  }
+  // Remember recent additions (Collection → Recently added, with undo)
+  if (delta > 0) {
+    const r = (state.recent ||= []);
+    r.unshift({ key, variant, at: now });
+    r.length = Math.min(r.length, 30);
+    db.put('meta', r, 'recent').catch(() => {});
   }
   // Optional: a card you now own comes off your wishlists
   if (delta > 0 && state.settings.wishAutoRemove) {

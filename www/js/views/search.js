@@ -61,6 +61,15 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
 
 const S = { q: '', lang: 'all', setKey: null, owned: 'all', sort: 'newest', by: 'card' };
 
+// Recent searches (kept on this phone)
+const HKEY = 'search.history';
+const history = () => { try { return JSON.parse(localStorage.getItem(HKEY) || '[]'); } catch { return []; } };
+function remember(q) {
+  q = q.trim(); if (q.length < 2) return;
+  const list = [q, ...history().filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, 8);
+  try { localStorage.setItem(HKEY, JSON.stringify(list)); } catch { /* ignore */ }
+}
+
 export function searchRoot() {
   return {
     title: 'Search', large: true,
@@ -76,6 +85,9 @@ export function searchRoot() {
       const hint = () => (S.by === 'artist' ? 'Artist, e.g. Mitsuhiro Arita' : 'Name or number, e.g. Mewtwo 164/162');
       const input = h('input', { class: 'input search', type: 'search', placeholder: hint(), value: S.q, enterkeyhint: 'search' });
       input.addEventListener('input', debounce(() => { S.q = input.value; draw(); }, 220));
+      // Save a search once you stop typing for a moment, or press Enter
+      input.addEventListener('input', debounce(() => { if (S.q.trim() && S.by === 'card') remember(S.q); }, 2000));
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { remember(input.value); input.blur(); } });
       const setBtn = h('button', { class: 'chip' + (S.setKey ? ' on' : ''), onclick: pickSet });
       const langOpts = [{ value: 'all', label: 'All languages' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))];
       const pinned = h('div', { class: 'dex-search pinned' }, input);
@@ -101,6 +113,13 @@ export function searchRoot() {
         setBtn.classList.toggle('on', !!set);
         results.innerHTML = '';
         if (!S.q.trim() && !S.setKey && S.owned === 'all') {
+          // Recent searches
+          const hist = history();
+          if (hist.length && S.by === 'card') {
+            results.append(h('div', { class: 'row-between' }, h('span', { class: 'muted small' }, 'Recent searches'),
+              h('button', { class: 'link small', onclick: () => { try { localStorage.removeItem(HKEY); } catch { /* ignore */ } draw(); } }, 'Clear')),
+            h('div', { class: 'history' }, hist.map((q) => h('button', { class: 'chip', onclick: () => { input.value = q; S.q = q; draw(); } }, '🕘 ', q))));
+          }
           // Browse sets when nothing is typed
           const sets = allSetsSorted().filter((s) => S.lang === 'all' || s.lang === S.lang);
           results.append(h('h3', { class: 'section-title' }, `Browse ${sets.length.toLocaleString()} sets`),

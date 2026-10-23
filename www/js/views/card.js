@@ -18,6 +18,18 @@ export function openCard(key, list = null, opts = {}) {
   });
   render(s.body);
 
+  // Swipe left/right anywhere on the card page to change card (not on sliders, inputs or scrolling strips)
+  let sx = null, sy = 0, st = 0;
+  s.body.addEventListener('touchstart', (e) => {
+    if (e.target.closest('input, select, textarea, .match-strip, .version-chips, .price-box')) { sx = null; return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+  }, { passive: true });
+  s.body.addEventListener('touchend', (e) => {
+    if (sx == null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && Date.now() - st < 800) go(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
   function go(d) {
     if (!list) return;
     const n = idx + d;
@@ -35,15 +47,7 @@ export function openCard(key, list = null, opts = {}) {
     const set = state.sets.get(card.setKey);
     s.setTitle(card.name);
 
-    // Swipe left/right to change card
-    let sx = null;
     const imgWrap = h('div', { class: 'detail-img', onclick: () => zoom(card) }, cardArt(card, 'high'));
-    imgWrap.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
-    imgWrap.addEventListener('touchend', (e) => {
-      if (sx == null) return;
-      const dx = e.changedTouches[0].clientX - sx; sx = null;
-      if (Math.abs(dx) > 60) go(dx < 0 ? 1 : -1);
-    });
 
     // Same card in other languages: switch between them here
     const group = opts.versionsOf?.(list ? list[idx] : startKey) || [];

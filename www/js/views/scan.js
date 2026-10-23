@@ -211,7 +211,17 @@ export async function openScanner() {
             h('button', { class: 'btn', onclick: async () => {
               const v = await chooseDialog('Add which version?', VARIANTS.map(([value, label]) => ({ value, label })));
               if (v) add(card, v);
-            } }, 'Add as…')))),
+            } }, 'Add as…')),
+          h('div', { class: 'btn-row' },
+            h('button', { class: 'btn', onclick: async () => (await import('./card.js')).toggleWishlist(card) }, '♡ Wishlist'),
+            h('button', { class: 'btn', onclick: async () => (await import('./card.js')).addToBinder(card) }, '📒 Binder')),
+          h('button', { class: 'btn ghost wide', onclick: () => {
+            // Show the next best match instead
+            const i = matches.findIndex((m) => m.key === chosen.key);
+            const next = matches[i + 1];
+            if (next) showResults(matches, next, src, rect);
+            else toast('No other matches — try Search');
+          } }, '✕ Not this card — show the next match'))),
       versions.length ? h('div', { class: 'small strip-title' }, `Other versions of ${card.name} — check the set and foil:`) : null,
       versions.length ? strip(versions) : null,
       close.length ? h('div', { class: 'muted small strip-title' }, 'Not it? Other close matches:') : null,

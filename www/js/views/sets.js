@@ -1,6 +1,6 @@
 // A single set: progress, all cards, owned/missing filter, quick-add mode.
 import { h, nav, cardGrid, progressBar, chips, toast, langBadge, lazyImg, logoSrc, fmtDate, icon, chooseDialog, promptDialog } from '../ui.js';
-import { onChange, state, setProgress, setCardsForProgress, changeOwned, qty, createWishlist, saveWishlist, createBinder, saveBinder, wishlistsSorted } from '../store.js';
+import { onChange, state, setProgress, setCardsForProgress, changeOwned, qty, createWishlist, saveWishlist, createBinder, saveBinder, wishlistsSorted, ownedForProgress, needsReverse } from '../store.js';
 import { saveOffline, removeOffline, offlineSub } from './offline.js';
 import { openCard } from './card.js';
 
@@ -20,6 +20,8 @@ export function openSet(setKey, tab = nav.current) {
   if (!set) return;
   let filter = 'all';
   let quick = false;
+  let picking = false;
+  const picked = new Set();
   const page = {
     title: set.name,
     subtitle: [set.serie, fmtDate(set.releaseDate)].filter(Boolean).join(' · '),
@@ -28,7 +30,8 @@ export function openSet(setKey, tab = nav.current) {
     render(body) {
       const p = setProgress(setKey);
       const all = state.cardsBySet.get(setKey) || [];
-      const cards = all.filter((c) => filter === 'all' || (filter === 'owned' ? qty(c.key) : !qty(c.key)));
+      const done = (c) => ownedForProgress(c, set);
+      const cards = all.filter((c) => filter === 'all' || (filter === 'owned' ? done(c) : !done(c)));
       const keys = cards.map((c) => c.key);
       const head = h('div', { class: 'set-hero' },
         h('div', { class: 'set-hero-logo' }, lazyImg(() => logoSrc(set.logo || set.symbol), set.name)),
@@ -36,21 +39,56 @@ export function openSet(setKey, tab = nav.current) {
           h('div', { class: 'big' }, h('b', { class: 'own-count' }, p.owned), ` / ${p.total}`),
           h('div', { class: 'muted small' }, h('span', { class: 'own-pct' }, `${Math.floor(p.pct * 100)}% complete`), set.official && set.total > set.official ? ` · ${set.official} + ${set.total - set.official} secret` : ''),
           progressBar(p.pct)));
-      const quickBtn = h('button', { class: 'chip' + (quick ? ' on accent' : ''), onclick: () => { quick = !quick; quickBtn.classList.toggle('on', quick); quickBtn.classList.toggle('accent', quick); toast(quick ? 'Quick add on: tap a card to add one' : 'Quick add off'); } }, '⚡ Quick add');
+      const quickBtn = h('button', { class: 'chip' + (quick ? ' on accent' : ''), onclick: () => { quick = !quick; if (quick) { picking = false; picked.clear(); } refresh(); toast(quick ? 'Quick add on: tap a card to add one' : 'Quick add off'); } }, '⚡ Quick add');
+      const pickBtn = h('button', { class: 'chip' + (picking ? ' on accent' : ''), onclick: () => { picking = !picking; picked.clear(); if (picking) quick = false; refresh(); } }, picking ? '☑ Selecting…' : '☑ Select');
+      // Bar for the cards you've picked
+      const bar = h('div', { class: 'select-bar', hidden: !picking });
+      const drawBar = () => {
+        bar.innerHTML = '';
+        bar.append(
+          h('button', { class: 'btn primary', disabled: !picked.size, onclick: async () => {
+            const n = picked.size;
+            for (const k of picked) await changeOwned(k, 'normal', 1);
+            picked.clear(); picking = false; refresh();
+            toast(`Added ${n} cards ✓`);
+          } }, `Add ${picked.size || ''} to collection`),
+          h('button', { class: 'btn', disabled: !picked.size, onclick: async () => {
+            const lists = wishlistsSorted();
+            const w = await chooseDialog('Which wishlist?', [...lists.map((l) => ({ value: l.id, label: `${l.emoji || '⭐'} ${l.name}` })), { value: '__new', label: '＋ New wishlist' }]);
+            if (!w) return;
+            const list = w === '__new' ? await createWishlist(`${set.name} picks`) : state.wishlists.get(w);
+            const add = [...picked].filter((k) => !list.cards.includes(k));
+            list.cards = [...list.cards, ...add];
+            await saveWishlist(list);
+            toast(`Added ${add.length} to ${list.name}`);
+            picked.clear(); picking = false; refresh();
+          } }, '♡ Wishlist'));
+      };
+      drawBar();
       body.append(head,
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: `All ${all.length}` }, { value: 'owned', label: `Owned ${p.owned}` }, { value: 'missing', label: 'Missing' }], filter, (v) => { filter = v; refresh(); }),
-          quickBtn),
+          quickBtn, pickBtn),
         cardGrid(cards, {
           showLang: false, dimMissing: state.settings.setDimMissing !== false,
           onClick: (c) => {
+            if (picking) {
+              picked.has(c.key) ? picked.delete(c.key) : picked.add(c.key);
+              body.querySelector(`.tile[data-key="${CSS.escape(c.key)}"]`)?.classList.toggle('picked', picked.has(c.key));
+              drawBar();
+              return;
+            }
             if (quick) {
               changeOwned(c.key, 'normal', 1);
               toast(`${c.name} ×${qty(c.key)}`, 1200);
             } else openCard(c.key, keys);
           },
           empty: h('p', { class: 'muted center pad' }, filter === 'missing' ? '🎉 Set complete!' : 'No cards here yet.'),
-        }));
+        }), bar);
+      for (const k of picked) body.querySelector(`.tile[data-key="${CSS.escape(k)}"]`)?.classList.add('picked');
+      if (state.settings.masterSet && all.some((c) => needsReverse(c, set))) {
+        head.append(h('div', { class: 'muted small' }, 'Master set: Commons, Uncommons and Rares need a reverse holo too'));
+      }
       // Keep the counter live while quick-adding
       page._off?.();
       page._off = onChange((w) => { if (w === 'owned') page._upd?.(); });

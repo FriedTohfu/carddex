@@ -463,3 +463,23 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent, #e85
 .page.swap-in { transform: translateX(40%); opacity: 0; }
 .page.swap-in.from-left { transform: translateX(-40%); }
 .mon-hero { touch-action: pan-y; }
+
+/* Foil versions you own, on card tiles */
+.tile .vbadges { position: absolute; top: 6px; left: 6px; display: flex; gap: 3px; pointer-events: none; }
+.tile .vb { font-style: normal; font-size: 10px; font-weight: 700; line-height: 1; padding: 3px 4px; border-radius: 5px; color: #fff; background: rgba(0,0,0,.65); }
+.tile .vb-reverse { background: linear-gradient(135deg, #5b8def, #b66dd6); }
+.tile .vb-holo { background: linear-gradient(135deg, #e2a93b, #e86a6a); }
+.tile .vb-firstEdition { background: #222; border: 1px solid #ddd; }
+/* Collection extras */
+.recent-strip { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
+.recent-strip .tile { flex: 0 0 88px; }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* Set: pick several cards */
+.tile.picked { outline: 3px solid var(--accent, #e5484d); outline-offset: -3px; border-radius: 10px; }
+.select-bar { position: sticky; bottom: 0; z-index: 6; display: flex; gap: 8px; align-items: center; padding: 10px 0; background: var(--bg); }
+.select-bar .btn { flex: 1; }
+/* Search history */
+.history { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+/* Backup reminder */
+#backup-banner { display: flex; gap: 8px; align-items: center; padding: 10px 14px; background: var(--card, #1d1f24); border-bottom: 1px solid rgba(127,127,127,.25); font-size: 14px; }
+#backup-banner span { flex: 1; }

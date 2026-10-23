@@ -1,6 +1,6 @@
 // App start-up: tabs, scan button, download progress bar, Android back button.
 import { openDB } from './db.js';
-import { state, loadAll, onChange } from './store.js';
+import { state, loadAll, onChange, saveSettings } from './store.js';
 import { h, icon, nav, handleBack, toast } from './ui.js';
 import { job, keepOffline, autoUpdateCardData } from './sync.js';
 import { initCollection } from './views/collection.js';
@@ -80,8 +80,16 @@ async function main() {
   }
 
   if (!state.sets.size) openSetup();
-  else if (state.owned.size >= 25 && (!state.settings.lastBackup || Date.now() - state.settings.lastBackup > 30 * 864e5)) {
-    setTimeout(() => toast('Tip: make a backup in Settings → Backup', 3500), 1500);
+  else if (state.owned.size >= 5 && (!state.settings.lastBackup || Date.now() - state.settings.lastBackup > 30 * 864e5)
+    && Date.now() - (state.settings.backupNagAt || 0) > 7 * 864e5) {
+    // Monthly reminder: your collection only lives on this phone
+    setTimeout(() => {
+      const b = h('div', { id: 'backup-banner' },
+        h('span', {}, state.settings.lastBackup ? '💾 It’s been over a month since your last backup' : '💾 Your collection only lives on this phone — back it up'),
+        h('button', { class: 'btn mini', onclick: async () => { b.remove(); (await import('./views/settings.js')).doExport(); } }, 'Back up now'),
+        h('button', { class: 'link', 'aria-label': 'Later', onclick: () => { b.remove(); saveSettings({ backupNagAt: Date.now() }); } }, 'Later'));
+      document.getElementById('app')?.prepend(b);
+    }, 2500);
   }
   document.body.classList.add('ready');
   hideBoot();

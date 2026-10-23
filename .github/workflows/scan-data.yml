@@ -12,7 +12,6 @@ on:
     branches: [main, master]
     paths:
       - 'build/make_scan_data.py'
-      - 'build/make_ja_pkmngg.py'
       - 'build/save-data.sh'
       - 'www/js/fp.js'
 
@@ -43,15 +42,10 @@ jobs:
           pip install playwright
           python -m playwright install --with-deps chromium
 
-      - name: Japanese card list (pkmn.gg)
-        continue-on-error: true
+      - name: Start log
         run: |
-          mkdir -p data; : > data/build-log.txt
-          python build/make_ja_pkmngg.py 2>&1 | tee -a data/build-log.txt
-
-      - name: Save Japanese card list
-        if: always()
-        run: bash build/save-data.sh "Update Japanese card list (pkmn.gg)"
+          mkdir -p data
+          : > data/build-log.txt
 
       - name: Build fingerprints
         env:

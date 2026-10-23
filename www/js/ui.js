@@ -425,6 +425,7 @@ export function cardTile(card, { onClick, dimMissing = true, showLang = true, sh
   const tile = h('button', { class: 'tile' + (dimMissing && !q ? ' missing' : ''), 'data-key': card.key, 'data-keys': keys.length > 1 ? keys.join('|') : null, onclick: () => onClick?.(card) },
     cardArt(card),
     h('span', { class: 'qty', hidden: !q }, q > 1 ? `×${q}` : '✓'),
+    variantBadges(keys),
     h('span', { class: 'tile-meta' },
       h('span', { class: 'num' }, showSet ? (state.sets.get(card.setKey)?.name || '') : `#${card.localId}`),
       showLang ? h('span', { class: 'langs' }, langs.map((l) => langBadge(l))) : null));
@@ -433,11 +434,23 @@ export function cardTile(card, { onClick, dimMissing = true, showLang = true, sh
   return tile;
 }
 
+/** Small badges for the foil versions you own: R = reverse holo, H = holo, 1st = 1st edition. */
+const VBADGE = { reverse: 'R', holo: 'H', firstEdition: '1st' };
+function variantBadges(keys) {
+  const have = new Set();
+  for (const k of keys) for (const [v, n] of Object.entries(state.owned.get(k)?.counts || {})) if (n > 0 && VBADGE[v]) have.add(v);
+  const el = h('span', { class: 'vbadges' }, [...have].map((v) => h('i', { class: `vb vb-${v}` }, VBADGE[v])));
+  el.hidden = !have.size;
+  return el;
+}
+
 export function updateTiles(root = document) {
   for (const t of root.querySelectorAll('.tile[data-key]')) {
     const q = (t.dataset.keys ? t.dataset.keys.split('|') : [t.dataset.key]).reduce((n, k) => n + qty(k), 0);
     const badge = t.querySelector('.qty');
     if (badge) { badge.hidden = !q; badge.textContent = q > 1 ? `×${q}` : '✓'; }
+    const vb = t.querySelector('.vbadges');
+    if (vb) vb.replaceWith(variantBadges(t.dataset.keys ? t.dataset.keys.split('|') : [t.dataset.key]));
     t.classList.toggle('missing', t._dim && !q);
   }
 }

@@ -55,7 +55,7 @@ export function pokedexRoot() {
         h('div', { class: 'toolbar' }, chips(gens, D.gen, (v) => { D.gen = v; draw(); })),
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: 'All' }, { value: 'caught', label: 'Have cards' }, { value: 'missing', label: 'No cards yet' }], D.caught, (v) => { D.caught = v; draw(); }),
-          chips(['en', 'ja', 'zh-tw', 'zh-cn'].map((l) => ({ value: l, label: LANGS[l].short })), D.nameLang, (v) => { D.nameLang = v; draw(); })),
+          chips(['en', 'ja', 'zh-cn'].map((l) => ({ value: l, label: LANGS[l].short })), D.nameLang, (v) => { D.nameLang = v; draw(); })),
         count, grid);
       draw();
 
