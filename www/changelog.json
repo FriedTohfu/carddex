@@ -1,5 +1,15 @@
 [
  {
+  "id": "2026-10-23b",
+  "date": "2026-10-23",
+  "title": "Series fixed, search by number fixed",
+  "items": [
+   "Every set now shows the right series (e.g. Evolving Skies is Sword & Shield), so Collection groups are correct.",
+   "Searching with a number and total like \"Mewtwo 164/162\" works again.",
+   "Energy cards are labelled as Energy instead of Pokémon."
+  ]
+ },
+ {
   "id": "2026-10-23a",
   "date": "2026-10-23",
   "title": "Lots of collecting and quality-of-life upgrades",

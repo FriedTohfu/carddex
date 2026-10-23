@@ -94,7 +94,7 @@ def card(eid, num):
     if rarity.lower() == 'no rarity':
         rarity = ''
     t = text_of(page)
-    kind = 'Trainer' if re.search(r'Trainer Type', t) else 'Energy' if re.search(r'\bEnergy$', name) else 'Pokémon'
+    kind = 'Trainer' if re.search(r'Trainer Type', t) else 'Energy' if re.search(r'\bEnergy\b', name) else 'Pokémon'
     img = re.search(r'https://static\.dextcg\.com/cards/[^"\'\s)]+?\.(?:png|jpg|webp)', page)
     img = html.unescape(img.group(0)) if img else ''
     thumb = f'{DEX}/cdn-cgi/image/w=300,q=80,f=auto/{img}' if img else ''
@@ -232,6 +232,9 @@ def main():
     used = {c[1] for c in cards}
     sets = [s for s in sets if s['id'] in used]
     save(sets, cards, remap, final=not out_of_time, setmap=setmap)
+    if not out_of_time:
+        from fix_series import fix  # series from pkmn.gg / release era (dextcg's page headings aren't reliable)
+        fix(LANG)
     pics = sum(1 for c in cards if c[9])
     print(f'Saved {len(sets)} sets, {len(cards)} cards ({pics} with pictures){" — not finished, carries on next run" if out_of_time else ""}', flush=True)
 

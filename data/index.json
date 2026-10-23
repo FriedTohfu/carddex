@@ -36,7 +36,7 @@
   "file": "ja-extra.json"
  },
  "jaGG": {
-  "built": "2026-10-20T02:19:07Z",
+  "built": "2026-10-23T04:07:53Z",
   "count": 27541,
   "sets": 465,
   "file": "ja-dex.json",
@@ -48,12 +48,6 @@
   "sets": 212,
   "file": "en-pkmngg.json"
  },
- "extra": {
-  "built": "2026-10-19T04:11:50Z",
-  "count": 654,
-  "sets": 33,
-  "file": "extra.json"
- },
  "jaPkmngg": {
   "built": "2026-10-21T02:59:01Z",
   "count": 25809,
@@ -61,7 +55,7 @@
   "file": "ja-pkmngg.json"
  },
  "enDex": {
-  "built": "2026-10-21T02:55:32Z",
+  "built": "2026-10-23T04:07:51Z",
   "count": 21669,
   "sets": 236,
   "file": "en-dex.json",

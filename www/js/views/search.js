@@ -39,8 +39,9 @@ export function searchCards({ q = '', lang = 'all', setKey = null, owned = 'all'
         if (stripZ(c.localId) !== id) return false;
         if (!of) return true;
         const set = state.sets.get(c.setKey);
-        const totals = [set?.official, set?.total, String(c.number || '').split('/')[1]];
-        return totals.some((t) => t != null && t !== '' && stripZ(t) === stripZ(of));
+        const totals = [set?.official, set?.total, String(c.number || '').split('/')[1]].filter((t) => t != null && t !== '' && +t !== 0);
+        // Some lists don't know a set's printed total (the "/162"): then the number alone decides
+        return !set?.official || totals.some((t) => stripZ(t) === stripZ(of));
       });
     }
     if (words.length) cards = cards.filter((c) => { const n = normalizeName(c.name + (c.nameEn ? ' ' + c.nameEn : '') + (c.nameJa ? ' ' + c.nameJa : '')); return words.every((w) => n.includes(w)); });

@@ -316,7 +316,7 @@ export async function applyExtra(force = false) {
   const langs = new Set(state.settings.langs);
   const newSets = [];
   for (const st of d.sets || []) {
-    if (!langs.has(st.lang)) continue;
+    if (!langs.has(st.lang) || state.syncInfo[st.lang]?.from === 'dextcg') continue; // dextcg lists are complete on their own
     const cur = state.sets.get(st.key);
     if (cur && !cur.extra) continue; // we have this set from the main list
     newSets.push({
