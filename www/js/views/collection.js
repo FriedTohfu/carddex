@@ -1,5 +1,5 @@
 // "My Collection" tab: stats, set progress, all owned cards.
-import { h, nav, chips, cardGrid, cardTile, empty, debounce, icon, toast } from '../ui.js';
+import { h, nav, chips, cardGrid, cardTile, empty, debounce, icon, toast, filterChip, applyCardFilter } from '../ui.js';
 import { state, collectionStats, setProgress, allSetsSorted, qty, changeOwned } from '../store.js';
 import { setRow, openSet } from './sets.js';
 import { openCard } from './card.js';
@@ -94,6 +94,7 @@ export function collectionRoot() {
             showAll ? 'Show only sets I’ve started' : `Show all ${sets.length} sets`));
         } else {
           let cards = [...state.owned.keys()].filter((k) => (only === 'dupes' ? qty(k) > 1 : qty(k))).map((k) => state.cards.get(k)).filter(Boolean);
+          cards = applyCardFilter(cards);
           if (lang !== 'all') cards = cards.filter((c) => c.lang === lang);
           if (serie !== 'all') cards = cards.filter((c) => serieOf(c.setKey) === serie);
           if (query) cards = cards.filter((c) => c.name.toLowerCase().includes(query) || (state.sets.get(c.setKey)?.name || '').toLowerCase().includes(query));
@@ -108,6 +109,7 @@ export function collectionRoot() {
           cards.sort(by[sort]);
           list.append(h('div', { class: 'toolbar' },
             chips([{ value: 'all', label: 'All my cards' }, { value: 'dupes', label: 'Duplicates' }], only, (v) => { only = v; drawList(); }),
+            filterChip(),
             only === 'dupes' && cards.length ? h('button', { class: 'chip', onclick: () => shareDupes(cards) }, '📤 Share list') : null),
             h('div', { class: 'toolbar' },
             h('span', { class: 'muted small' }, only === 'dupes' ? `${cards.length} cards with spares` : `${cards.length} cards`),

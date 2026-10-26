@@ -1,5 +1,5 @@
 // Wishlists tab: as many named lists as you like.
-import { h, nav, cardGrid, empty, promptDialog, confirmDialog, chooseDialog, toast, icon, setTitle, chips, lazyImg, cardSrc } from '../ui.js';
+import { h, nav, cardGrid, empty, promptDialog, confirmDialog, chooseDialog, toast, icon, setTitle, chips, lazyImg, cardSrc, filterChip } from '../ui.js';
 import { state, wishlistsSorted, createWishlist, deleteWishlist, saveWishlist, qty } from '../store.js';
 import { openCard } from './card.js';
 import { openPicker } from './search.js';
@@ -58,7 +58,7 @@ export function openWishlist(id) {
       const keys = shown.map((c) => c.key);
       body.append(
         h('div', { class: 'toolbar' },
-          chips([{ value: 'all', label: `All ${cards.length}` }, { value: 'need', label: `Still need ${cards.length - got}` }, { value: 'owned', label: `Got ${got}` }], filter, (v) => { filter = v; redraw(); })),
+          chips([{ value: 'all', label: `All ${cards.length}` }, { value: 'need', label: `Still need ${cards.length - got}` }, { value: 'owned', label: `Got ${got}` }], filter, (v) => { filter = v; redraw(); }), filterChip()),
         cardGrid(shown, { showSet: true, peek: true, dimMissing: state.settings.wishDimMissing !== false, onClick: (c) => openCard(c.key, keys),
           empty: empty('This list is empty', 'Add cards with the + button, or from any card’s page.',
             h('button', { class: 'btn primary', onclick: () => addCards() }, icon('plus', 18), ' Add cards')) }));

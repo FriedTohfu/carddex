@@ -1,5 +1,5 @@
 // Search tab: find any card by name or number, filter by language and set.
-import { h, nav, chips, cardGrid, empty, debounce, chooseDialog, sheet, icon, langBadge, progressiveList } from '../ui.js';
+import { h, nav, chips, cardGrid, empty, debounce, chooseDialog, sheet, icon, langBadge, progressiveList, filterChip, applyCardFilter } from '../ui.js';
 import { state, allSetsSorted, qty } from '../store.js';
 import { LANGS } from '../api.js';
 import { normalizeName } from '../dex.js';
@@ -101,7 +101,7 @@ export function searchRoot() {
           if (S.setKey && v !== 'all' && state.sets.get(S.setKey)?.lang !== v) S.setKey = null;
           draw();
         })),
-        h('div', { class: 'toolbar' }, setBtn,
+        h('div', { class: 'toolbar' }, setBtn, filterChip(),
           chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], S.owned, (v) => { S.owned = v; draw(); }),
           h('select', { class: 'input mini', 'aria-label': 'Sort', onchange: (e) => { S.sort = e.target.value; draw(); } },
             [['newest', 'Newest sets'], ['oldest', 'Oldest sets'], ['rarity', 'Rarity'], ['name', 'Name'], ['number', 'Number']].map(([v, l]) => h('option', { value: v, selected: S.sort === v }, l)))),
@@ -127,7 +127,7 @@ export function searchRoot() {
             progressiveList(h('div', { class: 'set-list' }), sets, (s) => setRow(s, () => openSet(s.key, 'search'))));
           return;
         }
-        const cards = searchCards(S);
+        const cards = applyCardFilter(searchCards(S));
         const keys = cards.map((c) => c.key);
         results.append(h('div', { class: 'muted small count' }, `${cards.length.toLocaleString()} cards`),
           cardGrid(cards, { dimMissing: !!state.settings.searchDimMissing, showSet: !S.setKey, onClick: (c) => openCard(c.key, keys),
@@ -204,7 +204,7 @@ export function openPicker({ title = 'Choose a card', onPick, multi = false, own
         }
         const cards = searchCards(P);
         res.append(h('div', { class: 'muted small count' }, `${cards.length} cards${multi ? ' · tap to add, tap again to add more' : ''}`),
-          cardGrid(cards, { dimMissing: false, showSet: !P.setKey, onClick: async (c) => { const keep = await onPick(c); if (!multi && keep !== true) close(); } }));
+          cardGrid(cards, { filter: false, dimMissing: false, showSet: !P.setKey, onClick: async (c) => { const keep = await onPick(c); if (!multi && keep !== true) close(); } }));
       }
       draw();
       setTimeout(() => input.focus(), 300);

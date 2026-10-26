@@ -484,3 +484,6 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent, #e85
 #backup-banner { display: flex; gap: 8px; align-items: center; padding: 10px 14px; background: var(--card, #1d1f24); border-bottom: 1px solid rgba(127,127,127,.25); font-size: 14px; }
 #backup-banner span { flex: 1; }
 .recent-toggle { color: inherit; text-decoration: none; padding: 6px 0; }
+.toolbar.wrap { flex-wrap: wrap; overflow: visible; }
+.peek .peek-cap { position: absolute; bottom: calc(14px + var(--safe-b, 0px)); left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; text-shadow: 0 1px 3px #000; opacity: 0; transition: opacity .16s; }
+.peek.show .peek-cap { opacity: 1; }

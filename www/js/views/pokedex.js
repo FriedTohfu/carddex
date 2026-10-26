@@ -1,5 +1,5 @@
 // Pokédex tab: every Pokémon; tap one to see all its cards.
-import { h, nav, chips, cardGrid, empty, debounce, lazyImg, spriteSrc, cardSrc, toast } from '../ui.js';
+import { h, nav, chips, cardGrid, empty, debounce, lazyImg, spriteSrc, cardSrc, toast, filterChip, applyCardFilter } from '../ui.js';
 import { state, qty } from '../store.js';
 import { LANGS, online } from '../api.js';
 import { speciesName } from '../dex.js';
@@ -134,7 +134,7 @@ export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
           chips([{ value: 'all', label: 'All' }, ...state.settings.langs.map((l) => ({ value: l, label: `${LANGS[l].flag} ${LANGS[l].short}` }))], F.lang, (v) => { F.lang = v; F.setKey = null; draw(); })),
         h('div', { class: 'toolbar' }, setBtn,
           chips([{ value: 'all', label: 'All' }, { value: 'owned', label: 'Owned' }, { value: 'missing', label: 'Missing' }], F.owned, (v) => { F.owned = v; draw(); }),
-          combineBtn,
+          combineBtn, filterChip(),
           h('select', { class: 'input mini', 'aria-label': 'Sort', onchange: (e) => { F.sort = e.target.value; draw(); } },
             [['newest', 'Newest'], ['oldest', 'Oldest'], ['rarity', 'Rarity']].map(([v, l]) => h('option', { value: v, selected: F.sort === v }, l)))),
         res);
@@ -171,6 +171,7 @@ export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
         let cards = all;
         if (F.lang !== 'all') cards = cards.filter((c) => c.lang === F.lang);
         if (F.setKey) cards = cards.filter((c) => c.setKey === F.setKey);
+        cards = applyCardFilter(cards);
         const rd = (c) => state.sets.get(c.setKey)?.releaseDate || '';
         cards = [...cards].sort(F.sort === 'rarity' ? (a, b) => rarityRank(b) - rarityRank(a) || rd(b).localeCompare(rd(a))
           : F.sort === 'oldest' ? (a, b) => rd(a).localeCompare(rd(b)) : (a, b) => rd(b).localeCompare(rd(a)));

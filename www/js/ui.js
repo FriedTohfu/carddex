@@ -373,7 +373,10 @@ export function langBadge(lang) {
 
 /** Shows a card big on top of everything. Returns a function that closes it. */
 export function showPeek(card) {
-  const overlay = h('div', { class: 'peek' }, h('img', { alt: card.name || '', draggable: 'false' }));
+  const set = state.sets.get(card.setKey);
+  const own = qty(card.key);
+  const overlay = h('div', { class: 'peek' }, h('img', { alt: card.name || '', draggable: 'false' }),
+    h('div', { class: 'peek-cap' }, [card.name, set?.name, card.localId ? `#${card.localId}` : '', own ? `owned ×${own}` : ''].filter(Boolean).join(' · ')));
   const img = overlay.firstChild;
   cardSrc(card, 'low').then((u) => { if (u && !img.src) img.src = u; });
   cardSrc(card, 'high').then((u) => { if (u) { const hi = new Image(); hi.onload = () => { img.src = u; }; hi.src = u; } });
@@ -455,8 +458,58 @@ export function updateTiles(root = document) {
   }
 }
 
+// ---------- Card filter (type + rarity), shared by every screen with cards ----------
+const TYPES = [['all', 'All types'], ['pokemon', 'Pokémon'], ['trainer', 'Trainer'], ['energy', 'Energy']];
+const RARITIES = [['all', 'Any rarity'], ['low', 'Common & Uncommon'], ['rare', 'Rare & Holo'], ['ultra', 'ex, V, GX & Ultra Rare'], ['art', 'Illustration & Art Rare'], ['secret', 'Secret, Hyper & Gold']];
+export function cardKind(card) {
+  const t = String(card?.det?.category || '').toLowerCase();
+  if (/energ|能量|エネルギー/.test(t) || /\benergy\b/i.test(card?.name || '')) return 'energy';
+  if (/trainer|supporter|item|stadium|tool|训练家|トレーナー|サポート|グッズ|スタジアム/.test(t)) return 'trainer';
+  return 'pokemon';
+}
+function rarityGroup(card) {
+  const r = String(card?.det?.rarity || '').toLowerCase();
+  if (!r) return '';
+  if (/secret|hyper|gold|rainbow|crown|black white|\bur\b|\bhr\b|\bsr\b/.test(r)) return 'secret';
+  if (/illustration|art rare|\bar\b|\bsar\b|character|\bchr\b|trainer gallery|shiny/.test(r)) return 'art';
+  if (/ultra|double|\brr\b|\brrr\b|ex|gx|\bv\b|vmax|vstar|full art|radiant|amazing|ace spec|prism|legend|break|prime|star/.test(r)) return 'ultra';
+  if (/rare|holo|\br\b|\bk\b|promo/.test(r)) return 'rare';
+  if (/common|uncommon|\bc\b|\bu\b/.test(r)) return 'low';
+  return '';
+}
+export function filterActive() {
+  return (state.settings.fType || 'all') !== 'all' || (state.settings.fRarity || 'all') !== 'all';
+}
+export function applyCardFilter(cards) {
+  const t = state.settings.fType || 'all', r = state.settings.fRarity || 'all';
+  if (t === 'all' && r === 'all') return cards;
+  return cards.filter((c) => (t === 'all' || cardKind(c) === t) && (r === 'all' || rarityGroup(c) === r));
+}
+/** The "Filter" chip: opens the type / rarity panel. Shows what's on, so nothing is hidden by surprise. */
+export function filterChip() {
+  const t = state.settings.fType || 'all', r = state.settings.fRarity || 'all';
+  const label = filterActive() ? `⚲ ${[t !== 'all' ? TYPES.find((x) => x[0] === t)[1] : null, r !== 'all' ? RARITIES.find((x) => x[0] === r)[1] : null].filter(Boolean).join(' · ')}` : '⚲ Filter';
+  return h('button', { class: 'chip' + (filterActive() ? ' on' : ''), onclick: async (e) => {
+    const { saveSettings } = await import('./store.js');
+    sheet({ title: 'Filter cards', content: (b, { close }) => {
+      const draft = { fType: state.settings.fType || 'all', fRarity: state.settings.fRarity || 'all' };
+      const draw = () => {
+        b.innerHTML = '';
+        b.append(h('div', { class: 'muted small' }, 'Card type'), h('div', { class: 'toolbar wrap' }, chips(TYPES.map(([value, label]) => ({ value, label })), draft.fType, (v) => { draft.fType = v; draw(); })),
+          h('div', { class: 'muted small' }, 'Rarity'), h('div', { class: 'toolbar wrap' }, chips(RARITIES.map(([value, label]) => ({ value, label })), draft.fRarity, (v) => { draft.fRarity = v; draw(); })),
+          h('p', { class: 'muted small' }, 'Applies to every screen with cards until you clear it.'),
+          h('div', { class: 'btn-row' },
+            h('button', { class: 'btn', onclick: () => { saveSettings({ fType: 'all', fRarity: 'all' }); close(); } }, 'Clear'),
+            h('button', { class: 'btn primary', onclick: () => { saveSettings(draft); close(); } }, 'Show cards')));
+      };
+      draw();
+    } });
+  } }, label);
+}
+
 /** Renders cards in chunks as you scroll, so huge lists stay fast. */
 export function cardGrid(cards, opts = {}) {
+  if (opts.filter !== false) cards = applyCardFilter(cards);
   const grid = h('div', { class: 'grid' });
   const CHUNK = 60;
   let i = 0;

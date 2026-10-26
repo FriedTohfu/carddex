@@ -1,5 +1,5 @@
 // A single set: progress, all cards, owned/missing filter, quick-add mode.
-import { h, nav, cardGrid, progressBar, chips, toast, langBadge, lazyImg, logoSrc, fmtDate, icon, chooseDialog, promptDialog } from '../ui.js';
+import { h, nav, cardGrid, progressBar, chips, toast, langBadge, lazyImg, logoSrc, fmtDate, icon, chooseDialog, promptDialog, filterChip } from '../ui.js';
 import { onChange, state, setProgress, setCardsForProgress, changeOwned, qty, createWishlist, saveWishlist, createBinder, saveBinder, wishlistsSorted, ownedForProgress, needsReverse } from '../store.js';
 import { saveOffline, removeOffline, offlineSub } from './offline.js';
 import { openCard } from './card.js';
@@ -68,7 +68,7 @@ export function openSet(setKey, tab = nav.current) {
       body.append(head,
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: `All ${all.length}` }, { value: 'owned', label: `Owned ${p.owned}` }, { value: 'missing', label: 'Missing' }], filter, (v) => { filter = v; refresh(); }),
-          quickBtn, pickBtn),
+          quickBtn, pickBtn, filterChip()),
         cardGrid(cards, {
           showLang: false, dimMissing: state.settings.setDimMissing !== false,
           onClick: (c) => {

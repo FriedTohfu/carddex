@@ -35,6 +35,31 @@ API="$(tr -dc '0-9' < "$ROOT/build/native-api.txt")"
 API="${API:-1}"
 sed -i -E "s/versionCode [0-9]+/versionCode ${BUILD}/; s/versionName \"[^\"]*\"/versionName \"1.${API}.${BUILD}\"/" "$GRADLE"
 
+# 5b. Sign every build with the same key (build/debug.keystore), set directly in
+#     the Gradle file — newer Android tools ignore ~/.android/debug.keystore on CI,
+#     which made each build use a new key and forced an uninstall.
+if ! grep -q 'carddex-fixed-signing' "$GRADLE"; then
+  python3 - "$GRADLE" "$ROOT/build/debug.keystore" <<'PY'
+import re, sys
+path, ks = sys.argv[1], sys.argv[2]
+g = open(path).read()
+block = f"""
+    // carddex-fixed-signing
+    signingConfigs {{
+        debug {{
+            storeFile file('{ks}')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }}
+    }}
+"""
+g = re.sub(r'(android\s*\{)', lambda m: m.group(1) + block, g, count=1)
+g = re.sub(r'(buildTypes\s*\{)', lambda m: m.group(1) + "\n        debug {\n            signingConfig signingConfigs.debug\n        }", g, count=1)
+open(path, 'w').write(g)
+PY
+fi
+
 # 6. Hidden page reader (lets the app read eBay results like a real browser)
 JAVA_DIR="$ROOT/android/app/src/main/java/com/carddex/app"
 cp "$ROOT/build/native/PageReaderPlugin.java" "$JAVA_DIR/"

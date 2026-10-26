@@ -1,5 +1,15 @@
 [
  {
+  "id": "2026-10-26a",
+  "date": "2026-10-26",
+  "title": "Filter cards by type and rarity",
+  "items": [
+   "New ⚲ Filter button in Search, sets, your collection, wishlists and Pokémon pages: show only Pokémon, Trainer or Energy cards, and/or a rarity group (Common & Uncommon, Rare & Holo, ex/V/GX & Ultra, Illustration & Art, Secret/Hyper/Gold). The button shows what's on; tap Clear to turn it off.",
+   "Holding a card to see it big now also shows its set, number and how many you own.",
+   "From the next APK on, every version is signed with the same key, so new APKs install over the old one without uninstalling."
+  ]
+ },
+ {
   "id": "2026-10-23c",
   "date": "2026-10-23",
   "title": "Faster start-up",

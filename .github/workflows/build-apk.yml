@@ -58,6 +58,12 @@ jobs:
           ./gradlew assembleDebug --no-daemon --stacktrace
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/CardDex.apk"
 
+      - name: Check the APK is signed with the fixed key
+        run: |
+          FP=$(keytool -printcert -jarfile CardDex.apk | grep -m1 'SHA256:' | awk '{print $2}')
+          echo "Signed with $FP"
+          test "$FP" = "B9:3A:1F:2C:FE:30:35:D5:0C:E0:32:E7:D7:9D:56:B6:68:55:DA:96:35:74:D7:69:81:3F:F8:6F:1C:3D:7D:FE" || { echo "::error::APK not signed with build/debug.keystore — updates would need an uninstall"; exit 1; }
+
       - name: Save APK (Actions tab download)
         uses: actions/upload-artifact@v4
         with:
