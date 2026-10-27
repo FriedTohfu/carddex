@@ -55,5 +55,10 @@
   "sets": 236,
   "file": "en-dex.json",
   "source": "dextcg"
+ },
+ "types": {
+  "built": "2026-10-27T05:02:44Z",
+  "count": 1025,
+  "file": "types.json"
  }
 }
