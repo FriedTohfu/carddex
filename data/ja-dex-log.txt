@@ -1,5 +1,5 @@
 470 ja expansions
-465 sets, 27140 cards kept from last run, 577 card pages to read
+465 sets, 27148 cards kept from last run, 569 card pages to read
 sample set: [{'id': 'jpn_mf', 'name': '30th Celebration Premium Deck Set Espeon & Umbreon', 'series': '', 'releaseDate': '2026-09-16', 'total': 49, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_mf.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_mf.png'}, {'id': 'jpn_m6a', 'name': '30th Celebration', 'series': '', 'releaseDate': '2026-09-16', 'total': 176, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_m6a.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_m6a.png'}]
 351/424 old sets matched, 22754 old cards mapped
 Saved 465 sets, 27541 cards (27541 with pictures)
