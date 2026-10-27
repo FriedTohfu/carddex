@@ -893,6 +893,21 @@ export async function updateScanData({ force = false } = {}) {
   return { updated, missing };
 }
 
+/** Pokémon types for the Pokédex filter (data/types.json, built on GitHub from PokeAPI). Downloads only when newer. */
+export async function updateTypes() {
+  if (!online()) return false;
+  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
+  const info = index?.types;
+  if (!info || (state.typesBuilt && state.typesBuilt >= info.built)) return false;
+  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'types.json'}?b=${encodeURIComponent(info.built)}`, { retries: 1 }).catch(() => null);
+  if (!d?.types) return false;
+  await db.put('meta', d, 'types');
+  state.speciesTypes = new Map(Object.entries(d.types).map(([k, v]) => [+k, v]));
+  state.typesBuilt = d.built;
+  emit('species');
+  return true;
+}
+
 // ---------- Card details (rarity, illustrator, prices) ----------
 const WEEK = 7 * 24 * 3600 * 1000;
 export async function cardDetail(key) {

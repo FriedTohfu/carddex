@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-27a",
+  "date": "2026-10-27",
+  "title": "Pokédex type filter",
+  "items": [
+   "The Pokédex has a row of type buttons (Normal, Fire, Water … Ghost, Dragon, Fairy): tap one to see only Pokémon of that type. It works together with the generation buttons, e.g. Gen 1 + Ghost.",
+   "Each Pokémon's page shows its types."
+  ]
+ },
+ {
   "id": "2026-10-26a",
   "date": "2026-10-26",
   "title": "Filter cards by type and rarity",

@@ -51,6 +51,9 @@ export async function loadAll() {
   }
   state.syncInfo = syncInfo || {};
   state.recent = (await db.get('meta', 'recent').catch(() => null)) || [];
+  const types = await db.get('meta', 'types').catch(() => null);
+  state.speciesTypes = new Map(Object.entries(types?.types || {}).map(([k, v]) => [+k, v]));
+  state.typesBuilt = types?.built || '';
   setCatalog(sets, cards);
   for (const o of owned) state.owned.set(o.key, o);
   for (const w of wls) state.wishlists.set(w.id, w);

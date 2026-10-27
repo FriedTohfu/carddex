@@ -1,0 +1,27 @@
+name: Build Pokémon types
+
+# Pokémon types (Ghost, Fire, ...) for the Pokédex filter, from PokeAPI's data.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '11 4 1 * *'   # monthly, for new Pokémon
+  push:
+    branches: [main]
+    paths: ['build/make_types.py', '.github/workflows/types.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  types:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pokémon types (PokeAPI)
+        run: python build/make_types.py
+      - name: Save
+        run: bash build/save-data.sh "Update Pokémon types"

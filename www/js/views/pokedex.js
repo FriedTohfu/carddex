@@ -9,7 +9,11 @@ import { rarityRank } from '../rarity.js';
 import { syncSpecies } from '../sync.js';
 
 const GENS = [[1, 151], [152, 251], [252, 386], [387, 493], [494, 649], [650, 721], [722, 809], [810, 905], [906, 1025]];
-const D = { q: '', gen: 0, caught: 'all', nameLang: 'en' };
+const D = { q: '', gen: 0, caught: 'all', nameLang: 'en', type: 'all' };
+export const TYPE_NAMES = ['normal', 'fire', 'water', 'grass', 'electric', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'];
+const cap = (t) => t[0].toUpperCase() + t.slice(1);
+/** A coloured type badge, e.g. Ghost. */
+export function typeBadge(t) { return h('span', { class: `type-badge t-${t}` }, cap(t)); }
 
 function ownedFor(id) {
   const keys = state.dexIndex.get(id) || [];
@@ -53,6 +57,7 @@ export function pokedexRoot() {
       const searchWrap = h('div', { class: 'dex-search' + (state.settings.dexStickySearch !== false ? ' pinned' : '') }, input);
       body.append(searchWrap,
         h('div', { class: 'toolbar' }, chips(gens, D.gen, (v) => { D.gen = v; draw(); })),
+        state.speciesTypes?.size ? h('div', { class: 'toolbar type-row' }, chips([{ value: 'all', label: 'All types' }, ...TYPE_NAMES.map((t) => ({ value: t, label: cap(t) }))], D.type, (v) => { D.type = v; draw(); })) : null,
         h('div', { class: 'toolbar' },
           chips([{ value: 'all', label: 'All' }, { value: 'caught', label: 'Have cards' }, { value: 'missing', label: 'No cards yet' }], D.caught, (v) => { D.caught = v; draw(); }),
           chips(['en', 'ja', 'zh-cn'].map((l) => ({ value: l, label: LANGS[l].short })), D.nameLang, (v) => { D.nameLang = v; draw(); })),
@@ -63,6 +68,7 @@ export function pokedexRoot() {
         grid.innerHTML = '';
         let list = state.species;
         if (D.gen) { const [a, b] = GENS[D.gen - 1]; list = list.filter((s) => s.id >= a && s.id <= b); }
+        if (D.type !== 'all') list = list.filter((s) => (state.speciesTypes.get(s.id) || []).includes(D.type));
         if (D.q) {
           const n = parseInt(D.q, 10);
           list = list.filter((s) => (n && s.id === n) || [s.en, s.ja, s.zhHant, s.zhHans, s.slug].some((x) => x && x.toLowerCase().includes(D.q)));
@@ -122,6 +128,7 @@ export function openPokemon(id, tab = 'pokedex', { replace = 0 } = {}) {
             ? h('button', { class: 'sprite big dex-card', onclick: () => openCard(latestKey) }, lazyImg(() => cardSrc(state.cards.get(latestKey)), ''))
             : h('div', { class: 'sprite big' }, lazyImg(() => spriteSrc(id), '')),
           h('div', {},
+            (state.speciesTypes?.get(id) || []).length ? h('div', { class: 'type-badges' }, state.speciesTypes.get(id).map(typeBadge)) : null,
             h('div', { class: 'mon-names' },
               s?.ja ? h('span', {}, '🇯🇵 ', s.ja) : null,
               s?.zhHant ? h('span', {}, '🇹🇼 ', s.zhHant) : null,

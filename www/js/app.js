@@ -99,6 +99,7 @@ async function main() {
   setTimeout(() => ota.checkForUpdate(), 4000);
   // Newer scan data (also used to match the same card across languages): only changed files download
   setTimeout(() => import('./sync.js').then((m) => m.updateScanData()).catch(() => {}), 12000);
+  setTimeout(() => import('./sync.js').then((m) => m.updateTypes()).catch(() => {}), 3500);
   // Pictures for old Japanese cards, from Bulbapedia (saved after the first time)
   setTimeout(() => import('./bulba.js').then((m) => m.fillVintagePictures()).catch(() => {}), 9000);
   // After an update: what changed

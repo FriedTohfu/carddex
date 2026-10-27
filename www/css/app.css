@@ -487,3 +487,44 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent, #e85
 .toolbar.wrap { flex-wrap: wrap; overflow: visible; }
 .peek .peek-cap { position: absolute; bottom: calc(14px + var(--safe-b, 0px)); left: 0; right: 0; text-align: center; color: #fff; font-size: 14px; text-shadow: 0 1px 3px #000; opacity: 0; transition: opacity .16s; }
 .peek.show .peek-cap { opacity: 1; }
+
+/* Pokémon types */
+.type-badges { display: flex; gap: 6px; margin-bottom: 6px; }
+.type-badge { font-size: 12px; font-weight: 700; color: #fff; padding: 3px 9px; border-radius: 999px; }
+.t-normal { background: #9fa19f; }
+.t-fire { background: #e62829; }
+.t-water { background: #2980ef; }
+.t-grass { background: #3fa129; }
+.t-electric { background: #e0b000; }
+.t-ice { background: #3dcef3; }
+.t-fighting { background: #ff8000; }
+.t-poison { background: #9141cb; }
+.t-ground { background: #915121; }
+.t-flying { background: #81b9ef; }
+.t-psychic { background: #ef4179; }
+.t-bug { background: #91a119; }
+.t-rock { background: #afa981; }
+.t-ghost { background: #704170; }
+.t-dragon { background: #5060e1; }
+.t-dark { background: #624d4e; }
+.t-steel { background: #60a1b8; }
+.t-fairy { background: #ef70ef; }
+.type-row .chip.on { color: #fff; }
+.type-row .chip.on.ty-normal { background: #9fa19f; border-color: #9fa19f; }
+.type-row .chip.on.ty-fire { background: #e62829; border-color: #e62829; }
+.type-row .chip.on.ty-water { background: #2980ef; border-color: #2980ef; }
+.type-row .chip.on.ty-grass { background: #3fa129; border-color: #3fa129; }
+.type-row .chip.on.ty-electric { background: #e0b000; border-color: #e0b000; }
+.type-row .chip.on.ty-ice { background: #3dcef3; border-color: #3dcef3; }
+.type-row .chip.on.ty-fighting { background: #ff8000; border-color: #ff8000; }
+.type-row .chip.on.ty-poison { background: #9141cb; border-color: #9141cb; }
+.type-row .chip.on.ty-ground { background: #915121; border-color: #915121; }
+.type-row .chip.on.ty-flying { background: #81b9ef; border-color: #81b9ef; }
+.type-row .chip.on.ty-psychic { background: #ef4179; border-color: #ef4179; }
+.type-row .chip.on.ty-bug { background: #91a119; border-color: #91a119; }
+.type-row .chip.on.ty-rock { background: #afa981; border-color: #afa981; }
+.type-row .chip.on.ty-ghost { background: #704170; border-color: #704170; }
+.type-row .chip.on.ty-dragon { background: #5060e1; border-color: #5060e1; }
+.type-row .chip.on.ty-dark { background: #624d4e; border-color: #624d4e; }
+.type-row .chip.on.ty-steel { background: #60a1b8; border-color: #60a1b8; }
+.type-row .chip.on.ty-fairy { background: #ef70ef; border-color: #ef70ef; }
