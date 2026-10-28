@@ -1,7 +1,8 @@
-236 en expansions
-236 sets, 21358 cards kept from last run, 920 card pages to read
-sample set: [{'id': 'me55cc', 'name': '30th Celebration: Classic Collection', 'series': 'Mega Evolution', 'releaseDate': '2026-09-16', 'total': 30, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me55cc.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me55cc.png'}, {'id': 'me55', 'name': '30th Celebration', 'series': '30th Celebration: Classic Collection', 'releaseDate': '2026-09-16', 'total': 161, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me55.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me55.png'}]
+237 en expansions
+237 sets, 21357 cards kept from last run, 1062 card pages to read
+sample set: [{'id': 'me6', 'name': 'Delta Reign', 'series': 'Mega Evolution', 'releaseDate': '2026-11-06', 'total': 141, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me6.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me6.png'}, {'id': 'me55cc', 'name': '30th Celebration: Classic Collection', 'series': 'Delta Reign', 'releaseDate': '2026-09-16', 'total': 30, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/me55cc.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/me55cc.png'}]
+  1000/1062 pages, 21810 cards
 TCGdex English: 220 sets
 TCGdex English: 216 sets with cards
 160/227 old sets matched, 18847 old cards mapped
-Saved 236 sets, 21669 cards (21669 with pictures)
+Saved 237 sets, 21810 cards (21810 with pictures)

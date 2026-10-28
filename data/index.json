@@ -50,9 +50,9 @@
   "file": "ja-pkmngg.json"
  },
  "enDex": {
-  "built": "2026-10-23T04:07:51Z",
-  "count": 21669,
-  "sets": 236,
+  "built": "2026-10-28T03:09:59Z",
+  "count": 21810,
+  "sets": 237,
   "file": "en-dex.json",
   "source": "dextcg"
  },
