@@ -20,18 +20,23 @@ jobs:
           mkdir -p data; LOG=data/probe-log.txt; : > $LOG
           UA='Mozilla/5.0 (Linux; Android 14; SM-S911B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36'
           for U in \
+            "https://img.dextcg.com/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png" \
+            "https://img.dextcg.com/w=256/https://static.dextcg.com/cards/me4%2F1.png" \
+            "https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_sv1a%2F1.png" \
             "https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png" \
             "https://static.dextcg.com/cards/me4%2F1.png" \
             "https://static.dextcg.com/cards/jpn_sv1a%2F1.png" \
             "https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_sv1a%2F1.png"; do
-            for REF in none https://localhost/ https://dextcg.com/; do
+            for REF in none https://localhost/ capacitor://localhost/; do
               if [ "$REF" = none ]; then H=(); else H=(-H "Referer: $REF"); fi
               R=$(curl -s -o /tmp/img -w '%{http_code} %{content_type} %{size_download}' -A "$UA" "${H[@]}" "$U")
               echo "$R | referer=$REF | $U" >> $LOG
             done
           done
           echo "--- headers (cdn-cgi, referer localhost)" >> $LOG
-          curl -sI -A "$UA" -H 'Referer: https://localhost/' "https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png" | head -20 >> $LOG
+          curl -sI -A "$UA" -H 'Referer: https://localhost/' -H 'Accept: image/webp,image/*' "https://img.dextcg.com/w=256/https://static.dextcg.com/cards/me4%2F1.png" | head -20 >> $LOG
+          echo "--- follow redirect from old link" >> $LOG
+          curl -sL -o /dev/null -w '%{http_code} %{content_type} %{size_download} %{url_effective}\n' -A "$UA" -H 'Referer: https://localhost/' "https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png" >> $LOG
           echo "--- page" >> $LOG
           curl -s -A "$UA" https://dextcg.com/cards/me4-1 | grep -o 'https://[a-z.]*dextcg[a-z.]*/[^"]*\.\(png\|webp\|jpg\)[^"]*' | head -5 >> $LOG
           cat $LOG
