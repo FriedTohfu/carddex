@@ -81,10 +81,23 @@ export const CHS_BASE = 'https://raw.githubusercontent.com/duanxr/PTCG-CHS-Datas
  * (Oct 2026). Older card lists still have the old address, so links are rebuilt here.
  */
 const DEX_STATIC = /(https:\/\/static\.dextcg\.com\/[^\s"']+)$/;
+const WESERV = (orig, w) => `https://images.weserv.nl/?url=${encodeURIComponent(orig.replace(/^https?:\/\//, ''))}&w=${w}&output=webp&q=82`;
+// If dextcg's resizer keeps failing on this phone, use the other routes straight away
+let dexFails = 0;
+try { dexFails = +sessionStorage.getItem('dexFails') || 0; } catch { /* ignore */ }
+export function dexFailed() { dexFails++; try { sessionStorage.setItem('dexFails', String(dexFails)); } catch { /* ignore */ } }
 export function dexImg(url, quality = 'low') {
   const m = DEX_STATIC.exec(url || '');
   if (!m) return url;
-  return `https://img.dextcg.com/w=${quality === 'high' || quality === 'raw' ? 828 : 256}/${m[1]}`;
+  const w = quality === 'high' || quality === 'raw' ? 828 : 256;
+  return dexFails >= 3 ? WESERV(m[1], w) : `https://img.dextcg.com/w=${w}/${m[1]}`;
+}
+/** Other ways to get a dextcg picture if the first one fails: another resizer, then the full-size original. */
+export function dexBackups(url, quality = 'low') {
+  const m = DEX_STATIC.exec(url || '');
+  if (!m) return [];
+  const w = quality === 'high' || quality === 'raw' ? 828 : 256;
+  return [WESERV(m[1], w), m[1]].filter((u) => u !== dexImg(url, quality));
 }
 
 export function cardImg(card, quality = 'low') {

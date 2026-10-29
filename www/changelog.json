@@ -1,5 +1,13 @@
 [
  {
+  "id": "2026-10-29c",
+  "date": "2026-10-29",
+  "title": "Card pictures: backup routes",
+  "items": [
+   "If a card picture won't load from dextcg's picture service, the app now tries another picture service and then the original picture, so cards don't show blank. If dextcg's service keeps failing, the app switches to the backup straight away."
+  ]
+ },
+ {
   "id": "2026-10-29b",
   "date": "2026-10-29",
   "title": "Tidy-up",

@@ -2,7 +2,7 @@
 import * as db from './db.js';
 import { state, qty, onChange } from './store.js';
 import { cachedOrFetch } from './imgcache.js';
-import { cardImg, assetUrl, online, LANGS, SPRITE } from './api.js';
+import { cardImg, assetUrl, online, LANGS, SPRITE, dexBackups, dexFailed } from './api.js';
 
 // Let .append() skip null/false so optional pieces can be written inline
 for (const proto of [Element.prototype, DocumentFragment.prototype]) {
@@ -339,6 +339,8 @@ export function lazyImg(loader, alt = '', cls = '') {
   img.addEventListener('error', () => {
     // A big image failed (e.g. offline) — try the saved small one once
     if (img._fallback && !img._triedFallback) { img._triedFallback = true; img._fallback().then((u) => { if (u && u !== img.src) img.src = u; else img.style.display = 'none'; }); return; }
+    // dextcg pictures: try the backup routes one after another
+    if (img._backups?.length && online()) { if (/img\.dextcg\.com/.test(img.src)) dexFailed(); img.src = img._backups.shift(); return; }
     img.style.display = 'none';
     img.closest('.art')?.classList.add('noimg');
   });
@@ -351,6 +353,8 @@ export function cardArt(card, quality = 'low') {
   // Big view: show the small picture straight away, then swap in the sharp one when it arrives
   const img = lazyImg(() => cardSrc(card, 'low'), card?.name || '');
   if (card?.src === 'chs') img._fallback = async () => card.image; // if the resizing service is down
+  const pic = (!card?.image && card?.altKey && state.cards.get(card.altKey)) || card;
+  if (/dextcg\.com/.test(pic?.image || '')) img._backups = dexBackups(pic.image, 'low');
   const shown = (!card?.image && card?.altKey && state.cards.get(card.altKey)) || card;
   if (quality === 'high' && shown?.image && online()) {
     const hi = new Image();
