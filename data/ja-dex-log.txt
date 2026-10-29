@@ -1,8 +1,12 @@
 470 ja expansions
 465 sets, 27148 cards kept from last run, 569 card pages to read
 sample set: [{'id': 'jpn_mf', 'name': '30th Celebration Premium Deck Set Espeon & Umbreon', 'series': '', 'releaseDate': '2026-09-16', 'total': 49, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_mf.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_mf.png'}, {'id': 'jpn_m6a', 'name': '30th Celebration', 'series': '', 'releaseDate': '2026-09-16', 'total': 176, 'printed': 0, 'logo': 'https://static.dextcg.com/content/sets/logos/jpn_m6a.png', 'symbol': 'https://static.dextcg.com/content/sets/symbols/jpn_m6a.png'}]
-351/424 old sets matched, 22754 old cards mapped
-Saved 465 sets, 27541 cards (27541 with pictures)
-TCGdex Japanese: 184 sets
-276 sets need names, 51 found on TCGdex
-Japanese names added: 0; now 19270 of 27541
+  card: ['jpn_mf-1', 'jpn_mf', '1', '1', '', 'Tropius', '', 'Minahamu', 'Pokémon', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_mf%2F1.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_mf%2F1.png']
+  card: ['jpn_mf-15', 'jpn_mf', '15', '15', '', 'Cresselia', '', 'KEIICHIRO ITO', 'Pokémon', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_mf%2F15.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_mf%2F15.png']
+  card: ['jpn_mf-29', 'jpn_mf', '29', '29', '', 'Crushing Hammer', '', 'Ayaka Yoshida', 'Trainer', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_mf%2F29.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_mf%2F29.png']
+  card: ['jpn_mf-43', 'jpn_mf', '43', '43', '', 'Espeon ex', '', 'REND', 'Pokémon', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_mf%2F43.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_mf%2F43.png']
+  card: ['jpn_m6a-8', 'jpn_m6a', '8', '8', '', 'Reshiram', '', 'Uta', 'Pokémon', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_m6a%2F8.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_m6a%2F8.png']
+  card: ['jpn_m6a-22', 'jpn_m6a', '22', '22', '', 'Pikachu', '', 'sowsow', 'Pokémon', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_m6a%2F22.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_m6a%2F22.png']
+  card: ['jpn_m6a-36', 'jpn_m6a', '36', '36', '', 'Pikachu', '', 'Akira Komayama', 'Pokémon', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_m6a%2F36.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_m6a%2F36.png']
+  card: ['jpn_m6a-50', 'jpn_m6a', '50', '50', '', 'Zekrom', '', 'akagi', 'Pokémon', 'https://img.dextcg.com/w=256/https://static.dextcg.com/cards/jpn_m6a%2F50.png', 'https://img.dextcg.com/w=828/https://static.dextcg.com/cards/jpn_m6a%2F50.png']
+QUICK: 29/40 card pages read, 29 with pictures
