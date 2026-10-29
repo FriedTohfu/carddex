@@ -76,10 +76,6 @@ export function cardImageUrl(image, quality = 'low') {
 // Chinese card data). Their pictures are large PNGs, so small previews go
 // through a free image-resizing service (images.weserv.nl).
 export const CHS_BASE = 'https://raw.githubusercontent.com/duanxr/PTCG-CHS-Datasets/main';
-/** Internet Archive copy of a picture (used if the original site doesn't answer). */
-export function archivedImg(url) {
-  return url ? `https://web.archive.org/web/2026im_/${url}` : null;
-}
 /**
  * dextcg pictures: their resizer moved from dextcg.com/cdn-cgi/image/… to img.dextcg.com/…
  * (Oct 2026). Older card lists still have the old address, so links are rebuilt here.
@@ -100,18 +96,6 @@ export function cardImg(card, quality = 'low') {
   if (card.src === 'chs') {
     if (quality === 'high' || quality === 'raw') return card.image;
     return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=245&output=webp&q=82`;
-  }
-  if (/archives\.bulbagarden\.net/.test(card.image)) {
-    // Older Japanese cards: Bulbapedia's own resized copies
-    if (quality === 'high' || quality === 'raw') return card.image;
-    if (card.thumb) return card.thumb;
-    const m = card.image.match(/^(.*\/media\/upload)(\/[0-9a-f]\/[0-9a-f]{2}\/)([^/]+)$/);
-    return m ? `${m[1]}/thumb${m[2]}${m[3]}/250px-${m[3]}` : card.image;
-  }
-  if (card.src === 'pcj' || card.imgSrc === 'pcj') {
-    // Official Japanese card pictures, resized by images.weserv.nl
-    const w = quality === 'high' ? 700 : 245;
-    return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=${w}&output=webp&q=82`;
   }
   return cardImageUrl(card.image, quality === 'raw' ? 'low' : quality);
 }

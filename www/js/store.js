@@ -96,14 +96,7 @@ export async function saveSettings(patch) {
   emit('settings');
 }
 
-export function enabledLangs() {
-  return state.settings.langs;
-}
 
-// ---------- Sets ----------
-export function setsForLang(lang) {
-  return [...state.sets.values()].filter((s) => s.lang === lang).sort(sortSets);
-}
 export function allSetsSorted() {
   return [...state.sets.values()].filter((s) => state.settings.langs.includes(s.lang)).sort(sortSets);
 }
@@ -163,7 +156,6 @@ export function qty(key) {
   if (!o) return 0;
   return Object.values(o.counts || {}).reduce((a, b) => a + (b || 0), 0);
 }
-export function isOwned(key) { return qty(key) > 0; }
 
 export async function changeOwned(key, variant = 'normal', delta = 1) {
   let o = state.owned.get(key);
@@ -232,9 +224,6 @@ export async function deleteWishlist(id) {
 }
 export function wishlistsSorted() {
   return [...state.wishlists.values()].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-}
-export function wishlistsContaining(key) {
-  return wishlistsSorted().filter((w) => w.cards.includes(key));
 }
 
 // ---------- Binders ----------

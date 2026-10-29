@@ -45,9 +45,6 @@ async function detectRunning() {
   return runningSha;
 }
 
-export function currentVersion() {
-  return runningSha ? runningSha.slice(0, 7) : 'installed version';
-}
 
 /** The newest update in the running version's "What's new" list, e.g. { id: '2026-10-19b', title: '…' }. */
 export async function updateVersion() {

@@ -1,3 +1,0 @@
-TCGdex Japanese: 184 sets
-327 sets need names, 102 found on TCGdex
-Japanese names added: 2691; now 19262 of 27533

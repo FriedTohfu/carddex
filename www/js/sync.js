@@ -22,13 +22,9 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
         try { await syncChs({ force }); } catch (e) { errors.push(`zh-cn: ${e.message}`); }
         continue;
       }
-      if (lang === 'ja') {
-        // Japanese: the dextcg list built on GitHub (falls back to TCGdex if it isn't there)
-        try { if (await syncJaGG({ force })) continue; } catch (e) { errors.push(`ja: ${e.message}`); }
-      }
-      if (lang === 'en') {
-        // English: the dextcg list built on GitHub, once it's finished (TCGdex until then)
-        try { if (await syncJaGG({ force, lang: 'en', indexKey: 'enDex' })) continue; } catch (e) { errors.push(`en: ${e.message}`); }
+      if (lang === 'ja' || lang === 'en') {
+        // English and Japanese: the dextcg lists built on GitHub (TCGdex below only if those aren't reachable)
+        try { if (await syncList({ force, lang, indexKey: lang === 'ja' ? 'jaGG' : 'enDex' })) continue; } catch (e) { errors.push(`${lang}: ${e.message}`); }
       }
       report(`Checking ${lang.toUpperCase()} sets…`, 0, 0);
       let list;
@@ -54,16 +50,10 @@ export async function syncCatalog(langs = state.settings.langs, { force = false 
         } catch (e) { errors.push(`${lang}/${brief.id}: ${e.message}`); }
         report(`Downloading ${lang.toUpperCase()} card lists`, ++n, todo.length);
       }, () => job.stop);
-      if (lang === 'ja' && !job.stop) {
-        await dropOfficialJa();
-        try { await applyJaExtra(true); } catch { /* fills in next start-up */ }
-        import('./bulba.js').then((m) => m.fillVintagePictures()).catch(() => {});
-      }
       const cards = [...state.cards.values()].filter((c) => c.lang === lang).length;
       state.syncInfo[lang] = { at: Date.now(), sets: list.length, cards };
       await db.put('meta', state.syncInfo, 'syncInfo');
     }
-    if (!job.stop) { try { await applyExtra(true); } catch (e) { errors.push(`extra cards: ${e.message}`); } }
     if (!state.species.length && !job.stop) await syncSpecies(true);
     rebuildDex();
     emit('catalog');
@@ -153,25 +143,6 @@ async function syncChs({ force = false } = {}) {
   await db.put('meta', state.syncInfo, 'syncInfo');
 }
 
-/** Once a day: download any of TCGdex's sets (with cards) that aren't on the phone. */
-async function healMissingSets(lang) {
-  if (!online() || job.running || !state.settings.langs.includes(lang)) return 0;
-  const k = `healed.${lang}`;
-  if (Date.now() - (state.syncInfo[k] || 0) < 864e5) return 0;
-  const list = await tcg.sets(lang).catch(() => null);
-  if (!Array.isArray(list)) return 0;
-  const empty = state.syncInfo.emptySets || {};
-  const missing = list.filter((s) => !state.sets.get(`${lang}:${s.id}`) && !(empty[`${lang}:${s.id}`] > Date.now() - 7 * 864e5));
-  let n = 0;
-  await pool(missing, 5, async (brief) => {
-    try { const full = await tcg.set(lang, brief.id); if (full) { await saveSet(lang, brief, full); n++; } } catch { /* next time */ }
-  });
-  state.syncInfo[k] = Date.now();
-  await db.put('meta', state.syncInfo, 'syncInfo');
-  if (n && lang === 'ja') await applyJaExtra(true).catch(() => {});
-  return n;
-}
-
 /** TCG Pocket is a phone game, not real cards: leave its sets out (keeping any you own). */
 const isPocket = (st) => st && (st.serieId === 'tcgp' || /\bpocket\b/i.test(st.serie || ''));
 async function dropPocket() {
@@ -198,7 +169,7 @@ async function dropEmptySet(key) {
   return true;
 }
 
-/** At start-up: tidy up empty placeholder sets, and phones that still have the old official-site Japanese list switch back to TCGdex. */
+/** At start-up: tidy up (TCG Pocket, empty sets) and download newer English / Japanese lists if GitHub has them. */
 export async function autoUpdateCardData() {
   let tidied = await dropPocket();
   for (const key of [...state.sets.keys()]) if (await dropEmptySet(key)) tidied = true;
@@ -215,86 +186,8 @@ export async function autoUpdateCardData() {
       return !errors?.length;
     }
   }
-  let extra = 0;
-  try { extra = await applyExtra(); if (extra) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
-  if (!jaIsGG()) {
-    try { if (await healMissingSets('ja')) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
-    try { if (await applyJaExtra()) { rebuildDex(); emit('catalog'); } } catch { /* next start-up */ }
-  }
-  if (job.running || !online() || !state.sets.size || !state.settings.langs.includes('ja')) return extra > 0;
-  if (![...state.sets.values()].some((st) => st.src === 'pcj')) return extra > 0;
-  const errors = await syncCatalog(['ja']);
-  return !errors?.length;
+  return false;
 }
-
-/**
- * TCGdex is missing many Japanese cards and pictures. data/ja-extra.json (built on
- * GitHub from the official Japanese card list) fills the gaps: missing cards go into
- * the matching TCGdex set (same set code + number), missing pictures are filled in,
- * and products TCGdex doesn't list become their own sets.
- */
-export async function applyJaExtra(force = false) {
-  if (!online()) return 0;
-  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
-  const info = index?.jaExtra;
-  if (!info || (!force && state.syncInfo.jaExtra === info.built)) return 0;
-  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-extra.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 180000, retries: 1 });
-  if (!d?.cards) return 0;
-  const lang = 'ja';
-  const newSets = [];
-  for (const st of d.sets || []) {
-    const key = `${lang}:${st.id}`;
-    const cur = state.sets.get(key);
-    if (cur && !cur.extra) continue; // TCGdex has this set: keep its details
-    newSets.push({
-      key, lang, id: st.id, name: st.name || st.id, serie: st.serie || '', releaseDate: st.releaseDate || '',
-      total: st.official || 0, official: st.official || 0, logo: cur?.logo || '', symbol: cur?.symbol || '', extra: true, syncedAt: Date.now(),
-    });
-  }
-  for (const st of newSets) state.sets.set(st.key, st);
-  // TCGdex cards by set + number, to find the same card
-  const byNum = new Map();
-  for (const c of state.cards.values()) {
-    if (c.lang !== lang || c.custom || c.extra) continue;
-    const n = parseInt(c.localId, 10);
-    if (!Number.isNaN(n)) byNum.set(`${c.setKey}|${n}`, c);
-  }
-  const put = [], touched = new Set();
-  for (const [id, sid, local, num, name, img, rarity, hp, illus] of d.cards) {
-    const setKey = `${lang}:${sid}`;
-    if (!state.sets.has(setKey)) continue;
-    const image = d.base + img;
-    const n = parseInt(local, 10);
-    const same = byNum.get(`${setKey}|${n}`) || (!state.cards.get(`${lang}:${id}`)?.extra && state.cards.get(`${lang}:${id}`));
-    if (same) {
-      // TCGdex has the card: only borrow the picture if it has none
-      if ((!same.image || same.imgSrc === 'pcj') && same.image !== image) { same.image = image; same.imgSrc = 'pcj'; put.push(same); }
-      continue;
-    }
-    const card = {
-      key: `${lang}:${id}`, lang, id, localId: local, number: num, name, image, imgSrc: 'pcj', setKey, order: 0, extra: true,
-      det: { rarity: rarity || undefined, hp: hp || undefined, illustrator: illus || undefined, number: num, category: hp ? 'Pokemon' : undefined },
-    };
-    state.cards.set(card.key, card);
-    put.push(card); touched.add(setKey);
-  }
-  // Put each changed set's cards in number order
-  const queued = new Set(put);
-  const lists = new Map([...touched].map((k) => [k, []]));
-  for (const c of state.cards.values()) lists.get(c.setKey)?.push(c);
-  for (const [k, list] of lists) {
-    list.sort((a, b) => (parseInt(a.localId, 10) || 9999) - (parseInt(b.localId, 10) || 9999) || String(a.localId).localeCompare(String(b.localId)));
-    list.forEach((c, i) => { if (c.order !== i) { c.order = i; if (!queued.has(c)) { queued.add(c); put.push(c); } } });
-    state.cardsBySet.set(k, list);
-  }
-  await db.putMany('sets', newSets);
-  for (let i = 0; i < put.length; i += 2000) await db.putMany('cards', put.slice(i, i + 2000));
-  state.syncInfo.jaExtra = info.built;
-  await db.put('meta', state.syncInfo, 'syncInfo');
-  return put.length;
-}
-
-const jaIsGG = () => state.syncInfo.ja?.source === 'pkmn.gg';
 
 /** 'TG01' -> 'TG1', '001/165' -> '1': card numbers written the same way. */
 const numKey = (x) => {
@@ -303,85 +196,8 @@ const numKey = (x) => {
   return m ? `${m[1]}${+m[2]}${m[3]}` : t;
 };
 
-/**
- * data/extra.json (built on GitHub): English and Japanese cards our main lists are
- * missing, from pkmn.gg's English list and dextcg.com. Missing cards go into the
- * matching set; sets we don't have at all are added.
- */
-export async function applyExtra(force = false) {
-  if (!online()) return 0;
-  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 0, timeout: 15000 }).catch(() => null);
-  const info = index?.extra;
-  if (!info || (!force && state.syncInfo.extra === info.built)) return 0;
-  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'extra.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 180000, retries: 1 });
-  if (!d?.cards) return 0;
-  const langs = new Set(state.settings.langs);
-  const newSets = [];
-  for (const st of d.sets || []) {
-    if (!langs.has(st.lang) || state.syncInfo[st.lang]?.from === 'dextcg') continue; // dextcg lists are complete on their own
-    const cur = state.sets.get(st.key);
-    if (cur && !cur.extra) continue; // we have this set from the main list
-    newSets.push({
-      key: st.key, lang: st.lang, id: st.key.slice(st.key.indexOf(':') + 1), name: st.name, serie: st.serie || '',
-      releaseDate: st.releaseDate || '', total: st.total || 0, official: 0,
-      logo: cur?.logo || '', symbol: cur?.symbol || '', extra: true, syncedAt: Date.now(),
-    });
-  }
-  for (const st of newSets) state.sets.set(st.key, st);
-  // Numbers each set already has from the main lists
-  const has = new Set();
-  for (const c of state.cards.values()) if (!c.custom && c.src !== 'x') has.add(`${c.setKey}|${numKey(c.localId)}`);
-  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
-  const put = [], drop = [], touched = new Set(), fresh = new Set();
-  for (const [setKey, local, number, name, rarity, artist, thumb, large] of d.cards) {
-    const lang = setKey.slice(0, setKey.indexOf(':'));
-    if (state.syncInfo[lang]?.from === 'dextcg') continue; // this language's list is complete on its own
-    if (!langs.has(lang) || !state.sets.has(setKey)) continue;
-    const id = `x-${setKey.slice(lang.length + 1)}-${local}`;
-    const key = `${lang}:${id}`;
-    if (has.has(`${setKey}|${numKey(local)}`)) {
-      // the main list has it now: the extra copy isn't needed
-      if (state.cards.get(key)?.src === 'x' && !keep.has(key)) drop.push(key);
-      continue;
-    }
-    fresh.add(key);
-    const card = {
-      key, lang, id, src: 'x', localId: String(local), number: number || String(local), name,
-      image: thumb, imageHi: large || thumb, setKey, order: 0, extra: true,
-      det: { rarity: rarity || undefined, illustrator: artist || undefined, number: number || String(local) },
-    };
-    state.cards.set(key, card);
-    put.push(card); touched.add(setKey);
-  }
-  // extra cards that are no longer in the file
-  for (const c of state.cards.values()) if (c.src === 'x' && !fresh.has(c.key) && !keep.has(c.key) && langs.has(c.lang)) drop.push(c.key);
-  for (const k of drop) { const c = state.cards.get(k); if (c) touched.add(c.setKey); state.cards.delete(k); }
-  // extra sets that are no longer in the file and have nothing left in them
-  const fileSets = new Set((d.sets || []).map((st) => st.key));
-  const usedSets = new Set([...state.cards.values()].map((c) => c.setKey));
-  const goneSets = [...state.sets.values()].filter((st) => st.extra && st.src !== 'pcj' && /:x-/.test(st.key) && !fileSets.has(st.key) && !usedSets.has(st.key));
-  for (const st of goneSets) { state.sets.delete(st.key); state.cardsBySet.delete(st.key); touched.delete(st.key); }
-  if (goneSets.length) await db.delMany('sets', goneSets.map((st) => st.key));
-  // Put each changed set's cards in number order
-  const queued = new Set(put);
-  const lists = new Map([...touched].map((k) => [k, []]));
-  for (const c of state.cards.values()) lists.get(c.setKey)?.push(c);
-  const n = (c) => { const m = String(c.localId).match(/\d+/); return m ? +m[0] : 99999; };
-  for (const [k, list] of lists) {
-    list.sort((a, b) => (/^\d/.test(a.localId) ? 0 : 1) - (/^\d/.test(b.localId) ? 0 : 1) || n(a) - n(b) || String(a.localId).localeCompare(String(b.localId)));
-    list.forEach((c, i) => { if (c.order !== i) { c.order = i; if (!queued.has(c)) { queued.add(c); put.push(c); } } });
-    state.cardsBySet.set(k, list);
-  }
-  if (drop.length) await db.delMany('cards', [...new Set(drop)]);
-  await db.putMany('sets', newSets);
-  for (let i = 0; i < put.length; i += 2000) await db.putMany('cards', put.slice(i, i + 2000));
-  state.syncInfo.extra = info.built;
-  await db.put('meta', state.syncInfo, 'syncInfo');
-  return fresh.size;
-}
-
 /** A whole card list built on GitHub (dextcg / pkmn.gg): Japanese (index key jaGG) or English (enDex). */
-async function syncJaGG({ force = false, lang = 'ja', indexKey = 'jaGG' } = {}) {
+async function syncList({ force = false, lang = 'ja', indexKey = 'jaGG' } = {}) {
   const label = lang === 'ja' ? 'Japanese' : 'English';
   report(`Checking ${label} cards…`, 0, 0);
   const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 1 }).catch(() => null);
@@ -461,129 +277,6 @@ async function syncJaGG({ force = false, lang = 'ja', indexKey = 'jaGG' } = {}) 
   for (const [k, list] of bySet) state.cardsBySet.set(k, [...list, ...(state.cardsBySet.get(k) || []).filter((c) => c.custom)]);
   for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
   state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, built: info.built, source: lang === 'ja' ? 'pkmn.gg' : 'dextcg', from: info.source || 'pkmn.gg' };
-  await db.put('meta', state.syncInfo, 'syncInfo');
-  return true;
-}
-
-/** Removes the official-site Japanese list, moving your cards to the matching TCGdex cards (same set code and number). */
-async function dropOfficialJa() {
-  const lang = 'ja';
-  const pcjSets = [...state.sets.values()].filter((st) => st.lang === lang && st.src === 'pcj');
-  if (!pcjSets.length) return;
-  const tByCodeNum = new Map();
-  for (const c of state.cards.values()) {
-    if (c.lang !== lang || c.src === 'pcj' || c.custom) continue;
-    const id = state.sets.get(c.setKey)?.id?.toLowerCase();
-    if (id) tByCodeNum.set(`${id}|${parseInt(c.localId, 10)}`, c.key);
-  }
-  const remap = new Map();
-  for (const c of state.cards.values()) {
-    if (c.lang !== lang || c.src !== 'pcj') continue;
-    const code = (state.sets.get(c.setKey)?.code || '').toLowerCase();
-    const k = tByCodeNum.get(`${code}|${parseInt(c.localId, 10)}`);
-    if (k) remap.set(c.key, k);
-  }
-  await remapKeys(remap);
-  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
-  const old = [...state.cards.values()].filter((c) => c.lang === lang && c.src === 'pcj' && !keep.has(c.key));
-  await db.delMany('cards', old.map((c) => c.key));
-  for (const c of old) state.cards.delete(c.key);
-  const used = new Set([...state.cards.values()].filter((c) => c.src === 'pcj').map((c) => c.setKey));
-  const gone = pcjSets.filter((st) => !used.has(st.key));
-  await db.delMany('sets', gone.map((st) => st.key));
-  for (const st of gone) { state.sets.delete(st.key); state.cardsBySet.delete(st.key); }
-  for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
-}
-
-// ---------- Japanese (official card list, built by build/make_ja_catalog.py) ----------
-async function syncJa({ force = false } = {}) {
-  const lang = 'ja';
-  report('Checking Japanese cards…', 0, 0);
-  const index = await fetchJSON(`${SCAN_DATA}/index.json?t=${Date.now()}`, { retries: 1 }).catch(() => null);
-  const info = index?.jaCatalog;
-  if (!info) return false; // not built yet
-  const have = [...state.sets.values()].some((s) => s.src === 'pcj');
-  if (!force && have && state.syncInfo[lang]?.built === info.built) return true;
-  report('Downloading Japanese card list…', 0, 0);
-  const d = await fetchJSON(`${SCAN_DATA}/${info.file || 'ja-official.json'}?b=${encodeURIComponent(info.built)}`, { timeout: 180000, retries: 1 });
-  if (!d?.cards?.length) return false;
-  // Set names and release dates from TCGdex where the set codes match
-  let tsets = [];
-  try { tsets = (await tcg.sets(lang)) || []; } catch { /* names fall back to the product name */ }
-  const tByCode = new Map(tsets.map((t) => [String(t.id).toLowerCase(), t]));
-  const oldJaSets = new Map([...state.sets.values()].filter((st) => st.lang === lang && st.src !== 'pcj').map((st) => [st.id.toLowerCase(), st]));
-  const groups = new Map();
-  for (const c of d.cards) {
-    const code = c.set || 'other';
-    if (!groups.has(code)) groups.set(code, []);
-    groups.get(code).push(c);
-  }
-  const sets = [], cards = [];
-  for (const [code, list] of groups) {
-    const setKey = `${lang}:pcj-${code}`;
-    const t = tByCode.get(code.toLowerCase()), old = oldJaSets.get(code.toLowerCase());
-    const meta = d.sets?.[code.toLowerCase()] || {};
-    list.sort((a, b) => (parseInt(a.num, 10) || 9999) - (parseInt(b.num, 10) || 9999) || (+a.id - +b.id));
-    sets.push({
-      key: setKey, lang, id: `pcj-${code}`, code, src: 'pcj',
-      name: meta.name || t?.name || old?.name || list.find((c) => c.setName)?.setName || code,
-      nameJa: meta.nameJa || '',
-      serie: meta.serie || old?.serie || '', releaseDate: meta.releaseDate || old?.releaseDate || '',
-      rank: Math.max(...list.map((c) => +c.id || 0)),
-      total: list.length, official: denominator(list.map((c) => c.num)),
-      logo: t?.logo || old?.logo || '', symbol: t?.symbol || old?.symbol || '', syncedAt: Date.now(),
-    });
-    list.forEach((c, i) => {
-      const num = String(c.num || '');
-      cards.push({
-        key: `${lang}:pcj-${c.id}`, lang, id: `pcj-${c.id}`, src: 'pcj',
-        localId: num.split('/')[0] || '', number: num, name: c.name || '', nameEn: c.en || undefined,
-        image: !c.img ? '' : /^https?:/.test(c.img) ? c.img : `https://www.pokemon-card.com${c.img}`, setKey, order: i,
-        det: { rarity: c.rarity, illustrator: c.illus, hp: c.hp, number: num, category: c.hp ? 'Pokemon' : undefined },
-      });
-    });
-  }
-  // Sets without a known date: borrow the date of the nearest older set (card IDs go up over time)
-  const dated = sets.filter((st) => st.releaseDate).sort((a, b) => a.rank - b.rank);
-  for (const st of sets) {
-    if (st.releaseDate || !dated.length) continue;
-    let best = dated[0];
-    for (const x of dated) if (x.rank <= st.rank) best = x;
-    st.releaseDate = best.releaseDate;
-  }
-  // Move your cards from the old Japanese source to the matching official ones
-  const byCodeNum = new Map(cards.map((c) => [`${c.setKey.slice(7).toLowerCase()}|${parseInt(c.localId, 10)}`, c.key]));
-  const remap = new Map();
-  for (const c of state.cards.values()) {
-    if (c.lang !== lang || c.src === 'pcj' || c.custom) continue;
-    const setId = state.sets.get(c.setKey)?.id?.toLowerCase();
-    const k = byCodeNum.get(`${setId}|${parseInt(c.localId, 10)}`);
-    if (k) remap.set(c.key, k);
-  }
-  await remapKeys(remap);
-  // Full reset: replace all older Japanese data (keeping anything still in your collection, lists or binders)
-  const keep = new Set([...state.owned.keys(), ...[...state.wishlists.values()].flatMap((w) => w.cards), ...[...state.binders.values()].flatMap((b) => b.pages.flat())]);
-  const newKeys = new Set(cards.map((c) => c.key)), newSets = new Set(sets.map((st) => st.key));
-  const oldCards = [...state.cards.values()].filter((c) => c.lang === lang && !c.custom && !newKeys.has(c.key) && !keep.has(c.key));
-  await db.delMany('cards', oldCards.map((c) => c.key));
-  for (const c of oldCards) state.cards.delete(c.key);
-  const usedSets = new Set([...state.cards.values()].filter((c) => c.lang === lang).map((c) => c.setKey));
-  const oldSets = [...state.sets.values()].filter((st) => st.lang === lang && !st.custom && !newSets.has(st.key) && !usedSets.has(st.key));
-  await db.delMany('sets', oldSets.map((st) => st.key));
-  for (const st of oldSets) { state.sets.delete(st.key); state.cardsBySet.delete(st.key); }
-  await db.putMany('sets', sets);
-  for (let i = 0; i < cards.length; i += 2000) {
-    await db.putMany('cards', cards.slice(i, i + 2000));
-    report('Saving Japanese cards', Math.min(cards.length, i + 2000), cards.length);
-  }
-  for (const st of sets) state.sets.set(st.key, st);
-  for (const c of cards) state.cards.set(c.key, c);
-  for (const st of sets) {
-    const mine = (state.cardsBySet.get(st.key) || []).filter((c) => c.custom);
-    state.cardsBySet.set(st.key, [...cards.filter((c) => c.setKey === st.key), ...mine].sort((a, b) => a.order - b.order));
-  }
-  for (const [k, arr] of state.cardsBySet) if (state.sets.get(k)?.lang === lang) state.cardsBySet.set(k, arr.filter((c) => state.cards.has(c.key)));
-  state.syncInfo[lang] = { at: Date.now(), sets: sets.length, cards: cards.length, built: info.built, source: 'pokemon-card.com' };
   await db.put('meta', state.syncInfo, 'syncInfo');
   return true;
 }
@@ -915,7 +608,7 @@ export async function cardDetail(key) {
   if (cached && (Date.now() - cached._at < WEEK || !online())) return cached;
   if (!online()) return cached || null;
   const card = state.cards.get(key);
-  if (card?.src === 'chs' || card?.src === 'pcj' || card?.src === 'gg' || card?.src === 'x' || card?.extra) return { ...card.det };
+  if (card?.src === 'chs' || card?.src === 'gg' || card?.det) return { ...card.det };
   if (!card || card.custom) return cached || null;
   try {
     const d = await tcg.card(card.lang, card.id);

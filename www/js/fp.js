@@ -127,21 +127,6 @@ export function queryFingerprints(src, rect) {
   return out;
 }
 
-/** Returns the best `limit` matches: [{key, score}] (lower score = closer). */
-export function bestMatches(queries, fps, limit = 12, allowed = null) {
-  const best = [];
-  for (const [key, fp] of fps) {
-    if (allowed && !allowed(key)) continue;
-    let d = Infinity;
-    for (const q of queries) { const v = distance(q, fp); if (v < d) d = v; }
-    if (best.length < limit || d < best[best.length - 1].score) {
-      best.push({ key, score: d });
-      best.sort((a, b) => a.score - b.score);
-      if (best.length > limit) best.pop();
-    }
-  }
-  return best;
-}
 
 /** Turns a score into a rough confidence label. */
 export function confidence(score) {

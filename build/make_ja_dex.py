@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from make_extra import (DEX, MONTHS, candidates, day, digits, get, match_set, meta, name_key,  # noqa: E402
+from dexlib import (DEX, MONTHS, candidates, day, digits, get, match_set, meta, name_key,  # noqa: E402
                         num_key, tcgdex_en, text_of)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -185,11 +185,6 @@ def main():
         for c in cards:
             by_set_dig.setdefault((c[1], digits(c[2])), c[0])
         olds = [(t['key'][3:], t['name'], t['day'].strftime('%Y-%m-%d') if t['day'] else '', t.get('ids', [])) for t in tcgdex_en()]
-        xp = os.path.join(DATA, 'extra.json')
-        if os.path.exists(xp):
-            for st in json.load(open(xp, encoding='utf-8')).get('sets', []):
-                if st['key'].startswith('en:x-') and not st['key'].startswith('en:x-dex-'):
-                    olds.append((st['key'][3:], st['name'], st.get('releaseDate', ''), []))
         for sid, name, rel, ids in olds:
             m = match_set(name, rel, base)
             if not m:

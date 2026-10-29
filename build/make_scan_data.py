@@ -58,90 +58,30 @@ def chs_list():
             for cd in col.get('cards', []) if cd.get('image')]
 
 
-JA_LIST = os.path.join(ROOT, 'data', 'ja-official.json')
-JA_EXTRA = os.path.join(ROOT, 'data', 'ja-extra.json')
-JA_IMG_BASE = os.environ.get('JA_BASE', 'https://www.pokemon-card.com')
-
-
-def ja_list():
-    # Japanese: the official card list built by make_ja_catalog.py
-    if not os.path.exists(JA_LIST):
-        return None
-    d = json.load(open(JA_LIST, encoding='utf-8'))
-    def url(img):
-        if not img.startswith('http'):
-            return JA_IMG_BASE + img
-        if 'archives.bulbagarden.net' in img:
-            # Bulbagarden blocks GitHub's servers; the Internet Archive keeps copies of most pictures
-            return 'https://web.archive.org/web/2026im_/' + img
-        return img
-    return [(f"pcj-{c['id']}", url(c['img'])) for c in d.get('cards', []) if c.get('img')]
-
-
-SOURCE = {'zh-cn': 'chs'}  # Japanese and English come from TCGdex
-
-
-JA_GG = os.path.join(ROOT, 'data', 'ja-pkmngg.json')
+SOURCE = {'zh-cn': 'chs'}  # English / Japanese: 'gg' (dextcg lists); others: TCGdex
 
 
 def card_list(lang):
     if lang == 'zh-cn':
         return chs_list()
-    en_dex = os.path.join(os.path.dirname(JA_GG), 'en-dex.json')
-    if lang == 'en' and os.path.exists(en_dex) and json.load(open(en_dex, encoding='utf-8')).get('complete'):
-        # English: the dextcg list (build/make_ja_dex.py en)
-        SOURCE['en'] = 'gg'
-        d = json.load(open(en_dex, encoding='utf-8'))
+    # English and Japanese: the dextcg lists (build/make_ja_dex.py)
+    dex = os.path.join(OUT, f'{lang}-dex.json')
+    if lang in ('en', 'ja') and os.path.exists(dex) and json.load(open(dex, encoding='utf-8')).get('complete'):
+        SOURCE[lang] = 'gg'
+        d = json.load(open(dex, encoding='utf-8'))
         return [(f'gg-{c[0]}', c[9]) for c in d.get('cards', []) if c[9]]
-    ja_dex = os.path.join(os.path.dirname(JA_GG), 'ja-dex.json')
-    if lang == 'ja' and os.path.exists(ja_dex) and json.load(open(ja_dex, encoding='utf-8')).get('complete'):
-        # Japanese: the dextcg list (build/make_ja_dex.py)
-        SOURCE['ja'] = 'gg'
-        d = json.load(open(ja_dex, encoding='utf-8'))
-        return [(f'gg-{c[0]}', c[9]) for c in d.get('cards', []) if c[9]]
-    if lang == 'ja' and os.path.exists(JA_GG):
-        # Japanese: the pkmn.gg list (build/make_ja_pkmngg.py)
-        SOURCE['ja'] = 'gg'
-        d = json.load(open(JA_GG, encoding='utf-8'))
-        return [(f'gg-{c[0]}', c[9]) for c in d.get('cards', []) if c[9]]
-    if lang == 'ja':
-        lst = ja_list()
-        if lst is not None:
-            return lst
-        SOURCE['ja'] = 'tcgdex'  # official list not built yet: use TCGdex for now
+    # Anything else (e.g. Traditional Chinese): TCGdex
     sets = get(f'{TCG}/{lang}/sets')
     if not sets:
         return []
-    # Japanese: TCGdex's gaps are filled from the official card list (data/ja-extra.json)
-    extra, extra_rows = {}, []
-    if lang == 'ja' and os.path.exists(JA_EXTRA):
-        d = json.load(open(JA_EXTRA, encoding='utf-8'))
-        for cid, sid, local, *_rest in d.get('cards', []):
-            url = d['base'] + _rest[2]
-            extra_rows.append((cid, sid, local, url))
-            if str(local).isdigit():
-                extra[f'{sid.lower()}|{int(local)}'] = url
+
     def one(s):
         full = get(f"{TCG}/{lang}/sets/{urllib.parse.quote(s['id'])}")
-        out = []
-        for c in (full or {}).get('cards', []):
-            lid = str(c.get('localId') or '')
-            seen_nums.add(f"{str(s['id']).lower()}|{int(lid) if lid.isdigit() else lid}")
-            if c.get('image'):
-                out.append((c['id'], c['image'] + '/low.webp'))
-            elif lid.isdigit() and extra.get(f"{str(s['id']).lower()}|{int(lid)}"):
-                out.append((c['id'], extra[f"{str(s['id']).lower()}|{int(lid)}"]))
-        return out
-    seen_nums = set()
+        return [(c['id'], c['image'] + '/low.webp') for c in (full or {}).get('cards', []) if c.get('image')]
+    out = []
     with ThreadPoolExecutor(8) as ex:
-        out = []
         for part in ex.map(one, sets):
             out.extend(part)
-    have = {cid for cid, _ in out}
-    for cid, sid, local, url in extra_rows:
-        key = f'{sid.lower()}|{int(local) if str(local).isdigit() else local}'
-        if cid not in have and key not in seen_nums:
-            out.append((cid, url))
     return out
 
 
@@ -151,7 +91,7 @@ def load_existing(lang):
         return {}
     d = json.load(open(p, encoding='utf-8'))
     keys0 = d.get('keys') or []
-    src = d.get('src') or ('chs' if keys0 and str(keys0[0]).startswith('chs-') else 'pcj' if keys0 and str(keys0[0]).startswith('pcj-') else 'tcgdex')
+    src = d.get('src') or ('chs' if keys0 and str(keys0[0]).startswith('chs-') else 'tcgdex')
     if d.get('v') != FP_VERSION or src != SOURCE.get(lang, 'tcgdex'):
         return {}  # fingerprint maths or card source changed: rebuild everything
     raw = base64.b64decode(d['fp'])
@@ -250,10 +190,18 @@ def run_lang(lang, tab, index):
         print(f'   {lang}: not available, skipped', flush=True)
         return
     fps = load_existing(lang)
+    # Drop fingerprints of cards that are no longer in the list (old sources)
+    ids = {cid for cid, _ in cards}
+    gone = [k for k in fps if k not in ids]
+    for k in gone:
+        del fps[k]
     todo = [(cid, img) for cid, img in cards if cid not in fps]
-    print(f'   {len(cards)} cards with images, {len(todo)} new', flush=True)
-    if not todo and lang in index:
+    print(f'   {len(cards)} cards with images, {len(todo)} new, {len(gone)} old removed', flush=True)
+    if not todo and not gone and lang in index:
         return  # nothing new: leave the file untouched
+    if not todo:
+        save(lang, fps, index)
+        return
     done = 0
     try:
         with ThreadPoolExecutor(16) as ex:

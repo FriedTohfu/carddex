@@ -1,5 +1,14 @@
 [
  {
+  "id": "2026-10-29b",
+  "date": "2026-10-29",
+  "title": "Tidy-up",
+  "items": [
+   "Removed leftover code from the old card sources, so the app is smaller and syncs card lists faster.",
+   "Scan data drops fingerprints for cards from the old Japanese list, so it downloads quicker."
+  ]
+ },
+ {
   "id": "2026-10-29a",
   "date": "2026-10-29",
   "title": "Card pictures fixed",

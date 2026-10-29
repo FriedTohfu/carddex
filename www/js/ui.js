@@ -2,7 +2,7 @@
 import * as db from './db.js';
 import { state, qty, onChange } from './store.js';
 import { cachedOrFetch } from './imgcache.js';
-import { cardImg, archivedImg, assetUrl, online, LANGS, SPRITE } from './api.js';
+import { cardImg, assetUrl, online, LANGS, SPRITE } from './api.js';
 
 // Let .append() skip null/false so optional pieces can be written inline
 for (const proto of [Element.prototype, DocumentFragment.prototype]) {
@@ -30,7 +30,6 @@ export function h(tag, attrs = {}, ...kids) {
   }
   return el;
 }
-export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // ---------- Icons (inline SVG) ----------
 const P = {
@@ -306,8 +305,6 @@ export async function cardSrc(card, quality = 'low') {
   if (quality === 'high' && online() && card.image) return cardImg(card, 'high');
   if (state.imageKeys.has(card.key)) { const u = await localURL('images', card.key); if (u) return u; }
   if (!card.image) return null;
-  // Bulbagarden pictures load directly (that site doesn't allow the app to save them)
-  if (/bulbagarden/.test(card.image)) return online() ? cardImg(card, 'low') : null;
   return cachedOrFetch(card.key, cardImg(card, 'low'));
 }
 export async function spriteSrc(id) {
@@ -354,7 +351,6 @@ export function cardArt(card, quality = 'low') {
   // Big view: show the small picture straight away, then swap in the sharp one when it arrives
   const img = lazyImg(() => cardSrc(card, 'low'), card?.name || '');
   if (card?.src === 'chs') img._fallback = async () => card.image; // if the resizing service is down
-  if (/bulbagarden/.test(card?.image || '')) img._fallback = async () => archivedImg(card.image);
   const shown = (!card?.image && card?.altKey && state.cards.get(card.altKey)) || card;
   if (quality === 'high' && shown?.image && online()) {
     const hi = new Image();
@@ -559,9 +555,6 @@ export function debounce(fn, ms = 200) {
   return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
 }
 
-export function setLabel(set) {
-  return set ? set.name : 'Unknown set';
-}
 
 export function fmtDate(d) {
   if (!d) return '';

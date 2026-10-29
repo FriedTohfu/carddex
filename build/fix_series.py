@@ -6,7 +6,7 @@ Sets the series (era) of every set in data/en-dex.json and data/ja-dex.json.
 import json, os, sys
 from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from make_extra import day, match_set, name_key  # noqa: E402
+from dexlib import day, match_set, name_key  # noqa: E402
 
 DATA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 ERAS = {

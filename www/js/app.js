@@ -101,7 +101,6 @@ async function main() {
   setTimeout(() => import('./sync.js').then((m) => m.updateScanData()).catch(() => {}), 12000);
   setTimeout(() => import('./sync.js').then((m) => m.updateTypes()).catch(() => {}), 3500);
   // Pictures for old Japanese cards, from Bulbapedia (saved after the first time)
-  setTimeout(() => import('./bulba.js').then((m) => m.fillVintagePictures()).catch(() => {}), 9000);
   // After an update: what changed
   setTimeout(() => import('./whatsnew.js').then((m) => m.maybeShowWhatsNew()).catch(() => {}), 1800);
   // New card lists (e.g. the official Japanese list) arrive without having to tap "Update card data"
