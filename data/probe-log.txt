@@ -1,0 +1,33 @@
+301 text/html; charset=UTF-8 167 | referer=none | https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png
+301 text/html; charset=UTF-8 167 | referer=https://localhost/ | https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png
+301 text/html; charset=UTF-8 167 | referer=https://dextcg.com/ | https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png
+200 image/png 1388905 | referer=none | https://static.dextcg.com/cards/me4%2F1.png
+200 image/png 1388905 | referer=https://localhost/ | https://static.dextcg.com/cards/me4%2F1.png
+200 image/png 1388905 | referer=https://dextcg.com/ | https://static.dextcg.com/cards/me4%2F1.png
+200 image/png 1407519 | referer=none | https://static.dextcg.com/cards/jpn_sv1a%2F1.png
+200 image/png 1407519 | referer=https://localhost/ | https://static.dextcg.com/cards/jpn_sv1a%2F1.png
+200 image/png 1407519 | referer=https://dextcg.com/ | https://static.dextcg.com/cards/jpn_sv1a%2F1.png
+301 text/html; charset=UTF-8 167 | referer=none | https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_sv1a%2F1.png
+301 text/html; charset=UTF-8 167 | referer=https://localhost/ | https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_sv1a%2F1.png
+301 text/html; charset=UTF-8 167 | referer=https://dextcg.com/ | https://dextcg.com/cdn-cgi/image/w=300,q=80,f=auto/https://static.dextcg.com/cards/jpn_sv1a%2F1.png
+--- headers (cdn-cgi, referer localhost)
+HTTP/2 301 
+date: Thu, 29 Oct 2026 03:11:37 GMT
+content-type: text/html; charset=UTF-8
+location: https://img.dextcg.com/w=300,q=80,f=auto/https://static.dextcg.com/cards/me4%2F1.png
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=%2Bg1lALgia7bUfFk%2FM3We%2B3GPsFc4Xla8%2FdloH6OtaJhTYs%2B2vUMIDY2Css4mocr1B6Cjvi54sDFa%2BOZIEix5z0miIm3QD8pF3WtramCmiyKmZB1hnXQose7LPec%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+expect-ct: max-age=86400, enforce
+referrer-policy: same-origin
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+server: cloudflare
+cf-ray: a51efe729fe061e4-ORD
+
+--- page
+https://img.dextcg.com/w=64/https://static.dextcg.com/cards/me4%2F1.png 64w, https://img.dextcg.com/w=256/https://static.dextcg.com/cards/me4%2F1.png 256w, https://img.dextcg.com/w=640/https://static.dextcg.com/cards/me4%2F1.png 640w, https://img.dextcg.com/w=828/https://static.dextcg.com/cards/me4%2F1.png 828w, https://img.dextcg.com/w=1080/https://static.dextcg.com/cards/me4%2F1.png 1080w, https://img.dextcg.com/w=2048/https://static.dextcg.com/cards/me4%2F1.png 2048w
+https://dextcg.com/logo.png
+https://dextcg.com/og-image.png
+https://static.dextcg.com/cards/me4%2F1.png
+https://img.dextcg.com/w=2048/https://static.dextcg.com/cards/me4%2F1.png
