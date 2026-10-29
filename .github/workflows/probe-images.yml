@@ -25,11 +25,12 @@ jobs:
             echo "https://img.dextcg.com/w=256/https://$P" 
           done < data/burst-urls.txt > /tmp/urls
           # 6 at a time, like the app
-          xargs -P 6 -I{} curl -s -o /dev/null -w '%{http_code} %{time_total}s %{content_type}\n' -A "$UA" -H 'Referer: https://localhost/' {} < /tmp/urls | sort | uniq -c | sort -rn >> $LOG
+          head -3 /tmp/urls | xargs -P 6 -I{} curl -s -o /dev/null -w '%{http_code} %{time_total}s %{content_type}\n' -A "$UA" -H 'Referer: https://localhost/' {} | sort | uniq -c | sort -rn >> $LOG
           echo "--- after burst, one more:" >> $LOG
           curl -s -D - -o /dev/null -A "$UA" -H 'Referer: https://localhost/' "$(head -1 /tmp/urls)" | head -15 >> $LOG
           echo "--- weserv fallback:" >> $LOG
-          curl -s -o /dev/null -w '%{http_code} %{content_type} %{size_download}\n' "https://images.weserv.nl/?url=static.dextcg.com/cards/me4%2F1.png&w=245&output=webp&q=82" >> $LOG
+          curl -s -o /dev/null -w '%{http_code} %{content_type} %{size_download}\n' "https://images.weserv.nl/?url=static.dextcg.com%2Fcards%2Fme4%252F1.png&w=256&output=webp&q=82" >> $LOG
+          curl -s -o /dev/null -w '%{http_code} %{content_type} %{size_download}\n' "https://images.weserv.nl/?url=static.dextcg.com%2Fcards%2Fswsh9tg%252FTG23.png&w=256&output=webp&q=82" >> $LOG
           cat $LOG
       - name: Save
         if: always()
