@@ -195,8 +195,8 @@ def dex_card(eid, num):
     artist = (re.search(r'illustrated by (.+?)\.?$', desc) or [None, ''])[1]
     img = re.search(r'https://static\.dextcg\.com/cards/[^"\'\s)]+?\.(?:png|jpg|webp)', page)
     img = html.unescape(img.group(0)) if img else ''
-    thumb = f'{DEX}/cdn-cgi/image/w=300,q=80,f=auto/{img}' if img else ''
-    large = f'{DEX}/cdn-cgi/image/w=800,q=85,f=auto/{img}' if img else ''
+    thumb = f'https://img.dextcg.com/w=256/{img}' if img else ''
+    large = f'https://img.dextcg.com/w=828/{img}' if img else ''
     return [name, rarity, artist, thumb, large]
 
 

@@ -1,5 +1,13 @@
 [
  {
+  "id": "2026-10-29a",
+  "date": "2026-10-29",
+  "title": "Card pictures fixed",
+  "items": [
+   "Card pictures load again — dextcg moved its picture service to a new address. Pictures are also smaller now, so lists load faster."
+  ]
+ },
+ {
   "id": "2026-10-27a",
   "date": "2026-10-27",
   "title": "Pokédex type filter",

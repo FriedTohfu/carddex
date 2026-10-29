@@ -80,9 +80,23 @@ export const CHS_BASE = 'https://raw.githubusercontent.com/duanxr/PTCG-CHS-Datas
 export function archivedImg(url) {
   return url ? `https://web.archive.org/web/2026im_/${url}` : null;
 }
+/**
+ * dextcg pictures: their resizer moved from dextcg.com/cdn-cgi/image/… to img.dextcg.com/…
+ * (Oct 2026). Older card lists still have the old address, so links are rebuilt here.
+ */
+const DEX_STATIC = /(https:\/\/static\.dextcg\.com\/[^\s"']+)$/;
+export function dexImg(url, quality = 'low') {
+  const m = DEX_STATIC.exec(url || '');
+  if (!m) return url;
+  return `https://img.dextcg.com/w=${quality === 'high' || quality === 'raw' ? 828 : 256}/${m[1]}`;
+}
+
 export function cardImg(card, quality = 'low') {
   if (!card?.image) return null;
-  if (card.src === 'gg' || card.src === 'x') return quality === 'high' || quality === 'raw' ? (card.imageHi || card.image) : card.image;
+  if (card.src === 'gg' || card.src === 'x') {
+    const u = quality === 'high' || quality === 'raw' ? (card.imageHi || card.image) : card.image;
+    return /dextcg\.com/.test(u) ? dexImg(u, quality) : u;
+  }
   if (card.src === 'chs') {
     if (quality === 'high' || quality === 'raw') return card.image;
     return `https://images.weserv.nl/?url=${encodeURIComponent(card.image.replace(/^https?:\/\//, ''))}&w=245&output=webp&q=82`;
