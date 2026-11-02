@@ -2,18 +2,18 @@
  "en": {
   "v": 1,
   "src": "gg",
-  "built": "2026-10-29T03:19:52Z",
-  "count": 21662,
+  "built": "2026-11-02T04:00:37Z",
+  "count": 21803,
   "file": "fp-en.json",
-  "bytes": 2311033
+  "bytes": 2325918
  },
  "ja": {
   "v": 1,
   "src": "gg",
-  "built": "2026-10-29T03:19:53Z",
-  "count": 27521,
+  "built": "2026-11-02T04:00:39Z",
+  "count": 27523,
   "file": "fp-ja.json",
-  "bytes": 3026329
+  "bytes": 3026549
  },
  "zh-tw": {
   "v": 1,
