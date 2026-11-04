@@ -1,7 +1,7 @@
 == en: reading card list
-   21810 cards with images, 7 new, 0 old removed
-   en: 7/7
-   en: 21803 fingerprints saved
+   21831 cards with images, 29 new, 1 old removed
+   en: 29/29
+   en: 21821 fingerprints saved
 == ja: reading card list
    27541 cards with images, 18 new, 0 old removed
    ja: 18/18
