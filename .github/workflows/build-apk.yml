@@ -69,6 +69,7 @@ jobs:
         with:
           name: CardDex-apk
           path: CardDex.apk
+          retention-days: 1
 
       - name: Write release notes (what changed since the last build)
         run: |
