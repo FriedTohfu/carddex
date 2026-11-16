@@ -1,6 +1,6 @@
 == en: reading card list
-   21829 cards with images, 8 new, 3 old removed
-   en: 8/8
+   21829 cards with images, 7 new, 0 old removed
+   en: 7/7
    en: 21822 fingerprints saved
 == ja: reading card list
    27542 cards with images, 14 new, 0 old removed
@@ -9,4 +9,6 @@
 == zh-tw: reading card list
    2146 cards with images, 0 new, 0 old removed
 == zh-cn: reading card list
-   24542 cards with images, 0 new, 0 old removed
+   24544 cards with images, 2 new, 0 old removed
+   zh-cn: 2/2
+   zh-cn: 21707 fingerprints saved
