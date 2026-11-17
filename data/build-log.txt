@@ -9,6 +9,4 @@
 == zh-tw: reading card list
    2146 cards with images, 0 new, 0 old removed
 == zh-cn: reading card list
-   24544 cards with images, 2 new, 0 old removed
-   zh-cn: 2/2
-   zh-cn: 21707 fingerprints saved
+   24544 cards with images, 0 new, 0 old removed
