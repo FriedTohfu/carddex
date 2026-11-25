@@ -3,8 +3,8 @@
    en: 7/7
    en: 21824 fingerprints saved
 == ja: reading card list
-   27580 cards with images, 52 new, 0 old removed
-   ja: 52/52
+   27580 cards with images, 14 new, 0 old removed
+   ja: 14/14
    ja: 27566 fingerprints saved
 == zh-tw: reading card list
    2146 cards with images, 0 new, 0 old removed
